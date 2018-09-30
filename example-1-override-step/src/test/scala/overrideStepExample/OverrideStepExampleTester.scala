@@ -24,8 +24,90 @@ SOFTWARE.
 
 package overrideStepExample
 
+import chisel3._
+
 import scala.collection.mutable.ListBuffer
 import chisel3.iotesters.PeekPokeTester
+
+/**
+  * Provides needed functions for BFMs (peek, poke, println).
+  *
+  * update() gets called every simulation step (every clock cycle).
+  */
+trait ChiselBfm {
+  val peek: Bits => BigInt
+  val poke: (Bits, BigInt) => Unit
+  val println: String => Unit
+
+  def update(t: Long): Unit
+}
+
+/**
+  * BFM for interface with data and valid (no backpressure = no ready)
+  */
+trait ValidIfBfm extends ChiselBfm {
+  val data: UInt
+  val valid: Bool
+}
+
+
+/**
+  * Driver for data+valid interface - drives everything which gets appended
+  * to stimulus on the interface
+  */
+class ValidIfDriver(val data: UInt,
+                    val valid: Bool,
+                    val peek: Bits => BigInt,
+                    val poke: (Bits, BigInt) => Unit,
+                    val println: String => Unit) extends ValidIfBfm{
+  private var stim = ListBuffer[BigInt]()
+
+  def stimAppend(x: BigInt): Unit = {
+    stim += x
+  }
+
+  def stimAppend(ls: List[BigInt]): Unit = {
+    stim ++= ls
+  }
+
+  def update(t: Long): Unit = {
+    if (stim.nonEmpty) {
+      poke(valid, 1)
+      val d = stim.remove(0)
+      poke(data, d)
+      println(f"${t}%5d Driver: sent ${d}")
+    } else {
+      poke(valid, 0)
+    }
+  }
+}
+
+/**
+  * Monitor for data+valid interface - stores all received data in internal list
+  */
+class ValidIfMonitor(val data: UInt,
+                     val valid: Bool,
+                     val peek: Bits => BigInt,
+                     val poke: (Bits, BigInt) => Unit,
+                     val println: String => Unit) extends ValidIfBfm {
+  private var resp = ListBuffer[BigInt]()
+
+  def respGet(): List[BigInt] = {
+    val ls = resp.result()
+    resp.clear()
+    ls
+  }
+
+  def update(t: Long): Unit = {
+    val vld = peek(valid)
+    if (vld != 0) {
+      val d = peek(data)
+      resp += d
+      println(f"${t}%5d Monitor: received ${d}")
+    }
+  }
+}
+
 
 class OverrideStepExampleTester(c: ExamplePipeline) extends PeekPokeTester(c) {
 
@@ -39,57 +121,13 @@ class OverrideStepExampleTester(c: ExamplePipeline) extends PeekPokeTester(c) {
   // high-level model of the DUT
   def model(x: BigInt): BigInt = (x + 1) & 0xFFFF
 
-  //==========================================================================
-  // BFMs
-
-  class ValidIfDriver {
-    private var stim = ListBuffer[BigInt]()
-
-    def stimAppend(x: BigInt): Unit = {
-      stim += x
-    }
-
-    def stimAppend(ls: List[BigInt]): Unit = {
-      stim ++= ls
-    }
-
-    def update(): Unit = {
-      if (stim.nonEmpty) {
-        poke(c.io.in_valid, 1)
-        val data = stim.remove(0)
-        poke(c.io.in_data, data)
-        println(f"${t}%5d Driver: sent ${data}")
-      } else {
-        poke(c.io.in_valid, 0)
-      }
-    }
-  }
-
-  class ValidIfMonitor {
-    private var resp = ListBuffer[BigInt]()
-
-    def respGet(): List[BigInt] = {
-      val ls = resp.result()
-      resp.clear()
-      ls
-    }
-
-    def update(): Unit = {
-      val vld = peek(c.io.out_valid)
-      if (vld != 0) {
-        val data = peek(c.io.out_data)
-        resp += data
-        println(f"${t}%5d Monitor: received ${data}")
-      }
-    }
-  }
 
   //==========================================================================
   // step
 
   def stepSingle(): Unit = {
-    driver.update()
-    monitor.update()
+    driver.update(t)
+    monitor.update(t)
     super.step(1)
   }
 
@@ -102,8 +140,8 @@ class OverrideStepExampleTester(c: ExamplePipeline) extends PeekPokeTester(c) {
   //==========================================================================
   // main
 
-  val driver = new ValidIfDriver()
-  val monitor = new ValidIfMonitor()
+  val driver = new ValidIfDriver(c.io.in_data, c.io.in_valid, peek, poke, println)
+  val monitor = new ValidIfMonitor(c.io.out_data, c.io.out_valid, peek, poke, println)
 
   println(f"${t}%5d Test starting...")
   step(5)

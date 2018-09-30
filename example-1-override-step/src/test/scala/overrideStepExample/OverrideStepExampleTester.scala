@@ -27,6 +27,7 @@ package overrideStepExample
 import chisel3._
 
 import scala.collection.mutable.ListBuffer
+import scala.reflect.runtime.universe._
 import chisel3.iotesters.PeekPokeTester
 
 /**
@@ -125,9 +126,16 @@ class OverrideStepExampleTester(c: ExamplePipeline) extends PeekPokeTester(c) {
   //==========================================================================
   // step
 
+  // from https://www.michaelpollmeier.com/fun-with-scalas-new-reflection-api-2-10
+  val rm = runtimeMirror(getClass.getClassLoader)
+  val im = rm.reflect(this)
+  val members = im.symbol.typeSignature.members
+  def bfms = members.filter(_.typeSignature <:< typeOf[ChiselBfm])
+
   def stepSingle(): Unit = {
-    driver.update(t)
-    monitor.update(t)
+    for (bfm <- bfms) {
+      im.reflectField(bfm.asTerm).get.asInstanceOf[ChiselBfm].update(t)
+    }
     super.step(1)
   }
 

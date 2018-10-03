@@ -44,12 +44,17 @@ class ValidIfMonitor(val data: UInt,
     ls
   }
 
+  private def printWithBg(s: String): Unit = {
+    // dark blue on light gray
+    println("\u001b[38;5;18;47m" + s + "\u001b[39;49m")
+  }
+
   def update(t: Long): Unit = {
     val vld = peek(valid)
     if (vld != 0) {
       val d = peek(data)
       resp += d
-      println(f"${t}%5d Monitor: received ${d}")
+      printWithBg(f"${t}%5d Monitor: received ${d}")
     }
   }
 }

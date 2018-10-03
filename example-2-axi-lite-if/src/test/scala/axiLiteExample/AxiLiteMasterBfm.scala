@@ -81,6 +81,7 @@ class AxiLiteMasterBfm(val axi: AxiLite,
     }
 
     private def printWithBg(s: String): Unit = {
+      // black on cyan
       println("\u001b[30;46m" + s + "\u001b[39;49m")
     }
 
@@ -141,6 +142,7 @@ class AxiLiteMasterBfm(val axi: AxiLite,
     }
 
     private def printWithBg(s: String): Unit = {
+      // black on magenta
       println("\u001b[30;45m" + s + "\u001b[39;49m")
     }
 

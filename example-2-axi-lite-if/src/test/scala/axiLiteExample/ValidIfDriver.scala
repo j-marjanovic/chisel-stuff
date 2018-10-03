@@ -47,12 +47,17 @@ class ValidIfDriver(val data: UInt,
     stim ++= ls
   }
 
+  private def printWithBg(s: String): Unit = {
+    // black on orange
+    println("\u001b[30;48;5;166m" + s + "\u001b[39;49m")
+  }
+
   def update(t: Long): Unit = {
     if (stim.nonEmpty) {
       poke(valid, 1)
       val d = stim.remove(0)
       poke(data, d)
-      println(f"${t}%5d Driver: sent ${d}")
+      printWithBg(f"${t}%5d Driver: sent ${d}")
     } else {
       poke(valid, 0)
     }

@@ -58,6 +58,7 @@ class PipelineWithAxiLiteSlave extends Module {
   val wr_en   = Reg(Bool())
   val wr_addr = Reg(UInt())
   val wr_data = Reg(UInt())
+  val wr_strb = Reg(UInt())
 
   // default value (gets overridden by FSM when both data and addr are valid)
   // this is just to make the compiler happy
@@ -68,20 +69,23 @@ class PipelineWithAxiLiteSlave extends Module {
       when (io.ctrl.AW.valid && io.ctrl.W.valid) {
         wr_en    := true.B
         wr_addr  := io.ctrl.AW.bits(ADDR_W-1, 2)
-        wr_data  := io.ctrl.W.bits
+        wr_data  := io.ctrl.W.bits.wdata
+        wr_strb  := io.ctrl.W.bits.wstrb
         state_wr := sWrResp
       } .elsewhen (io.ctrl.AW.valid) {
         wr_addr  := io.ctrl.AW.bits(ADDR_W-1, 2)
         state_wr := sWrHasRecvAddr
       } .elsewhen (io.ctrl.W.valid) {
-        wr_data  := io.ctrl.W.bits
+        wr_data  := io.ctrl.W.bits.wdata
+        wr_strb  := io.ctrl.W.bits.wstrb
         state_wr := sWrHasRecvData
       }
     }
     is (sWrHasRecvAddr) {
       when (io.ctrl.W.valid) {
         wr_en    := true.B
-        wr_data  := io.ctrl.W.bits
+        wr_data  := io.ctrl.W.bits.wdata
+        wr_strb  := io.ctrl.W.bits.wstrb
         state_wr := sWrResp
       }
     }
@@ -133,9 +137,24 @@ class PipelineWithAxiLiteSlave extends Module {
   io.ctrl.R.bits.rresp := 0x0.U(2.W)
 
   // write to regs
+  def wrWithStrobe(data: UInt, prev: UInt, strobe: UInt) : UInt = {
+    val BIT_W = 8
+    val tmp = Wire(Vec(prev.getWidth/BIT_W, UInt(BIT_W.W)))
+
+    for (i <- 0 until prev.getWidth/BIT_W) {
+      when ((strobe & (1 << i).U) =/= 0.U) {
+        tmp(i) := data((i+1)*BIT_W-1, i*BIT_W)
+      } .otherwise {
+        tmp(i) := prev((i+1)*BIT_W-1, i*BIT_W)
+      }
+    }
+
+    tmp.asUInt()
+  }
+
   when (wr_en) {
     switch (wr_addr) {
-      is (ADDR_COEF) { REG_COEF := wr_data(REG_COEF.getWidth-1, 0) }
+      is (ADDR_COEF) { REG_COEF := wrWithStrobe(wr_data, REG_COEF, wr_strb) }
     }
   }
 

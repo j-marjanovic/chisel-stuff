@@ -60,7 +60,7 @@ class AxiLiteMasterBfm(val axi: AxiLite,
   //==========================================================================
   // read interface
   class ReadIf {
-    private var currCmd: Cmd = new Cmd(false, 0, 0)
+    private var currCmd: Cmd = new Cmd(false, 0, 0, 0)
 
     private object State extends Enumeration {
       type State = Value
@@ -121,7 +121,7 @@ class AxiLiteMasterBfm(val axi: AxiLite,
   //==========================================================================
   // write interface
   class WriteIf {
-    private var currCmd: Cmd = new Cmd(false, 0, 0)
+    private var currCmd: Cmd = new Cmd(false, 0, 0, 0)
 
     private object State extends Enumeration {
       type State = Value
@@ -159,7 +159,8 @@ class AxiLiteMasterBfm(val axi: AxiLite,
           poke(axi.AW.valid, 1)
           poke(axi.AW.bits, currCmd.addr)
           poke(axi.W.valid, 1)
-          poke(axi.W.bits, currCmd.wr_data)
+          poke(axi.W.bits.wdata, currCmd.wr_data)
+          poke(axi.W.bits.wstrb, currCmd.wr_strb)
           if (aw_ready != 0 && w_ready != 0) {
             state = State.WriteWaitResp
           }
@@ -168,7 +169,8 @@ class AxiLiteMasterBfm(val axi: AxiLite,
           poke(axi.AW.valid, 0)
           poke(axi.AW.bits, 0)
           poke(axi.W.valid, 0)
-          poke(axi.W.bits, 0)
+          poke(axi.W.bits.wdata, 0)
+          poke(axi.W.bits.wstrb, 0)
           poke(axi.B.ready, 1)
           if (b_valid != 0) {
             val resp_str = if (b_resp == 0) { "OK" } else { "ERR" }
@@ -186,7 +188,7 @@ class AxiLiteMasterBfm(val axi: AxiLite,
 
   //==========================================================================
   // queues
-  class Cmd(val is_read: Boolean, val addr: BigInt, val wr_data: BigInt)
+  class Cmd(val is_read: Boolean, val addr: BigInt, val wr_data: BigInt, val wr_strb: BigInt)
   class Resp(val success: Boolean, val rd_data: BigInt)
   private var cmdList: ListBuffer[Cmd] = new ListBuffer()
   private var respList: ListBuffer[Resp] = new ListBuffer()
@@ -209,12 +211,12 @@ class AxiLiteMasterBfm(val axi: AxiLite,
 
   /** push new read command into the command queue */
   def readPush(addr: BigInt): Unit = {
-    cmdList += new Cmd(true, addr, 0)
+    cmdList += new Cmd(true, addr, 0, 0)
   }
 
   /** push new write command into the command queue */
-  def writePush(addr: BigInt, data: BigInt): Unit = {
-    cmdList += new Cmd(false, addr, data)
+  def writePush(addr: BigInt, data: BigInt, strb: BigInt = 0xF): Unit = {
+    cmdList += new Cmd(false, addr, data, strb)
   }
 
   /** part of ChiselBFM, should be called every clock cycle */

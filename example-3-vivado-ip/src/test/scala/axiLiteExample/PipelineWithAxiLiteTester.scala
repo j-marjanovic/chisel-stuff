@@ -66,6 +66,56 @@ class PipelineWithAxiLiteTester(c: PipelineWithAxiLite) extends PeekPokeTester(c
   }
 
   //==========================================================================
+  // tasks
+  def stepUntilAxiMasterDone(at_done: axi_master.Resp => Unit = _ => Unit): Unit = {
+    var resp: Option[axi_master.Resp] = None
+
+    while({resp = axi_master.getResponse(); resp.isEmpty}) {
+      step(1)
+    }
+
+    at_done(resp.get)
+  }
+
+  def getModuleInfo(): Unit = {
+    axi_master.readPush(0)
+    axi_master.readPush(4)
+    axi_master.readPush(8)
+
+    stepUntilAxiMasterDone(resp => println(f"${t}%5d read ID reg: ${resp.rd_data}%08x"))
+    stepUntilAxiMasterDone(resp => println(f"${t}%5d read VERSION reg: ${resp.rd_data}%08x"))
+    stepUntilAxiMasterDone(resp => println(f"${t}%5d read NR SAMP reg: ${resp.rd_data}%08x"))
+  }
+
+  def testWriteStrobe(): Unit = {
+    println(f"${t}%5d testWriteStrobe: write 0xABCD in two steps into addr 0xC")
+
+    val EXPECTED = 0xABCD
+    val DUMMY = 0x1234
+    val STRB_0 = 0x2
+    val STRB_1 = 0x1
+    val DATA_0 = (EXPECTED & 0xFF00) | (DUMMY & 0x00FF)
+    val DATA_1 = (EXPECTED & 0x00FF) | (DUMMY & 0xFF00)
+
+    axi_master.writePush(0xc, DATA_0, STRB_0)
+    axi_master.writePush(0xc, DATA_1, STRB_1)
+
+    stepUntilAxiMasterDone()
+    stepUntilAxiMasterDone()
+
+    axi_master.readPush(0xc)
+    var resp_0xc : axi_master.Resp = new axi_master.Resp(false, 0)
+    stepUntilAxiMasterDone(resp => resp_0xc = resp)
+    println(f"${t}%5d testWriteStrobe: expected ${EXPECTED}%04x, got ${resp_0xc.rd_data}%04x")
+    assert(EXPECTED == resp_0xc.rd_data)
+  }
+
+  def setCoefsTo1(): Unit = {
+    axi_master.writePush(0xc, 1)
+    stepUntilAxiMasterDone()
+  }
+
+  //==========================================================================
   // main
 
   val driver = new ValidIfDriver(c.io.in_data, c.io.in_valid, peek, poke, println)
@@ -73,16 +123,11 @@ class PipelineWithAxiLiteTester(c: PipelineWithAxiLite) extends PeekPokeTester(c
   val axi_master = new AxiLiteMasterBfm(c.io.ctrl, peek, poke, println)
 
   println(f"${t}%5d Test starting...")
-  axi_master.readPush(0)
-  axi_master.readPush(4)
-  axi_master.readPush(8)
-  axi_master.writePush(0xc, 1)
+  step(5)
 
-  step(20)
-  axi_master.readPush(8)
-  axi_master.readPush(8)
-  axi_master.readPush(8)
-  axi_master.readPush(8)
+  getModuleInfo()
+  testWriteStrobe()
+  setCoefsTo1()
 
   step(5)
 
@@ -91,8 +136,14 @@ class PipelineWithAxiLiteTester(c: PipelineWithAxiLite) extends PeekPokeTester(c
 
   val expected = STIMULI.map(model)
   val received = monitor.respGet()
-
   assert(expected == received)
+
+  axi_master.readPush(8)
+  var resp_recv_samples: axi_master.Resp = new axi_master.Resp(false, 0)
+  stepUntilAxiMasterDone(resp => resp_recv_samples = resp)
+
+  println(f"${t}%5d Number of samples sent: ${STIMULI.length}, core reports: ${resp_recv_samples.rd_data}")
+  assert(STIMULI.length == resp_recv_samples.rd_data)
 
   println(f"${t}%5d Test finished.")
 }

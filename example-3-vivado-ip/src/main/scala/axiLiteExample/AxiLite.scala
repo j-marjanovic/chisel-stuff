@@ -29,7 +29,10 @@ import chisel3.util.Irrevocable
 
 class AxiLite(val ADDR_W: Int, val DATA_W: Int = 32) extends Bundle {
   val AW = Flipped(Irrevocable(UInt(ADDR_W.W)))
-  val W = Flipped(Irrevocable(UInt(DATA_W.W)))
+  val W = Flipped(Irrevocable(new Bundle {
+    val wdata = UInt(DATA_W.W)
+    val wstrb = UInt((DATA_W / 8).W)
+  }))
   val B = Irrevocable(UInt(2.W))
   val AR = Flipped(Irrevocable(UInt(ADDR_W.W)))
   val R = Irrevocable(new Bundle {

@@ -26,6 +26,6 @@ package axiLiteExample
 
 object PipelineWithAxiLiteMain extends App {
   chisel3.Driver.execute(
-    Array[String]("--target-dir", "outputs") ++ args,
+    Array[String]("--target-dir", "ip_cores/pipeline_with_axi/hdl") ++ args,
     () => new PipelineWithAxiLite)
 }

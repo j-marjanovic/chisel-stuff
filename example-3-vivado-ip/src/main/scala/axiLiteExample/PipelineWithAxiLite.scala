@@ -50,7 +50,7 @@ class PipelineWithAxiLite extends Module {
   // axi interface
   val axi_ctrl   = Module(new PipelineWithAxiLiteSlave)
   val coef       = Wire(UInt(16.W))
-  val nr_samples = Reg(UInt(32.W))
+  val nr_samples = RegInit(UInt(32.W), 0.U)
   io.ctrl                   <> axi_ctrl.io.ctrl
   coef                      := axi_ctrl.io.coef
   axi_ctrl.io.stats_nr_samp := nr_samples

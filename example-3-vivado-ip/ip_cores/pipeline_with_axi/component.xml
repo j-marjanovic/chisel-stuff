@@ -767,8 +767,8 @@
       <xilinx:displayName>PipelineWithAxiLite</xilinx:displayName>
       <xilinx:definitionSource>package_project</xilinx:definitionSource>
       <xilinx:vendorURL>https://www.j-marjanovic.io</xilinx:vendorURL>
-      <xilinx:coreRevision>3</xilinx:coreRevision>
-      <xilinx:coreCreationDateTime>2018-10-13T18:19:32Z</xilinx:coreCreationDateTime>
+      <xilinx:coreRevision>4</xilinx:coreRevision>
+      <xilinx:coreCreationDateTime>2018-10-13T18:28:34Z</xilinx:coreCreationDateTime>
       <xilinx:tags>
         <xilinx:tag xilinx:name="j-marjanovic.io:user:PipelineWithAxiLite:1.0_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-3-vivado-ip/ip_cores/pipeline_with_axi</xilinx:tag>
         <xilinx:tag xilinx:name="user.org:user:PipelineWithAxiLite:1.0_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-3-vivado-ip/ip_cores/pipeline_with_axi</xilinx:tag>

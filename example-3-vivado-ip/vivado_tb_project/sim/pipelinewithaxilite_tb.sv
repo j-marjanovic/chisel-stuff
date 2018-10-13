@@ -178,6 +178,8 @@ initial begin: proc_main
     // wait for data to be processed
     #(1us);
 
+    read_stats();
+
     // final checks
     assert ($size(STIMULI) == $size(received))
         $display("%t check: received expected number of samples", $time);

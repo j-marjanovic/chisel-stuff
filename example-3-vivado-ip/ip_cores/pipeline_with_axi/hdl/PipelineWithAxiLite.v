@@ -175,7 +175,7 @@ module PipelineWithAxiLiteSlave( // @[:@3.2]
   assign _T_146 = 2'h3 == rd_addr; // @[Conditional.scala 37:30:@192.12]
   assign _GEN_65 = _T_146 ? {{18'd0}, REG_COEF} : rd_data; // @[Conditional.scala 39:67:@193.12]
   assign _GEN_66 = _T_145 ? {{2'd0}, io_stats_nr_samp} : _GEN_65; // @[Conditional.scala 39:67:@188.10]
-  assign _GEN_67 = _T_144 ? 34'h10000 : _GEN_66; // @[Conditional.scala 39:67:@183.8]
+  assign _GEN_67 = _T_144 ? 34'h10100 : _GEN_66; // @[Conditional.scala 39:67:@183.8]
   assign _GEN_68 = _T_143 ? 34'h71711123 : _GEN_67; // @[Conditional.scala 40:58:@178.6]
   assign io_ctrl_AW_ready = _T_65 ? 1'h1 : _T_72; // @[PipelineWithAxiLiteSlave.scala 108:20:@67.4 PipelineWithAxiLiteSlave.scala 114:24:@72.6 PipelineWithAxiLiteSlave.scala 119:24:@79.8 PipelineWithAxiLiteSlave.scala 124:24:@86.10 PipelineWithAxiLiteSlave.scala 129:24:@93.12]
   assign io_ctrl_W_ready = _T_65 ? 1'h1 : _GEN_38; // @[PipelineWithAxiLiteSlave.scala 109:20:@68.4 PipelineWithAxiLiteSlave.scala 115:24:@73.6 PipelineWithAxiLiteSlave.scala 120:24:@80.8 PipelineWithAxiLiteSlave.scala 125:24:@87.10 PipelineWithAxiLiteSlave.scala 130:24:@94.12]
@@ -455,16 +455,16 @@ module PipelineWithAxiLite( // @[:@198.2]
   wire [31:0] axi_ctrl_io_ctrl_R_bits_rdata; // @[PipelineWithAxiLite.scala 51:26:@203.4]
   wire [15:0] axi_ctrl_io_coef; // @[PipelineWithAxiLite.scala 51:26:@203.4]
   wire [31:0] axi_ctrl_io_stats_nr_samp; // @[PipelineWithAxiLite.scala 51:26:@203.4]
-  reg [31:0] nr_samples; // @[PipelineWithAxiLite.scala 53:23:@207.4]
+  reg [31:0] nr_samples; // @[PipelineWithAxiLite.scala 53:27:@207.4]
   reg [31:0] _RAND_0;
-  wire [32:0] _T_64; // @[PipelineWithAxiLite.scala 59:30:@228.6]
+  wire [32:0] _T_65; // @[PipelineWithAxiLite.scala 59:30:@228.6]
   wire [32:0] _GEN_0; // @[PipelineWithAxiLite.scala 58:23:@227.4]
   reg [15:0] p0_data; // @[PipelineWithAxiLite.scala 66:19:@234.4]
   reg [31:0] _RAND_1;
   reg  p0_valid; // @[PipelineWithAxiLite.scala 66:19:@234.4]
   reg [31:0] _RAND_2;
   wire [15:0] coef; // @[PipelineWithAxiLite.scala 52:24:@206.4 PipelineWithAxiLite.scala 55:29:@225.4]
-  wire [16:0] _T_69; // @[PipelineWithAxiLite.scala 45:30:@239.4]
+  wire [16:0] _T_70; // @[PipelineWithAxiLite.scala 45:30:@239.4]
   reg [15:0] p1_data; // @[PipelineWithAxiLite.scala 67:19:@241.4]
   reg [31:0] _RAND_3;
   reg  p1_valid; // @[PipelineWithAxiLite.scala 67:19:@241.4]
@@ -490,10 +490,10 @@ module PipelineWithAxiLite( // @[:@198.2]
     .io_coef(axi_ctrl_io_coef),
     .io_stats_nr_samp(axi_ctrl_io_stats_nr_samp)
   );
-  assign _T_64 = nr_samples + 32'h1; // @[PipelineWithAxiLite.scala 59:30:@228.6]
-  assign _GEN_0 = io_out_valid ? _T_64 : {{1'd0}, nr_samples}; // @[PipelineWithAxiLite.scala 58:23:@227.4]
+  assign _T_65 = nr_samples + 32'h1; // @[PipelineWithAxiLite.scala 59:30:@228.6]
+  assign _GEN_0 = io_out_valid ? _T_65 : {{1'd0}, nr_samples}; // @[PipelineWithAxiLite.scala 58:23:@227.4]
   assign coef = axi_ctrl_io_coef; // @[PipelineWithAxiLite.scala 52:24:@206.4 PipelineWithAxiLite.scala 55:29:@225.4]
-  assign _T_69 = p0_data + coef; // @[PipelineWithAxiLite.scala 45:30:@239.4]
+  assign _T_70 = p0_data + coef; // @[PipelineWithAxiLite.scala 45:30:@239.4]
   assign io_ctrl_AW_ready = axi_ctrl_io_ctrl_AW_ready; // @[PipelineWithAxiLite.scala 54:29:@224.4]
   assign io_ctrl_W_ready = axi_ctrl_io_ctrl_W_ready; // @[PipelineWithAxiLite.scala 54:29:@221.4]
   assign io_ctrl_B_valid = axi_ctrl_io_ctrl_B_valid; // @[PipelineWithAxiLite.scala 54:29:@216.4]
@@ -567,10 +567,14 @@ module PipelineWithAxiLite( // @[:@198.2]
   end
 `endif // RANDOMIZE
   always @(posedge clock) begin
-    nr_samples <= _GEN_0[31:0];
+    if (reset) begin
+      nr_samples <= 32'h0;
+    end else begin
+      nr_samples <= _GEN_0[31:0];
+    end
     p0_data <= io_in_data;
     p0_valid <= io_in_valid;
-    p1_data <= _T_69[15:0];
+    p1_data <= _T_70[15:0];
     p1_valid <= p0_valid;
   end
 endmodule

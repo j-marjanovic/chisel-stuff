@@ -43,8 +43,7 @@ object AllDone extends Exception { }
 class GunzipTester(c: GunzipEngine, val filename: java.net.URL) extends PeekPokeTester(c) {
 
   // stim
-  val bits = GunzipHeaderParser.remove_hdr(filename)
-  //val inp = List.fill[BigInt](1000){bits.getBits(1)}
+  val bits = GunzipHeaderParser.get_bitstream(filename)
   var inp_buffer = ListBuffer[BigInt]()
 
   try {

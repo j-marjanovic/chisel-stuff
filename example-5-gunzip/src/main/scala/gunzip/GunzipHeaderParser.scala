@@ -33,12 +33,13 @@ import chisel3._
 object GunzipHeaderParser {
   val GZIP_HEADER_LEN = 10
 
-  def parse(file: java.net.URL): (List[Option[Int]], List[Option[Int]]) = {
+  def parse(file: java.net.URL): (List[Option[Int]], List[Option[Int]], Int) = {
     val in = file.openStream()
     val bis = new BufferedInputStream(in)
     val in_bytes = Stream.continually(bis.read).takeWhile(-1 !=).map(_.toByte).toList
 
     val bs = new BitStream(in_bytes.slice(GZIP_HEADER_LEN, in_bytes.length))
+    bs.bits_read += GZIP_HEADER_LEN*8
 
     val bfinal = bs.getBits(1)
     val btype = bs.getBits(2)
@@ -69,45 +70,15 @@ object GunzipHeaderParser {
     val litTree: List[Option[Int]] = new HuffmanTree(codes_litlen).heap.toList
     val distTree: List[Option[Int]] = new HuffmanTree(codes_dist).heap.toList
 
-    Tuple2(litTree, distTree)
+    Tuple3(litTree, distTree, bs.bits_read)
   }
 
-  def remove_hdr(file: java.net.URL) = {
+  def get_bitstream(file: java.net.URL) = {
     val in = file.openStream()
     val bis = new BufferedInputStream(in)
     val in_bytes = Stream.continually(bis.read).takeWhile(-1 !=).map(_.toByte).toList
 
-    val bs = new BitStream(in_bytes.slice(GZIP_HEADER_LEN, in_bytes.length))
-
-    val bfinal = bs.getBits(1)
-    val btype = bs.getBits(2)
-
-    println(s"bfinal: ${bfinal}, btype: ${btype}")
-
-    val HLIT = bs.getBits(5) + 257
-    val HDIST = bs.getBits(5) + 1
-    val HCLEN = bs.getBits(4) + 4
-
-    val CL_ORDER : List[Int] = List(16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15)
-
-    val cl : MutableList[Int] = MutableList.fill(19)(0)
-    for (i <- 0 until HCLEN) {
-      cl(CL_ORDER(i)) = bs.getBits(3)
-    }
-
-    val codes_lens = gen_codes(cl.toList, 19)
-
-    val ht_lens = new HuffmanTree(codes_lens)
-
-    val lens_litlen = get_lengths(ht_lens, bs, HLIT)
-    val codes_litlen = gen_codes(lens_litlen, HLIT)
-
-    val lens_dist = get_lengths(ht_lens, bs, HDIST)
-    val codes_dist = gen_codes(lens_dist, HDIST)
-
-    val litTree: List[Option[Int]] = new HuffmanTree(codes_litlen).heap.toList
-    val distTree: List[Option[Int]] = new HuffmanTree(codes_dist).heap.toList
-
+    val bs = new BitStream(in_bytes)
     bs
   }
 

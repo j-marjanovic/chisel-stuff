@@ -30,14 +30,20 @@ import chisel3.util._
 
 class GunzipEngine(val filename: java.net.URL) extends Module {
   val io = IO(new Bundle {
-    val data_in = DeqIO(UInt(1.W))
+    val data_in = DeqIO(UInt(8.W))
     val data_out = EnqIO(new GunzipOutput)
   })
 
-  val huff_lit_dist_trees = GunzipHeaderParser.parse(filename)
-  val huff_lit_tree: List[Option[Int]] = huff_lit_dist_trees._1
-  val huff_dist_tree: List[Option[Int]] = huff_lit_dist_trees._2
+  val huff_lit_dist_trees_bit_skip = GunzipHeaderParser.parse(filename)
+  val huff_lit_tree: List[Option[Int]] = huff_lit_dist_trees_bit_skip._1
+  val huff_dist_tree: List[Option[Int]] = huff_lit_dist_trees_bit_skip._2
+  val initial_bit_skip: Int = huff_lit_dist_trees_bit_skip._3
   val huff_dist_vec: Vec[GunzipHuffDecoderElem] = GunzipHeaderParser.genVec(huff_dist_tree)
+
+  //==========================================================================
+  // initial bit skipper
+  val bit_skipper = Module(new GunzipBitSkipper(initial_bit_skip))
+  bit_skipper.io.data_in_valid := io.data_in.valid
 
   //==========================================================================
   // lit decoder
@@ -45,7 +51,7 @@ class GunzipEngine(val filename: java.net.URL) extends Module {
 
   val dec_lit = Module(new GunzipHuffDecoder(huff_lit_tree))
   dec_lit.io.data_in_valid := io.data_in.valid
-  dec_lit.io.data_in_bits := io.data_in.bits
+  dec_lit.io.data_in_bits := io.data_in.bits(0)
   dec_lit.io.enable := dec_lit_en
 
   //==========================================================================
@@ -58,7 +64,7 @@ class GunzipEngine(val filename: java.net.URL) extends Module {
   val lut_len_en = Wire(Bool())
 
   val lut_len = Module(new GunzipLenDistLut(C_LENS, C_LEXT, 15))
-  lut_len.io.data_in_bits := io.data_in.bits
+  lut_len.io.data_in_bits := io.data_in.bits(0)
   lut_len.io.data_in_valid := io.data_in.valid
   lut_len.io.enable := lut_len_en
   lut_len.io.lut_idx := dec_lit.io.data - 257.U
@@ -69,7 +75,7 @@ class GunzipEngine(val filename: java.net.URL) extends Module {
 
   val dec_dist = Module(new GunzipHuffDecoder(huff_dist_tree))
   dec_dist.io.data_in_valid := io.data_in.valid
-  dec_dist.io.data_in_bits := io.data_in.bits
+  dec_dist.io.data_in_bits := io.data_in.bits(0)
   dec_dist.io.enable := dec_dist_en
 
   //==========================================================================
@@ -83,7 +89,7 @@ class GunzipEngine(val filename: java.net.URL) extends Module {
 
   val lut_dist_en = Wire(Bool())
   val lut_dist = Module(new GunzipLenDistLut(C_DISTS, C_DEXT, 15))
-  lut_dist.io.data_in_bits := io.data_in.bits
+  lut_dist.io.data_in_bits := io.data_in.bits(0)
   lut_dist.io.data_in_valid := io.data_in.valid
   lut_dist.io.enable := lut_dist_en
   lut_dist.io.lut_idx := dec_dist.io.data
@@ -102,8 +108,8 @@ class GunzipEngine(val filename: java.net.URL) extends Module {
 
   //==========================================================================
   // fsm
-  val sDecode :: sLen :: sDistDec :: sDist :: sCopy :: Nil = Enum(5)
-  val state = RegInit(sDecode)
+  val sInit :: sDecode :: sLen :: sDistDec :: sDist :: sCopy :: Nil = Enum(6)
+  val state = RegInit(sInit)
 
   val out_data = Reg(UInt())
   val out_valid = Reg(Bool())
@@ -118,6 +124,12 @@ class GunzipEngine(val filename: java.net.URL) extends Module {
   lut_dist_en := false.B
 
   switch (state) {
+    is (sInit) {
+      when (bit_skipper.io.done) {
+        state := sDecode
+        printf(p"Bit skip finished\n")
+      }
+    }
     is (sDecode) {
       dec_lit_en := true.B
       when (dec_lit.io.valid) {
@@ -169,6 +181,9 @@ class GunzipEngine(val filename: java.net.URL) extends Module {
   io.data_out.bits.last := out_last
 
   io.data_in.ready := false.B
+  when (state === sInit) {
+    io.data_in.ready := bit_skipper.io.data_in_ready
+  }
   when (state === sDecode) {
     io.data_in.ready := dec_lit.io.data_in_ready
   }

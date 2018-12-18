@@ -44,8 +44,8 @@ class GunzipOutBuf extends Module {
   })
 
   val out_buf = SyncReadMem(32768, UInt(8.W)) // TODO: check size
-  val out_buf_wr_pos = Reg(UInt(15.W))
-  val out_buf_rd_pos = Reg(UInt(15.W))
+  val out_buf_wr_pos = RegInit(0.U(15.W))
+  val out_buf_rd_pos = RegInit(0.U(15.W))
   val rem_len = Reg(UInt(15.W))
 
   // store output data

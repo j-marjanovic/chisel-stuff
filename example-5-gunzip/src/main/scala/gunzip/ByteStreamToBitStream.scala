@@ -24,35 +24,36 @@ SOFTWARE.
 
 package gunzip
 
-import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
+import chisel3._
+import chisel3.util._
 
-class BitStream(val bytes: List[Byte]) {
-  private def bytesToBits(bytes: List[Byte]): List[Int] = {
-    val bits = ListBuffer[Int]()
+class ByteStreamToBitStream extends Module {
+  val io = IO(new Bundle {
+    val data_in = DeqIO(UInt(8.W))
+    val data_out = EnqIO(UInt(8.W))
+  })
 
-    for (byt <- bytes) {
-      for (i <- 0 to 7) {
-        bits += (byt & (1 << i)) >> i
-      }
+  val sel = RegInit(0.U(4.W))
+
+  io.data_in.ready := sel === 0.U
+  io.data_out.valid := sel =/= 0.U
+
+  when (sel =/= 0.U && io.data_out.ready) {
+    when (sel === 8.U) {
+      sel := 0.U
+    } .otherwise {
+      sel := sel + 1.U
     }
-
-    bits.toList
+  } .elsewhen (sel === 0.U && io.data_in.valid) {
+    sel := 1.U
   }
 
-  val in_bits = bytesToBits(bytes)
-  val xs: mutable.Queue[Int] = mutable.Queue[Int]()
-  xs ++= in_bits
+  val data_reg = Reg(UInt())
 
-  var bits_read : Int = 0
-
-  def getBits(len: Int): Int = {
-    var accum : Int = 0
-    bits_read += len
-    for (i <- 0 until len) {
-      accum |= xs.dequeue() << i
-    }
-    accum
+  when (sel === 0.U && io.data_in.valid) {
+    data_reg := io.data_in.bits
   }
+
+  io.data_out.bits := data_reg(sel - 1.U)
 
 }

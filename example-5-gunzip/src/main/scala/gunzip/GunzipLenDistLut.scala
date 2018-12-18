@@ -94,12 +94,14 @@ class GunzipLenDistLut(val LUT_VALS: List[Int],
       }
     }
     is (sAccum) {
-      io.data_in_ready := true.B
-      ext_val := write_at(io.data_in_bits, ext_idx, ext_val)
-      ext_idx := ext_idx + 1.U
+      when (io.data_in_valid) {
+        io.data_in_ready := true.B
+        ext_val := write_at(io.data_in_bits, ext_idx, ext_val)
+        ext_idx := ext_idx + 1.U
 
-      when (ext_idx === ext_lim) {
-        state := sAccumOut
+        when(ext_idx === ext_lim) {
+          state := sAccumOut
+        }
       }
     }
     is (sAccumOut) {

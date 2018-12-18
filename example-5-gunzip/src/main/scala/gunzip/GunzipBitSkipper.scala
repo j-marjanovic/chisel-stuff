@@ -24,35 +24,28 @@ SOFTWARE.
 
 package gunzip
 
-import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
+import chisel3._
+import chisel3.util._
 
-class BitStream(val bytes: List[Byte]) {
-  private def bytesToBits(bytes: List[Byte]): List[Int] = {
-    val bits = ListBuffer[Int]()
 
-    for (byt <- bytes) {
-      for (i <- 0 to 7) {
-        bits += (byt & (1 << i)) >> i
-      }
-    }
+/** an FPGA equivalent of /dev/null, but with limited length
+  *
+  * @param initial_bit_skip bits to skip before done
+  */
+class GunzipBitSkipper(val initial_bit_skip: Int) extends Module {
+  val io = IO(new Bundle {
+    val data_in_valid = Input(Bool())
+    val data_in_ready = Output(Bool())
+    val done = Output(Bool())
+  })
 
-    bits.toList
+  val BIT_CNTR_W = log2Ceil(initial_bit_skip + 1)
+  val bit_cntr = RegInit(0.U(BIT_CNTR_W.W))
+
+  when (io.data_in_ready && io.data_in_valid && bit_cntr < initial_bit_skip.U) {
+    bit_cntr := bit_cntr + 1.U
   }
 
-  val in_bits = bytesToBits(bytes)
-  val xs: mutable.Queue[Int] = mutable.Queue[Int]()
-  xs ++= in_bits
-
-  var bits_read : Int = 0
-
-  def getBits(len: Int): Int = {
-    var accum : Int = 0
-    bits_read += len
-    for (i <- 0 until len) {
-      accum |= xs.dequeue() << i
-    }
-    accum
-  }
-
+  io.done := bit_cntr === initial_bit_skip.U
+  io.data_in_ready := bit_cntr =/= initial_bit_skip.U
 }

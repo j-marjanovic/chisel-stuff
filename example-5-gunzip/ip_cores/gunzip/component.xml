@@ -20,6 +20,12 @@
           </spirit:physicalPort>
         </spirit:portMap>
       </spirit:portMaps>
+      <spirit:parameters>
+        <spirit:parameter>
+          <spirit:name>POLARITY</spirit:name>
+          <spirit:value spirit:id="BUSIFPARAM_VALUE.RESET.POLARITY">ACTIVE_HIGH</spirit:value>
+        </spirit:parameter>
+      </spirit:parameters>
     </spirit:busInterface>
     <spirit:busInterface>
       <spirit:name>clock</spirit:name>
@@ -134,7 +140,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>10d9ede7</spirit:value>
+            <spirit:value>7b801943</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -150,7 +156,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>43ec9e7f</spirit:value>
+            <spirit:value>bbf397a7</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -226,9 +232,13 @@
         <spirit:name>io_data_in_bits</spirit:name>
         <spirit:wire>
           <spirit:direction>in</spirit:direction>
+          <spirit:vector>
+            <spirit:left spirit:format="long">7</spirit:left>
+            <spirit:right spirit:format="long">0</spirit:right>
+          </spirit:vector>
           <spirit:wireTypeDefs>
             <spirit:wireTypeDef>
-              <spirit:typeName>std_logic</spirit:typeName>
+              <spirit:typeName>std_logic_vector</spirit:typeName>
               <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
               <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
             </spirit:wireTypeDef>
@@ -304,7 +314,7 @@
       <spirit:file>
         <spirit:name>hdl/GunzipEngine.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
-        <spirit:userFileType>CHECKSUM_43ec9e7f</spirit:userFileType>
+        <spirit:userFileType>CHECKSUM_bbf397a7</spirit:userFileType>
       </spirit:file>
     </spirit:fileSet>
     <spirit:fileSet>
@@ -360,18 +370,101 @@
       </xilinx:taxonomies>
       <xilinx:displayName>gunzip</xilinx:displayName>
       <xilinx:definitionSource>package_project</xilinx:definitionSource>
-      <xilinx:coreRevision>4</xilinx:coreRevision>
-      <xilinx:coreCreationDateTime>2018-12-09T21:24:18Z</xilinx:coreCreationDateTime>
+      <xilinx:coreRevision>13</xilinx:coreRevision>
+      <xilinx:coreCreationDateTime>2018-12-18T18:56:49Z</xilinx:coreCreationDateTime>
       <xilinx:tags>
         <xilinx:tag xilinx:name="user.org:user:GunzipEngine:1.0_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
         <xilinx:tag xilinx:name="user.org:user:gunzip:1.0_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6a99c356_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@447b913c_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@693a0d18_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@11865ec9_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6b4f8359_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@64b7aa55_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@476eb110_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@a5678ac_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@78af58a_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@30a0c938_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5ee690dc_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@485ae368_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1fe98be2_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@67799c0_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@17d1103e_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@12244bc5_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4d52758a_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5694446e_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@61e5d999_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4a35ddfd_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7cdf057a_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@550e0465_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@32b38090_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@482e5c57_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@621fa2ab_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5d0455fc_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@c71e62b_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2ef1a4f6_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1fd0a918_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@496a64b1_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@727099b7_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@598cb642_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2a619a7_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3c10446b_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@469af977_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4a28705f_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5bc73578_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3a0be43d_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2e045117_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@48676ec4_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@30ae7cd5_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4da39e9f_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5f2d4efa_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3fb17815_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@c00067c_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@162ac784_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@725cebdf_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@26717f16_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@361bb49c_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@479db28c_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@c1b1602_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4066bb15_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@72651883_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@15f3e260_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@16c2d211_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6033600f_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7ce42bed_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@44382ab4_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2b3a4fc8_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7797433b_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2afa976c_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2a3a108a_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5f5cbd1c_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5b36a13d_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@531a386_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@26082843_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4f496295_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4ded3042_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@254bcfbc_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6a4179ea_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@50518575_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1e76bf7a_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1b5e156a_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@12459e90_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2dc9d6b6_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4643d0e4_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@330b6f94_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1d0a0ff5_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@15c5a203_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@220fd4d0_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@50c24c72_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@60b99e28_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1618b2a7_ARCHIVE_LOCATION">/home/jan/FPGA/chisel/chisel-stuff/example-5-gunzip/ip_cores/gunzip</xilinx:tag>
       </xilinx:tags>
     </xilinx:coreExtensions>
     <xilinx:packagingInfo>
-      <xilinx:xilinxVersion>2018.1</xilinx:xilinxVersion>
-      <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="18c722f7"/>
-      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="e5982131"/>
-      <xilinx:checksum xilinx:scope="ports" xilinx:value="ce3d1163"/>
+      <xilinx:xilinxVersion>2018.3</xilinx:xilinxVersion>
+      <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="a542e957"/>
+      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="f3f8dd32"/>
+      <xilinx:checksum xilinx:scope="ports" xilinx:value="6c793b2a"/>
       <xilinx:checksum xilinx:scope="parameters" xilinx:value="6bf95263"/>
     </xilinx:packagingInfo>
   </spirit:vendorExtensions>

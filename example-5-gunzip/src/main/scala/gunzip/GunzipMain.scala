@@ -30,4 +30,8 @@ object GunzipMain extends App {
     Array[String]("--target-dir", "ip_cores/gunzip/hdl") ++ args,
     () => new GunzipEngine(getClass.getResource("/in.tar.gz")))
 
+  chisel3.Driver.execute(
+    Array[String]("--target-dir", "ip_cores/byte2bit/hdl") ++ args,
+    () => new ByteStreamToBitStream())
+
 }

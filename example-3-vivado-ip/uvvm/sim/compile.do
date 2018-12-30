@@ -29,6 +29,6 @@ do $UVVM_PATH/$lib_name/script/compile_src.do $UVVM_PATH/$lib_name
 set lib_name "bitvis_vip_axilite"
 do $UVVM_PATH/$lib_name/script/compile_src.do $UVVM_PATH/$lib_name
 
-# BFM: axi lite
+# BFM: axi stream
 set lib_name "bitvis_vip_axistream"
 do $UVVM_PATH/$lib_name/script/compile_src.do $UVVM_PATH/$lib_name

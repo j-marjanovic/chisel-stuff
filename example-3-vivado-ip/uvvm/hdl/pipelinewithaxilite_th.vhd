@@ -156,7 +156,9 @@ begin
   proc_reset: process
   begin
     reset <= '1';
-    wait until rising_edge(clock);
+    for i in 0 to 2 loop
+      wait until rising_edge(clock);
+    end loop;
     reset <= '0';
     wait;
   end process;

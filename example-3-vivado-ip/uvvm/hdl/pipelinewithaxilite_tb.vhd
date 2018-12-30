@@ -34,8 +34,14 @@ library uvvm_vvc_framework;
 use uvvm_vvc_framework.ti_vvc_framework_support_pkg.all;
 
 library bitvis_vip_axilite;
+use bitvis_vip_axilite.vvc_cmd_pkg.all;
 use bitvis_vip_axilite.vvc_methods_pkg.all;
 use bitvis_vip_axilite.td_vvc_framework_common_methods_pkg.all;
+
+library bitvis_vip_axistream;
+use bitvis_vip_axistream.vvc_cmd_pkg.all;
+use bitvis_vip_axistream.vvc_methods_pkg.all;
+use bitvis_vip_axistream.td_vvc_framework_common_methods_pkg.all;
 
 entity pipelinewithaxilite_tb is
 end entity;
@@ -46,16 +52,19 @@ begin
   i_test_harness: entity work.pipelinewithaxilite_th;
 
   proc_main: process
-    subtype  t_vvc_result is std_logic_vector(256-1 downto 0);
-
     variable v_idx : integer;
-    variable v_result : t_vvc_result;
+    variable v_lite_result : bitvis_vip_axilite.vvc_cmd_pkg.t_vvc_result;
+    variable v_st_result : bitvis_vip_axistream.vvc_cmd_pkg.t_vvc_result;
+    alias TB_AXIS_OUT_TLAST is
+      <<signal i_test_harness.TB_AXIS_OUT_TLAST : std_logic>>;
   begin
     -- init
     await_uvvm_initialization(VOID);
     disable_log_msg(ALL_MESSAGES);
     enable_log_msg(ID_LOG_HDR);
     disable_log_msg(AXILITE_VVCT, 1, ALL_MESSAGES);
+    enable_log_msg(AXISTREAM_VVCT, 1, ALL_MESSAGES);
+    enable_log_msg(AXISTREAM_VVCT, 2, ALL_MESSAGES);
     log(ID_LOG_HDR, "Start simulation");
 
     wait for 50 ns;
@@ -64,8 +73,30 @@ begin
     axilite_read(AXILITE_VVCT, 1, x"00", "read ID reg");
     v_idx := get_last_received_cmd_idx(AXILITE_VVCT, 1);
     await_completion(AXILITE_VVCT, 1, 100 ns, "wait for read to complete");
-    fetch_result(AXILITE_VVCT, 1, v_idx, v_result);
-    log(ID_LOG_HDR, "ID reg: " & to_hstring(v_result(31 downto 0)));
+    fetch_result(AXILITE_VVCT, 1, v_idx, v_lite_result);
+    log(ID_LOG_HDR, "ID reg: " & to_hstring(v_lite_result(31 downto 0)));
+
+    -- recv
+    axistream_receive(AXISTREAM_VVCT, 2, "recveive data");
+    v_idx := get_last_received_cmd_idx(AXISTREAM_VVCT, 2);
+    log(ID_LOG_HDR, "v_idx: " & to_string(v_idx));
+
+    -- send data on AXI stream (force TLAST on last cycle)
+    axistream_transmit(AXISTREAM_VVCT, 1, X"0123", "write data");
+    axistream_transmit(AXISTREAM_VVCT, 1, X"ABCD", "write data");
+    axistream_transmit(AXISTREAM_VVCT, 1, X"4567", "write data");
+    axistream_transmit(AXISTREAM_VVCT, 1, X"89EF", "write data");
+    await_completion(AXISTREAM_VVCT, 1, 100 ns, "wait for pkts to be transmitted");
+    wait for 20 ns;
+
+    TB_AXIS_OUT_TLAST <= '1';
+    axistream_transmit(AXISTREAM_VVCT, 1, X"0000", "write data");
+    await_completion(AXISTREAM_VVCT, 2, 100 ns, "wait for pkts to be received");
+
+    wait for 100 ns;
+
+    fetch_result(AXISTREAM_VVCT, 2, v_idx, v_st_result);
+    log(ID_LOG_HDR, "Stream data: " & to_string(v_st_result.data_array(16*1024-10 to 16*1024-1)));
 
     wait for 100 ns;
 

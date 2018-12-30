@@ -27,10 +27,18 @@ use IEEE.numeric_std.all;
 library STD;
 use std.env.all;
 
+library uvvm_util;
+context uvvm_util.uvvm_util_context;
+
 library uvvm_vvc_framework;
 use uvvm_vvc_framework.ti_vvc_framework_support_pkg.all;
 
 library bitvis_vip_axilite;
+
+library bitvis_vip_axistream;
+use bitvis_vip_axistream.axistream_bfm_pkg.t_axistream_if;
+use bitvis_vip_axistream.axistream_bfm_pkg.t_axistream_bfm_config;
+use bitvis_vip_axistream.axistream_bfm_pkg.C_AXISTREAM_BFM_CONFIG_DEFAULT;
 
 entity pipelinewithaxilite_th is
 end entity;
@@ -94,13 +102,48 @@ architecture behav of pipelinewithaxilite_th is
   signal S_AXI_RDATA : std_logic_vector(31 downto 0);
   signal S_AXI_RRESP : std_logic_vector(1 downto 0);
 
-  -- AXI4-Stream input
+  -- AXI4-Stream input (DUT is slave)
   signal S_AXIS_IN_TDATA : std_logic_vector(15 downto 0);
   signal S_AXIS_IN_TVALID : std_logic;
+  signal axistream_if_m : t_axistream_if(tdata(16 -1 downto 0),
+                                          tkeep(16/8-1 downto 0),
+                                          tuser(0 downto 0),
+                                          tstrb(18/8-1 downto 0),
+                                          tid  (0 downto 0),
+                                          tdest(0 downto 0)
+                                        );
+  constant C_AXISTREAM_M_CONF : t_axistream_bfm_config := (
+    max_wait_cycles             => 100,
+    max_wait_cycles_severity    => ERROR,
+    clock_period                => C_CLK_PERIOD,
+    clock_period_margin         => 0 ns,
+    clock_margin_severity       => TB_ERROR,
+    setup_time                  => C_CLK_PERIOD / 4,
+    hold_time                   => C_CLK_PERIOD / 4,
+    byte_endianness             => FIRST_BYTE_RIGHT,
+    check_packet_length         => false,
+    protocol_error_severity     => ERROR,
+    ready_low_at_word_num       => 0,
+    ready_low_duration          => 0,
+    ready_default_value         => '0',
+    id_for_bfm                  => ID_BFM,
+    id_for_bfm_wait             => ID_BFM_WAIT,
+    id_for_bfm_poll             => ID_BFM_POLL
+  );
 
-  -- AXI4-Stream output
+  -- AXI4-Stream output (DUT is master)
   signal M_AXIS_OUT_TDATA : std_logic_vector(15 downto 0);
   signal M_AXIS_OUT_TVALID : std_logic;
+  signal axistream_if_s : t_axistream_if(tdata(16 -1 downto 0),
+                                          tkeep(16/8-1 downto 0),
+                                          tuser(0 downto 0),
+                                          tstrb(18/8-1 downto 0),
+                                          tid  (0 downto 0),
+                                          tdest(0 downto 0)
+                                        );
+
+  -- used by the TB to signal to BFM to stop (DUT does not have TLAST output)
+  signal TB_AXIS_OUT_TLAST : std_logic := '0';
 begin
 
 
@@ -147,7 +190,7 @@ begin
   );
 
 
-  i0_axilite_vvc: entity bitvis_vip_axilite.axilite_vvc
+  i1_axilite_vvc: entity bitvis_vip_axilite.axilite_vvc
   generic map (
     GC_ADDR_WIDTH => 4,
     GC_DATA_WIDTH => 32,
@@ -180,5 +223,42 @@ begin
     axilite_vvc_master_if.read_data_channel.rvalid  => S_AXI_RVALID
   );
 
+  -- master -> generates data
+  i1_axistream_vvc: entity bitvis_vip_axistream.axistream_vvc
+  generic map (
+    GC_VVC_IS_MASTER => true,
+    GC_DATA_WIDTH => 16,
+    GC_USER_WIDTH => 0,
+    GC_INSTANCE_IDX => 1,
+    GC_AXISTREAM_BFM_CONFIG => C_AXISTREAM_M_CONF
+  )
+  port map (
+    clk => clock,
+    axistream_vvc_if => axistream_if_m
+  );
+
+  S_AXIS_IN_TDATA <= axistream_if_m.tdata;
+  S_AXIS_IN_TVALID <= axistream_if_m.tvalid;
+  axistream_if_m.tready <= '1';
+
+  -- slave -> receives data
+  i2_axistream_vvc: entity bitvis_vip_axistream.axistream_vvc
+  generic map (
+    GC_VVC_IS_MASTER => false,
+    GC_DATA_WIDTH => 16,
+    GC_USER_WIDTH => 0,
+    GC_INSTANCE_IDX => 2,
+    GC_AXISTREAM_BFM_CONFIG => C_AXISTREAM_M_CONF
+  )
+  port map (
+    clk => clock,
+    axistream_vvc_if => axistream_if_s
+  );
+
+  axistream_if_s.tdata <= M_AXIS_OUT_TDATA;
+  axistream_if_s.tvalid <= M_AXIS_OUT_TVALID;
+  axistream_if_s.tlast <= TB_AXIS_OUT_TLAST;
+  axistream_if_s.tkeep <= (others => '1');
+  axistream_if_s.tstrb <= (others => '1');
 
 end architecture;

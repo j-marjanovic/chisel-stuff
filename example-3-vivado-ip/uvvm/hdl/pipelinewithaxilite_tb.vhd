@@ -160,7 +160,7 @@ begin
     read_id;
     read_ver;
     read_stats(v_tmp_u32);
-    set_coef(to_unsigned(2, 32));
+    set_coef(to_unsigned(1, 32));
 
     -- set receiver
     axistream_receive(AXISTREAM_VVCT, 2, "recveive data");
@@ -191,8 +191,9 @@ begin
 
     wait for 100 ns;
 
-    -- check counter operation
+    -- check counter operation (len of C_STIM + 1 for dummy expected)
     read_stats(v_tmp_u32);
+    check_value(to_integer(v_tmp_u32), C_STIM'length + 1, ERROR, "check internal counter");
 
     -- done
     report_alert_counters(FINAL);

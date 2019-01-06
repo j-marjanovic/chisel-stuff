@@ -20,10 +20,34 @@ class TranslatorTest extends FlatSpec {
     assert(vl == tr)
   }
 
+  it should "translate module instantations" in {
+    val t = new Translator
+    val cl = "  val axi_slave = Module(new StatusAxiSlave)"
+    val vl = "  axi_slave: entity work.StatusAxiSlave\n  port map(\n  );"
+    val tr = t.translate(cl)
+    assert(vl == tr)
+  }
+
   it should "preserve leading whitespace" in {
     val t = new Translator
     val cl = "  \tval S_AXI_AWREADY = Output(Bool())"
     val vl = "  \tS_AXI_AWREADY : out std_logic;"
+    val tr = t.translate(cl)
+    assert(vl == tr)
+  }
+
+  it should "translate single-line comments" in {
+    val t = new Translator
+    val cl = "  // hello"
+    val vl = "  -- hello"
+    val tr = t.translate(cl)
+    assert(vl == tr)
+  }
+
+  it should "translate empty line" in {
+    val t = new Translator
+    val cl = ""
+    val vl = ""
     val tr = t.translate(cl)
     assert(vl == tr)
   }

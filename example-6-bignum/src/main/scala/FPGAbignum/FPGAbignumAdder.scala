@@ -27,6 +27,13 @@ package FPGAbignum
 import chisel3._
 import chisel3.util._
 
+/**
+  *
+  * limitations:
+  *   - data must be at least 2 elements long (i.e. TLAST should not be
+  *     asserted in the first cycle)
+  */
+
 class FPGAbignumAdder(val data_width: Int = 8) extends Module {
   val io = IO(new Bundle {
     val a = new AxiStreamIf(data_width)
@@ -34,70 +41,97 @@ class FPGAbignumAdder(val data_width: Int = 8) extends Module {
     val q = Flipped(new AxiStreamIf(data_width))
   })
 
-  val sIdle :: sCalc :: sStoreA :: sStoreB :: sLast :: Nil = Enum(5)
-  val state = RegInit(sIdle)
-
   val reg_a = Reg(SInt(data_width.W))
   val reg_b = Reg(SInt(data_width.W))
-  val carry = Reg(SInt(2.W))
-  val is_last = RegInit(false.B)
+  val reg_a_vld = Reg(Bool())
+  val reg_b_vld = Reg(Bool())
+  val clear_input = Wire(Bool())
 
-  switch (state) {
-    is (sIdle) {
-      when (io.a.tvalid && !io.b.tvalid) {
-        state := sStoreA
-      } .elsewhen (!io.a.tvalid && io.b.tvalid) {
-        state := sStoreB
-      } .elsewhen (io.a.tvalid && io.b.tvalid) {
-        when (io.a.tlast || io.b.tlast) {
-          is_last := true.B
-          state := sLast
-        } .otherwise {
-          state := sCalc
-        }
-      }
+  val reg_a_last = Reg(Bool())
+  val reg_b_last = Reg(Bool())
+  val clear_last = Wire(Bool())
+
+  when (reg_a_vld) {
+    io.a.tready := false.B
+
+    when (clear_input) {
+      reg_a_vld := false.B
     }
-    is (sCalc) {
-      when (io.q.tready) {
-        //when (is_last) {
-        //  state := sLast
-        //  is_last := false.B
-        //} .otherwise {
-          state := sIdle
-        //}
-      }
-    }
-    is (sStoreA) {
-      when (io.b.tvalid) {
-        state := sCalc
-      }
-    }
-    is (sStoreB) {
-      when (io.a.tvalid) {
-        state := sCalc
-      }
-    }
-    is (sLast) {
-      when (io.q.tready) {
-        state := sIdle
-      }
+  } .otherwise {
+    io.a.tready := true.B
+
+    when(io.a.tvalid) {
+      reg_a_vld := true.B
+      reg_a := io.a.tdata.asSInt()
     }
   }
 
+  when (reg_b_vld) {
+    io.b.tready := false.B
 
-  io.a.tready := (state === sIdle) || (state === sStoreB)
-  io.b.tready := (state === sIdle) || (state === sStoreA)
+    when (clear_input) {
+      reg_b_vld := false.B
+    }
+  } .otherwise {
+    io.b.tready := true.B
 
-  io.q.tvalid := (state === sCalc) || (state === sLast)
+    when(io.a.tvalid) {
+      reg_b_vld := true.B
+      reg_b := io.b.tdata.asSInt()
+    }
+  }
 
+  clear_input := reg_a_vld && reg_b_vld && io.q.tready
 
-  val acc = Wire(SInt((data_width + 2).W))
-  acc := io.a.tdata.asSInt() + io.b.tdata.asSInt() + carry
+  when (reg_a_vld) {
+    when (clear_last) {
+      reg_a_last := false.B
+    }
+  } .otherwise {
+    when(io.a.tvalid && !reg_a_last) {
+      reg_a_last := io.a.tlast
+    }
+  }
 
-  val tdata_reg = Reg(UInt(data_width.W))
-  tdata_reg := acc.asUInt()(data_width, 0)
-  io.q.tdata := tdata_reg
+  when (reg_b_vld) {
+    when (clear_last) {
+      reg_b_last := false.B
+    }
+  } .otherwise {
+    when(io.b.tvalid && !reg_b_last) {
+      reg_b_last := io.b.tlast
+    }
+  }
 
-  io.q.tlast := (state === sLast)
+  clear_last := clear_input && io.q.tlast
+
+  val out = Reg(UInt((data_width + 2).W))
+  val carry = Wire(UInt(2.W))
+  val valid = RegInit(Bool(), false.B)
+  val last = RegInit(Bool(), false.B)
+
+  carry := Cat(0.S(1.W), out(data_width).asSInt())
+
+  when (reg_a_vld && reg_b_vld) {
+    printf("carry = %x\n", carry)
+    out := (reg_a.asUInt() +& reg_b.asUInt()) + carry
+    valid := true.B
+  } .elsewhen (valid && io.q.tready) {
+    valid := false.B
+    when (io.q.tlast) {
+      out := 0.U
+    }
+  }
+
+  when (clear_last) {
+    last := false.B
+  } .otherwise {
+    last := reg_a_last && reg_b_last
+  }
+
+  io.q.tdata := out(data_width-1, 0).asSInt().asUInt()
+  io.q.tvalid := valid
+  io.q.tlast := last
   io.q.tuser := 0.U
+
 }

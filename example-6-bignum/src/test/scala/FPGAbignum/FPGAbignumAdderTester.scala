@@ -57,6 +57,42 @@ class FPGAbignumAdderTester(c: FPGAbignumAdder) extends PeekPokeTester(c) {
   //==========================================================================
   // helper functions
 
+  def testAddition(a: BigInt, b: BigInt, input_length: Int): Unit = {
+    for (i <- 0 until input_length) {
+      mst_a.stimAppend((a >> (8*i)) & 0xFF, if (i == input_length-1) 1 else 0)
+      mst_b.stimAppend((b >> (8*i)) & 0xFF, if (i == input_length-1) 1 else 0)
+    }
+
+    println(f"${t}%5d ======================================================")
+
+    try {
+      step(TIMEOUT_STEPS)
+      expect(false, "Timeout while waiting for TLAST")
+      return
+    } catch  {
+      case e: AxiStreamSlaveLastRecv => println(f"${t}%5d tb: Got TLAST.")
+    }
+
+    val resp = slv_q.respGet()
+    val resp_len = resp.length
+    val resp_num_u : BigInt = resp.map(_._1).foldRight(BigInt(0))((a, b) => b *256 + a)
+    val msb_mask: BigInt = BigInt(0x80) << ((resp_len-1)*8)
+
+    println(f"${t}%5d Received response (unsign) = ${resp_num_u} (0x${resp_num_u}%x), length = ${resp_len}")
+
+    val resp_num : BigInt = if ((resp_num_u & msb_mask) != 0) {
+      val mask_xor : BigInt = (msb_mask << 1) - 1
+      -((resp_num_u ^ mask_xor) + 1)
+    } else {
+      resp_num_u
+    }
+
+    println(f"${t}%5d Received response = ${resp_num} (0x${resp_num}%x), length = ${resp_len}")
+
+    expect(resp_num == a + b, s"${a} + ${b} = exp ${a + b}, recv ${resp_num}")
+  }
+
+
   //==========================================================================
   // modules
 
@@ -67,57 +103,22 @@ class FPGAbignumAdderTester(c: FPGAbignumAdder) extends PeekPokeTester(c) {
 
   //==========================================================================
   // main
+  val TIMEOUT_STEPS = 20
 
   println(f"${t}%5d Test starting...")
 
-  val TIMEOUT_STEPS = 20
 
-  mst_a.stimAppend(1, 0)
-  mst_b.stimAppend(1, 0)
-
-  mst_a.stimAppend(0, 1)
-  mst_b.stimAppend(0, 1)
-
-  try {
-    step(TIMEOUT_STEPS)
-    expect(false, "Timeout while waiting for TLAST")
-  } catch  {
-    case e: AxiStreamSlaveLastRecv => println(f"${t}%5d tb: Got TLAST.")
-  }
-
-  val resp1 = slv_q.respGet()
-  val resp_nr1 = resp1.map(_._1).foldRight(BigInt(0))((a, b) => b*256 + a)
-  println(f"${t}%5d Response = ${resp_nr1}.")
-  expect(resp_nr1 == 2, "1 + 1 = 2") // TODO: move to helper function
-
-  step(10)
-
-
-  // case 2 (TODO: turn this into helper function)
-  mst_a.stimAppend(123, 0)
-  mst_b.stimAppend(45, 0)
-
-  mst_a.stimAppend(0, 1)
-  mst_b.stimAppend(0, 1)
-
-  try {
-    step(TIMEOUT_STEPS)
-    expect(false, "Timeout while waiting for TLAST")
-  } catch  {
-    case e: AxiStreamSlaveLastRecv => println(f"${t}%5d tb: Seen TLAST.")
-  }
-
-  val resp2 = slv_q.respGet()
-  val resp_nr2 = resp2.map(_._1).foldRight(BigInt(0))((a, b) => b*256 + a)
-  println(f"${t}%5d Response = ${resp_nr2}.")
-  expect(resp_nr2 == 123 + 45, "calc2") // TODO: move to helper function
-
-  try {
-    step(10)
-  } catch  {
-    case e: AxiStreamSlaveLastRecv => println(f"${t}%5d tb: Seen TLAST.")
-  }
-
+  testAddition(1, 1, 2); step(5)
+  testAddition(2, 3, 2); step(5)
+  testAddition(123, 54, 2); step(5)
+  testAddition(0, 0, 3); step(5)
+  testAddition(199, 211, 2); step(5)
+  testAddition(-1, -2, 3); step(5)
+  testAddition(1, 1, 2); step(5)
+  testAddition(-5, -6, 2); step(5)
+  testAddition(123456789, 123456789, 5); step(5)
+  testAddition(-12345, 0, 5); step(5)
+  testAddition(0, 0, 2); step(5)
 
   println(f"${t}%5d Test finished.")
 }

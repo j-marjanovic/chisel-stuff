@@ -89,7 +89,7 @@ class AxiStreamMaster(val iface: AxiStreamIf,
           val tdata = peek(iface.tdata)
           val tuser = peek(iface.tuser)
           val tlast = peek(iface.tlast)
-          printWithBg(f"${t}%5d Driver($ident): sent tdata=${tdata}, tlast=${tdata}, tuser=${tuser}")
+          printWithBg(f"${t}%5d Driver($ident): sent tdata=${tdata}, tlast=${tlast}, tuser=${tuser}")
 
           if (stim.nonEmpty) {
             driveFromStimList()

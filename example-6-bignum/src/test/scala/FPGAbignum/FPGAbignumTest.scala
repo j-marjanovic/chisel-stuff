@@ -31,13 +31,24 @@ import chisel3.iotesters.ChiselFlatSpec
 class FPGAbignumTest extends ChiselFlatSpec {
   "adder tester" should "compare expected and obtained response" in {
     iotesters.Driver.execute(Array("--backend-name", "verilator", "--fint-write-vcd", "--test-seed",
-      "12345",         "--target-dir",
+      "123",         "--target-dir",
       "test_run_dir/FPGAbignumAdderTester",
       "--top-name",
       "FPGAbignumAdderTester",
     ),
       () => new FPGAbignumAdder) {
       c => new FPGAbignumAdderTester(c)
+    } should be(true)
+  }
+  "shifter tester" should "compare expected and obtained response" in {
+    iotesters.Driver.execute(Array("--backend-name", "verilator", "--fint-write-vcd", "--test-seed",
+      "123",         "--target-dir",
+      "test_run_dir/FPGAbignumShifterTester",
+      "--top-name",
+      "FPGAbignumShifterTester",
+    ),
+      () => new FPGAbignumShifter(1)) {
+      c => new FPGAbignumShifterTester(c)
     } should be(true)
   }
 }

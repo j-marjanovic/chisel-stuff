@@ -33,6 +33,7 @@ import bfmtester._
   * limitations:
   *   - data must be at least 2 elements long (i.e. TLAST should not be
   *     asserted in the first cycle)
+  *   - both inputs shall be of equal lengths
   */
 
 class FPGAbignumAdder(val data_width: Int = 8) extends Module {

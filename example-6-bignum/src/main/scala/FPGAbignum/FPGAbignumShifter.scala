@@ -20,7 +20,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-*/
+ */
 
 package FPGAbignum
 
@@ -28,7 +28,8 @@ import bfmtester._
 import chisel3._
 import chisel3.util._
 
-class FPGAbignumShifter(val shift_by: Int, val data_width: Int = 8) extends Module {
+class FPGAbignumShifter(val shift_by: Int, val data_width: Int = 8)
+    extends Module {
   val io = IO(new Bundle {
     val d = new AxiStreamIf(data_width.W)
     val q = Flipped(new AxiStreamIf(data_width.W))
@@ -51,26 +52,26 @@ class FPGAbignumShifter(val shift_by: Int, val data_width: Int = 8) extends Modu
 
   io.d.tready := !valid_r1
 
-  when (io.d.tvalid && !valid_r1){
+  when(io.d.tvalid && !valid_r1) {
     valid_r1 := true.B
     data_r1 := io.d.tdata
     last_r1 := io.d.tlast
-  } .elsewhen (valid_r1 && !valid_r2 && io.q.tready) {
+  }.elsewhen(valid_r1 && !valid_r2 && io.q.tready) {
     valid_r1 := false.B
   }
 
-  when (valid_r1 && !valid_r2 && io.q.tready){
+  when(valid_r1 && !valid_r2 && io.q.tready) {
     valid_r2 := true.B
     data_r2 := data_r1
     last_r2 := last_r1
-  } .elsewhen (valid_r2 && io.q.tready) {
+  }.elsewhen(valid_r2 && io.q.tready) {
     valid_r2 := false.B
   }
 
-  when (!state_last && last_r1 && valid_r1 && io.q.tready) {
+  when(!state_last && last_r1 && valid_r1 && io.q.tready) {
     state_last := true.B
     printf("to state last\n")
-  } .elsewhen (state_last && io.q.tready) {
+  }.elsewhen(state_last && io.q.tready) {
     state_last := false.B
     data_r1 := 0.U
     data_r2 := 0.U
@@ -78,13 +79,15 @@ class FPGAbignumShifter(val shift_by: Int, val data_width: Int = 8) extends Modu
     valid_r2 := false.B
   }
 
-  when (!state_last) {
+  when(!state_last) {
     io.q.tvalid := valid_r1
-    io.q.tdata := Cat(data_r1(data_width-1-shift_by, 0), data_r2(data_width-1, data_width-1))
+    io.q.tdata := Cat(data_r1(data_width - 1 - shift_by, 0),
+                      data_r2(data_width - 1, data_width - 1))
     io.q.tlast := false.B
-  } .otherwise {
+  }.otherwise {
     io.q.tvalid := true.B
-    io.q.tdata := Cat(data_r1(data_width-1-shift_by, 0), data_r2(data_width-1, data_width-1))
+    io.q.tdata := Cat(data_r1(data_width - 1 - shift_by, 0),
+                      data_r2(data_width - 1, data_width - 1))
     io.q.tlast := true.B
   }
 

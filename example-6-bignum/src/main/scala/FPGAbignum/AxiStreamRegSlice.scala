@@ -20,14 +20,13 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-*/
+ */
 
 package FPGAbignum
 
 import chisel3._
 import chisel3.util._
 import bfmtester._
-
 
 class AxiStreamRegSlice(val data_width: Int) extends Module {
   val io = IO(new Bundle {
@@ -40,14 +39,14 @@ class AxiStreamRegSlice(val data_width: Int) extends Module {
 
   val inp_r = RegEnable(io.inp, state === sReady)
 
-  switch (state) {
-    is (sReady) {
-      when (io.inp.tvalid) {
+  switch(state) {
+    is(sReady) {
+      when(io.inp.tvalid) {
         state := sDrive
       }
     }
-    is (sDrive) {
-      when (io.out.tready) {
+    is(sDrive) {
+      when(io.out.tready) {
         state := sReady
       }
     }

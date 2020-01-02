@@ -20,10 +20,9 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-*/
+ */
 
 package FPGAbignum
-
 
 import bfmtester._
 
@@ -34,8 +33,10 @@ class FPGAbignumAdderTester(c: FPGAbignumAdder) extends BfmTester(c) {
 
   def testAddition(a: BigInt, b: BigInt, input_length: Int): Unit = {
     for (i <- 0 until input_length) {
-      mst_a.stimAppend((a >> (8*i)) & 0xFF, if (i == input_length-1) 1 else 0)
-      mst_b.stimAppend((b >> (8*i)) & 0xFF, if (i == input_length-1) 1 else 0)
+      mst_a.stimAppend((a >> (8 * i)) & 0xFF,
+                       if (i == input_length - 1) 1 else 0)
+      mst_b.stimAppend((b >> (8 * i)) & 0xFF,
+                       if (i == input_length - 1) 1 else 0)
     }
 
     println(f"${t}%5d ======================================================")
@@ -44,29 +45,31 @@ class FPGAbignumAdderTester(c: FPGAbignumAdder) extends BfmTester(c) {
       step(TIMEOUT_STEPS)
       expect(false, "Timeout while waiting for TLAST")
       return
-    } catch  {
+    } catch {
       case e: AxiStreamSlaveLastRecv => println(f"${t}%5d tb: Got TLAST.")
     }
 
     val resp = slv_q.respGet()
     val resp_len = resp.length
-    val resp_num_u : BigInt = resp.map(_._1).foldRight(BigInt(0))((a, b) => b *256 + a)
-    val msb_mask: BigInt = BigInt(0x80) << ((resp_len-1)*8)
+    val resp_num_u: BigInt =
+      resp.map(_._1).foldRight(BigInt(0))((a, b) => b * 256 + a)
+    val msb_mask: BigInt = BigInt(0x80) << ((resp_len - 1) * 8)
 
-    println(f"${t}%5d Received response (unsign) = ${resp_num_u} (0x${resp_num_u}%x), length = ${resp_len}")
+    println(
+      f"${t}%5d Received response (unsign) = ${resp_num_u} (0x${resp_num_u}%x), length = ${resp_len}")
 
-    val resp_num : BigInt = if ((resp_num_u & msb_mask) != 0) {
-      val mask_xor : BigInt = (msb_mask << 1) - 1
+    val resp_num: BigInt = if ((resp_num_u & msb_mask) != 0) {
+      val mask_xor: BigInt = (msb_mask << 1) - 1
       -((resp_num_u ^ mask_xor) + 1)
     } else {
       resp_num_u
     }
 
-    println(f"${t}%5d Received response = ${resp_num} (0x${resp_num}%x), length = ${resp_len}")
+    println(
+      f"${t}%5d Received response = ${resp_num} (0x${resp_num}%x), length = ${resp_len}")
 
     expect(resp_num == a + b, s"${a} + ${b} = exp ${a + b}, recv ${resp_num}")
   }
-
 
   //==========================================================================
   // modules

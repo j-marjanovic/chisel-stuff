@@ -20,7 +20,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-*/
+ */
 
 package FPGAbignum
 
@@ -35,7 +35,6 @@ import bfmtester._
   *     asserted in the first cycle)
   *   - both inputs shall be of equal lengths
   */
-
 class FPGAbignumAdder(val data_width: Int = 8) extends Module {
   val io = IO(new Bundle {
     val a = new AxiStreamIf(data_width.W)
@@ -58,16 +57,16 @@ class FPGAbignumAdder(val data_width: Int = 8) extends Module {
   reg_a_vld := (!io.a.tvalid && !stage2_rdy && reg_a_vld) || io.a.tvalid
   reg_b_vld := (!io.b.tvalid && !stage2_rdy && reg_b_vld) || io.b.tvalid
 
-  when (io.a.tvalid && io.a.tready) {
+  when(io.a.tvalid && io.a.tready) {
     reg_a_data := io.a.tdata
   }
-  when (io.a.tvalid && io.a.tready) {
+  when(io.a.tvalid && io.a.tready) {
     reg_a_last := io.a.tlast
   }
-  when (io.b.tvalid && io.b.tready) {
+  when(io.b.tvalid && io.b.tready) {
     reg_b_data := io.b.tdata
   }
-  when (io.b.tvalid && io.b.tready) {
+  when(io.b.tvalid && io.b.tready) {
     reg_b_last := io.b.tlast
   }
 
@@ -82,15 +81,15 @@ class FPGAbignumAdder(val data_width: Int = 8) extends Module {
   stage2_rdy := !stage2_vld || axis_add_out.tready
   stage2_vld := (!reg_ab_vld && !axis_add_out.tready && stage2_vld) || reg_ab_vld
 
-  when (reg_ab_vld && stage2_rdy) {
+  when(reg_ab_vld && stage2_rdy) {
     stage2_data := (reg_a_data.asUInt() +& reg_b_data.asUInt()) + carry
     stage2_last := reg_a_last && reg_b_last
 
-    when (axis_add_out.tlast) {
+    when(axis_add_out.tlast) {
       stage2_data := 0.U
       stage2_last := false.B
     }
-  } .elsewhen (axis_add_out.tlast && axis_add_out.tready && axis_add_out.tvalid) {
+  }.elsewhen(axis_add_out.tlast && axis_add_out.tready && axis_add_out.tvalid) {
     stage2_data := 0.U
     stage2_last := false.B
   }

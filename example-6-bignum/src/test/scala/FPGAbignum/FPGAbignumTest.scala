@@ -20,8 +20,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-*/
-
+ */
 
 package FPGAbignum
 
@@ -30,25 +29,39 @@ import chisel3.iotesters.ChiselFlatSpec
 
 class FPGAbignumTest extends ChiselFlatSpec {
   "adder tester" should "compare expected and obtained response" in {
-    iotesters.Driver.execute(Array("--backend-name", "verilator", "--fint-write-vcd", "--test-seed",
-      "123",         "--target-dir",
-      "test_run_dir/FPGAbignumAdderTester",
-      "--top-name",
-      "FPGAbignumAdderTester",
-    ),
-      () => new FPGAbignumAdder) {
-      c => new FPGAbignumAdderTester(c)
+    iotesters.Driver.execute(
+      Array(
+        "--backend-name",
+        "verilator",
+        "--fint-write-vcd",
+        "--test-seed",
+        "123",
+        "--target-dir",
+        "test_run_dir/FPGAbignumAdderTester",
+        "--top-name",
+        "FPGAbignumAdderTester",
+      ),
+      () => new FPGAbignumAdder
+    ) { c =>
+      new FPGAbignumAdderTester(c)
     } should be(true)
   }
   "shifter tester" should "compare expected and obtained response" in {
-    iotesters.Driver.execute(Array("--backend-name", "verilator", "--fint-write-vcd", "--test-seed",
-      "123",         "--target-dir",
-      "test_run_dir/FPGAbignumShifterTester",
-      "--top-name",
-      "FPGAbignumShifterTester",
-    ),
-      () => new FPGAbignumShifter(1)) {
-      c => new FPGAbignumShifterTester(c)
+    iotesters.Driver.execute(
+      Array(
+        "--backend-name",
+        "verilator",
+        "--fint-write-vcd",
+        "--test-seed",
+        "123",
+        "--target-dir",
+        "test_run_dir/FPGAbignumShifterTester",
+        "--top-name",
+        "FPGAbignumShifterTester",
+      ),
+      () => new FPGAbignumShifter(1)
+    ) { c =>
+      new FPGAbignumShifterTester(c)
     } should be(true)
   }
 }

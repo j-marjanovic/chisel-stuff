@@ -42,97 +42,64 @@ class FPGAbignumAdder(val data_width: Int = 8) extends Module {
     val q = Flipped(new AxiStreamIf(data_width.W))
   })
 
-  val reg_a = Reg(SInt(data_width.W))
-  val reg_b = Reg(SInt(data_width.W))
-  val reg_a_vld = Reg(Bool())
-  val reg_b_vld = Reg(Bool())
-  val clear_input = Wire(Bool())
+  val reg_a_vld = RegInit(Bool(), false.B)
+  val reg_b_vld = RegInit(Bool(), false.B)
+  val reg_a_data = Reg(UInt(data_width.W))
+  val reg_b_data = Reg(UInt(data_width.W))
+  val reg_a_last = RegInit(Bool(), false.B)
+  val reg_b_last = RegInit(Bool(), false.B)
+  val stage2_rdy = Wire(Bool())
+  val axis_add_out = Wire(new AxiStreamIf(data_width.W))
 
-  val reg_a_last = Reg(Bool())
-  val reg_b_last = Reg(Bool())
-  val clear_last = Wire(Bool())
+  io.a.tready := !reg_a_vld || stage2_rdy
+  io.b.tready := !reg_b_vld || stage2_rdy
 
-  when (reg_a_vld) {
-    io.a.tready := false.B
+  reg_a_vld := (!io.a.tvalid && !stage2_rdy && reg_a_vld) || io.a.tvalid
+  reg_b_vld := (!io.b.tvalid && !stage2_rdy && reg_b_vld) || io.b.tvalid
 
-    when (clear_input) {
-      reg_a_vld := false.B
-    }
-  } .otherwise {
-    io.a.tready := true.B
-
-    when(io.a.tvalid) {
-      reg_a_vld := true.B
-      reg_a := io.a.tdata.asSInt()
-    }
+  when (io.a.tvalid && io.a.tready) {
+    reg_a_data := io.a.tdata
+  }
+  when (io.a.tvalid && io.a.tready) {
+    reg_a_last := io.a.tlast
+  }
+  when (io.b.tvalid && io.b.tready) {
+    reg_b_data := io.b.tdata
+  }
+  when (io.b.tvalid && io.b.tready) {
+    reg_b_last := io.b.tlast
   }
 
-  when (reg_b_vld) {
-    io.b.tready := false.B
-
-    when (clear_input) {
-      reg_b_vld := false.B
-    }
-  } .otherwise {
-    io.b.tready := true.B
-
-    when(io.a.tvalid) {
-      reg_b_vld := true.B
-      reg_b := io.b.tdata.asSInt()
-    }
-  }
-
-  clear_input := reg_a_vld && reg_b_vld && io.q.tready
-
-  when (reg_a_vld) {
-    when (clear_last) {
-      reg_a_last := false.B
-    }
-  } .otherwise {
-    when(io.a.tvalid && !reg_a_last) {
-      reg_a_last := io.a.tlast
-    }
-  }
-
-  when (reg_b_vld) {
-    when (clear_last) {
-      reg_b_last := false.B
-    }
-  } .otherwise {
-    when(io.b.tvalid && !reg_b_last) {
-      reg_b_last := io.b.tlast
-    }
-  }
-
-  clear_last := clear_input && io.q.tlast
-
-  val out = Reg(UInt((data_width + 2).W))
+  // stage 2
+  val reg_ab_vld = WireInit(Bool(), reg_a_vld && reg_b_vld)
+  val stage2_vld = RegInit(Bool(), false.B)
+  val stage2_data = RegInit(UInt((data_width + 2).W), 0.U)
+  val stage2_last = RegInit(Bool(), false.B)
   val carry = Wire(UInt(2.W))
-  val valid = RegInit(Bool(), false.B)
-  val last = RegInit(Bool(), false.B)
+  carry := Cat(0.S(1.W), stage2_data(data_width).asSInt())
 
-  carry := Cat(0.S(1.W), out(data_width).asSInt())
+  stage2_rdy := !stage2_vld || axis_add_out.tready
+  stage2_vld := (!reg_ab_vld && !axis_add_out.tready && stage2_vld) || reg_ab_vld
 
-  when (reg_a_vld && reg_b_vld && io.q.tready) {
-    printf("carry = %x\n", carry)
-    out := (reg_a.asUInt() +& reg_b.asUInt()) + carry
-    valid := true.B
-  } .elsewhen (valid && io.q.tready) {
-    valid := false.B
-    when (io.q.tlast) {
-      out := 0.U
+  when (reg_ab_vld && stage2_rdy) {
+    stage2_data := (reg_a_data.asUInt() +& reg_b_data.asUInt()) + carry
+    stage2_last := reg_a_last && reg_b_last
+
+    when (axis_add_out.tlast) {
+      stage2_data := 0.U
+      stage2_last := false.B
     }
+  } .elsewhen (axis_add_out.tlast && axis_add_out.tready && axis_add_out.tvalid) {
+    stage2_data := 0.U
+    stage2_last := false.B
   }
 
-  when (clear_last) {
-    last := false.B
-  } .otherwise {
-    last := reg_a_last && reg_b_last
-  }
+  axis_add_out.tdata := stage2_data
+  axis_add_out.tvalid := stage2_vld
+  axis_add_out.tlast := stage2_last
+  axis_add_out.tuser := 0.U
 
-  io.q.tdata := out(data_width-1, 0).asSInt().asUInt()
-  io.q.tvalid := valid
-  io.q.tlast := last
-  io.q.tuser := 0.U
-
+  val m_axis_reg = Module(new AxiStreamRegSlice(data_width))
+  m_axis_reg.io.inp <> axis_add_out
+  m_axis_reg.io.out <> io.q
 }

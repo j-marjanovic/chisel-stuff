@@ -26,6 +26,7 @@ package FPGAbignum
 
 import chisel3._
 import chisel3.util._
+import bfmtester._
 
 /**
   *
@@ -36,9 +37,9 @@ import chisel3.util._
 
 class FPGAbignumAdder(val data_width: Int = 8) extends Module {
   val io = IO(new Bundle {
-    val a = new AxiStreamIf(data_width)
-    val b = new AxiStreamIf(data_width)
-    val q = Flipped(new AxiStreamIf(data_width))
+    val a = new AxiStreamIf(data_width.W)
+    val b = new AxiStreamIf(data_width.W)
+    val q = Flipped(new AxiStreamIf(data_width.W))
   })
 
   val reg_a = Reg(SInt(data_width.W))
@@ -112,7 +113,7 @@ class FPGAbignumAdder(val data_width: Int = 8) extends Module {
 
   carry := Cat(0.S(1.W), out(data_width).asSInt())
 
-  when (reg_a_vld && reg_b_vld) {
+  when (reg_a_vld && reg_b_vld && io.q.tready) {
     printf("carry = %x\n", carry)
     out := (reg_a.asUInt() +& reg_b.asUInt()) + carry
     valid := true.B

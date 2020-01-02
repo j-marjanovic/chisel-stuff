@@ -24,35 +24,10 @@ SOFTWARE.
 
 package FPGAbignum
 
-import scala.reflect.runtime.universe._
-import chisel3.iotesters.PeekPokeTester
 
-import scala.reflect.runtime.universe
+import bfmtester._
 
-
-class FPGAbignumAdderTester(c: FPGAbignumAdder) extends PeekPokeTester(c) {
-
-
-  //==========================================================================
-  // step
-
-  val rm = runtimeMirror(getClass.getClassLoader)
-  val im = rm.reflect(this)
-  val members = im.symbol.typeSignature.members
-  def bfms: Iterable[universe.Symbol] = members.filter(_.typeSignature <:< typeOf[ChiselBfm])
-
-  def stepSingle(): Unit = {
-    for (bfm <- bfms) {
-      im.reflectField(bfm.asTerm).get.asInstanceOf[ChiselBfm].update(t)
-    }
-    super.step(1)
-  }
-
-  override def step(n: Int): Unit = {
-    for(_ <- 0 until n) {
-      stepSingle()
-    }
-  }
+class FPGAbignumAdderTester(c: FPGAbignumAdder) extends BfmTester(c) {
 
   //==========================================================================
   // helper functions
@@ -96,29 +71,32 @@ class FPGAbignumAdderTester(c: FPGAbignumAdder) extends PeekPokeTester(c) {
   //==========================================================================
   // modules
 
-  val mst_a = new AxiStreamMaster(c.io.a, peek, poke, println, "Master A")
-  val mst_b = new AxiStreamMaster(c.io.b, peek, poke, println, "Master B")
+  val mst_a = BfmFactory.create_axis_master(c.io.a, "Master A")
 
-  val slv_q = new AxiStreamSlave(c.io.q, peek, poke, println)
+  val mst_b = BfmFactory.create_axis_master(c.io.b, "Master B")
+
+  val slv_q = BfmFactory.create_axis_slave(c.io.q, "Slave")
+  slv_q.backpressure = 0.8
 
   //==========================================================================
   // main
-  val TIMEOUT_STEPS = 20
+  val TIMEOUT_STEPS = 50
+  val SPACING_STEPS = 5
 
   println(f"${t}%5d Test starting...")
 
-
-  testAddition(1, 1, 2); step(5)
-  testAddition(2, 3, 2); step(5)
-  testAddition(123, 54, 2); step(5)
-  testAddition(0, 0, 3); step(5)
-  testAddition(199, 211, 2); step(5)
-  testAddition(-1, -2, 3); step(5)
-  testAddition(1, 1, 2); step(5)
-  testAddition(-5, -6, 2); step(5)
-  testAddition(123456789, 123456789, 5); step(5)
-  testAddition(-12345, 0, 5); step(5)
-  testAddition(0, 0, 2); step(5)
+  testAddition(1, 1, 2); step(SPACING_STEPS)
+  testAddition(2, 3, 2); step(SPACING_STEPS)
+  testAddition(123, 54, 2); step(SPACING_STEPS)
+  testAddition(0, 0, 3); step(SPACING_STEPS)
+  testAddition(199, 211, 2); step(SPACING_STEPS)
+  testAddition(-1, -2, 3); step(SPACING_STEPS)
+  testAddition(1, 1, 2); step(SPACING_STEPS)
+  testAddition(-5, -6, 2); step(SPACING_STEPS)
+  testAddition(123456789, 123456789, 5); step(SPACING_STEPS)
+  testAddition(-12345, 0, 5); step(SPACING_STEPS)
+  testAddition(0, 0, 2); step(SPACING_STEPS)
 
   println(f"${t}%5d Test finished.")
+
 }

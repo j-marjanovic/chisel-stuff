@@ -28,7 +28,7 @@ name := "bignum"
 
 version := "1.0.0"
 
-scalaVersion := "2.11.12"
+scalaVersion := "2.12.8"
 
 crossScalaVersions := Seq("2.11.12", "2.12.4")
 
@@ -43,6 +43,7 @@ val defaultVersions = Map(
   "chisel-iotesters" -> "1.2.+"
   )
 
+libraryDependencies += "io.j-marjanovic" %% "chisel-bfmtester" % "0.3.1"
 libraryDependencies ++= (Seq("chisel3","chisel-iotesters").map {
   dep: String => "edu.berkeley.cs" %% dep % sys.props.getOrElse(dep + "Version", defaultVersions(dep)) })
 

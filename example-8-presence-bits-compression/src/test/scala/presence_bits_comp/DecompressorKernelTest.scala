@@ -22,13 +22,27 @@ SOFTWARE.
 
 package presence_bits_comp
 
-import chisel3._
+import chisel3.iotesters
+import chisel3.iotesters.ChiselFlatSpec
 
-class PresenceBitsCompression extends Module {
-  val io = IO(new Bundle {
-    val in = Input(UInt(16.W))
-    val out = Output(UInt(16.W))
-  })
+class DecompressorKernelTest extends ChiselFlatSpec {
 
-  io.out := io.in
+  "tester" should "compare expected and obtained response" in {
+    iotesters.Driver.execute(
+      Array(
+        "--backend-name",
+        "verilator",
+        "--fint-write-vcd",
+        "--test-seed",
+        "1234",
+        "--target-dir",
+        s"test_run_dir/PresenceBitsCompressionTester",
+        "--top-name",
+        s"PresenceBitsCompressionTester"
+      ),
+      () => new DecompressorKernel(4)
+    ) { c =>
+      new PresenceBitsCompressionTester(c)
+    } should be(true)
+  }
 }

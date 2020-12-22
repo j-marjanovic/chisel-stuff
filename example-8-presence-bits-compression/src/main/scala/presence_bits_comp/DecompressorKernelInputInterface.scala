@@ -22,43 +22,12 @@ SOFTWARE.
 
 package presence_bits_comp
 
-import bfmtester._
+import chisel3._
+import chisel3.util.log2Ceil
 
-class PresenceBitsCompressionTester(c: DecompressorKernel)
-    extends BfmTester(c) {
-
-  val STIM1: List[BigInt] = List[BigInt](
-// format: off
-    0xf, 0x1, 0x2, 0x3, 0x4,
-    0x1, 0x5,
-    0x2, 0x6,
-    0x4, 0x7,
-    0x8, 0x8,
-    0x3, 0x9, 0xa,
-    0xc, 0xb, 0xc
-// format:on
-  )
-
-  val EXP1: List[BigInt] = List[BigInt](
-// format: off
-    0x1, 0x2, 0x3, 0x4,
-    0x5, 0x0, 0x0, 0x0,
-    0x0, 0x6, 0x0, 0x0,
-    0x0, 0x0, 0x7, 0x0,
-    0x0, 0x0, 0x0, 0x8,
-    0x9, 0xa, 0x0, 0x0,
-    0x0, 0x0, 0xb, 0xc
-// format:on
-  )
-
-  val driver = new DecompressorKernelDriver(c.io.in, this.rnd, peek, poke, println)
-  val monitor = new DecompressorKernelMonitor(c.io.out, peek, poke, println)
-
-  driver.stimAppend(STIM1)
-  step(100)
-  val resp = monitor.respGet()
-  expect(resp.size == EXP1.size, "Response size should match expected size")
-  for ((r, e) <- resp.zip(EXP1)) {
-    expect(r == e, f"Data should match (recv = ${r}%02x, exp = ${e}%02x)")
-  }
+class DecompressorKernelInputInterface(val w: Int) extends Bundle {
+  val en: Bool = Input(Bool())
+  val adv: UInt = Output(UInt(log2Ceil(w + 1).W))
+  val adv_en: Bool = Output(Bool())
+  val data: Vec[UInt] = Input(Vec(w + 1, UInt(w.W)))
 }

@@ -22,46 +22,42 @@ SOFTWARE.
 
 package presence_bits_comp
 
-import chisel3.{Module, iotesters}
-import chisel3.iotesters.ChiselFlatSpec
+import bfmtester._
 
-class DecompressorKernelTest extends ChiselFlatSpec {
+class DecompressorKernelTest(c: DecompressorKernel) extends BfmTester(c) {
 
-  ignore should "compare expected and obtained response" in {
-    iotesters.Driver.execute(
-      Array(
-        "--backend-name",
-        "verilator",
-        "--fint-write-vcd",
-        "--test-seed",
-        "1234",
-        "--target-dir",
-        s"test_run_dir/PresenceBitsCompressionTester",
-        "--top-name",
-        s"PresenceBitsCompressionTester"
-      ),
-      () => new DecompressorKernel(4)
-    ) { c =>
-      new PresenceBitsCompressionTester(c)
-    } should be(true)
-  }
+  val STIM1: List[BigInt] = List[BigInt](
+// format: off
+    0xf, 0x1, 0x2, 0x3, 0x4,
+    0x1, 0x5,
+    0x2, 0x6,
+    0x4, 0x7,
+    0x8, 0x8,
+    0x3, 0x9, 0xa,
+    0xc, 0xb, 0xc
+// format:on
+  )
 
-  "tester" should "compare expected and obtained response" in {
-    iotesters.Driver.execute(
-      Array(
-        "--backend-name",
-        "verilator",
-        "--fint-write-vcd",
-        "--test-seed",
-        "1234",
-        "--target-dir",
-        s"test_run_dir/AxiMasterCoreTester",
-        "--top-name",
-        s"AxiMasterCoreTester"
-      ),
-      () => new AxiMasterCoreReg
-    ) { c =>
-      new AxiMasterCoreTester(c)
-    } should be(true)
+  val EXP1: List[BigInt] = List[BigInt](
+// format: off
+    0x1, 0x2, 0x3, 0x4,
+    0x5, 0x0, 0x0, 0x0,
+    0x0, 0x6, 0x0, 0x0,
+    0x0, 0x0, 0x7, 0x0,
+    0x0, 0x0, 0x0, 0x8,
+    0x9, 0xa, 0x0, 0x0,
+    0x0, 0x0, 0xb, 0xc
+// format:on
+  )
+
+  val driver = new DecompressorKernelDriver(c.io.in, this.rnd, peek, poke, println)
+  val monitor = new DecompressorKernelMonitor(c.io.out, peek, poke, println)
+
+  driver.stimAppend(STIM1)
+  step(100)
+  val resp = monitor.respGet()
+  expect(resp.size == EXP1.size, "Response size should match expected size")
+  for ((r, e) <- resp.zip(EXP1)) {
+    expect(r == e, f"Data should match (recv = ${r}%02x, exp = ${e}%02x)")
   }
 }

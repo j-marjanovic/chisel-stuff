@@ -58,7 +58,7 @@ class DecompressorKernel(val w: Int) extends Module {
 
   when(io.in.en) {
     for (i <- 0 until w) {
-      when(io.in.data(0)(i)) {
+      when(pres_bs(i)) {
         out_reg(i) := io.in.data(out_sel(i))
       }.otherwise {
         out_reg(i) := 0.U

@@ -22,46 +22,17 @@ SOFTWARE.
 
 package presence_bits_comp
 
-import chisel3.{Module, iotesters}
-import chisel3.iotesters.ChiselFlatSpec
+import chisel3._
 
-class DecompressorKernelTest extends ChiselFlatSpec {
-
-  ignore should "compare expected and obtained response" in {
-    iotesters.Driver.execute(
-      Array(
-        "--backend-name",
-        "verilator",
-        "--fint-write-vcd",
-        "--test-seed",
-        "1234",
-        "--target-dir",
-        s"test_run_dir/PresenceBitsCompressionTester",
-        "--top-name",
-        s"PresenceBitsCompressionTester"
-      ),
-      () => new DecompressorKernel(4)
-    ) { c =>
-      new PresenceBitsCompressionTester(c)
-    } should be(true)
-  }
-
-  "tester" should "compare expected and obtained response" in {
-    iotesters.Driver.execute(
-      Array(
-        "--backend-name",
-        "verilator",
-        "--fint-write-vcd",
-        "--test-seed",
-        "1234",
-        "--target-dir",
-        s"test_run_dir/AxiMasterCoreTester",
-        "--top-name",
-        s"AxiMasterCoreTester"
-      ),
-      () => new AxiMasterCoreReg
-    ) { c =>
-      new AxiMasterCoreTester(c)
-    } should be(true)
-  }
+class AxiMasterCoreReadIface(
+    val addr_w: chisel3.internal.firrtl.Width,
+    val data_w: chisel3.internal.firrtl.Width
+) extends Bundle {
+  // addr
+  val addr = Input(UInt(48.W))
+  val len = Input(UInt(32.W))
+  val start = Input(Bool())
+  // data
+  val data = Output(UInt(128.W))
+  val valid = Output(Bool())
 }

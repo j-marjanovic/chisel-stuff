@@ -22,11 +22,35 @@ SOFTWARE.
 
 package presence_bits_comp
 
-import chisel3.stage.ChiselStage
+import chisel3._
+import chisel3.util._
 
-object PresenceBitsCompMain extends App {
-  (new ChiselStage()).emitSystemVerilog(
-    new AxiMasterCore,
-    Array[String]("--target-dir", "ip_cores/axi_master_core/hdl") ++ args
-  )
+class DecompressorOutputAdapter(val w: Int, val addr_w: Int, val data_w: Int) extends Module {
+  val io = IO(new Bundle {
+    val from_kernel = Flipped(new DecompressorKernelOutputInterface(w))
+    val to_axi = Flipped(new AxiMasterCoreWriteIface(addr_w.W, data_w.W))
+  })
+
+  assert(w == 8, "only tested with the width of 8")
+
+  // tie-off, not used in this module
+  io.to_axi.addr := 0.U
+  io.to_axi.len := 0.U
+  io.to_axi.start := 0.U
+
+  // input data
+  val data_in_prev = RegEnable(io.from_kernel.data.asUInt(), 0.U, io.from_kernel.vld)
+  val data_vld = RegInit(false.B)
+  when (io.from_kernel.vld) {
+    data_vld := !data_vld
+  }
+
+  // output data
+  val data_out_vld = RegNext(data_vld && io.from_kernel.vld, false.B)
+  val data_cat = Cat(io.from_kernel.data.asUInt(), data_in_prev)
+  val data_out = RegEnable(data_cat, 0.U, data_vld && io.from_kernel.vld)
+
+  io.to_axi.data := data_out
+  io.to_axi.valid := data_out_vld
+
 }

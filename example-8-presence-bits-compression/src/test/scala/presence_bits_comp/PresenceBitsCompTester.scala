@@ -65,7 +65,7 @@ class PresenceBitsCompTester extends ChiselFlatSpec {
     } should be(true)
   }
 
-  it should "check the decompressor adapter" in {
+  it should "check the decompressor input adapter" in {
     iotesters.Driver.execute(
       Array(
         "--backend-name",
@@ -81,6 +81,25 @@ class PresenceBitsCompTester extends ChiselFlatSpec {
       () => new DecompressorInputAdapter(8, 48, 128)
     ) { c =>
       new DecompressorInputAdapterTest(c)
+    } should be(true)
+  }
+
+  it should "check the decompressor output adapter" in {
+    iotesters.Driver.execute(
+      Array(
+        "--backend-name",
+        "verilator",
+        "--fint-write-vcd",
+        "--test-seed",
+        "1234",
+        "--target-dir",
+        s"test_run_dir/DecompressorOutputAdapterTest",
+        "--top-name",
+        s"DecompressorOutputAdapterTest"
+      ),
+      () => new DecompressorOutputAdapter(8, 48, 128)
+    ) { c =>
+      new DecompressorOutputAdapterTest(c)
     } should be(true)
   }
 }

@@ -27,21 +27,16 @@ import chisel3._
 
 import scala.collection.mutable.ListBuffer
 
-class AxiMasterCoreUserDriver(
-    val write_if: AxiMasterCoreWriteIface,
+class DecompressorInputAdapterDriver(
+    val iface: AxiMasterCoreReadIface,
     val peek: Bits => BigInt,
     val poke: (Bits, BigInt) => Unit,
     val println: String => Unit,
     val ident: String = ""
 ) extends Bfm {
 
-  private val data = ListBuffer[Byte]()
-  private var addr: BigInt = 0
-  private var len: BigInt = 0
-  private var addr_valid: Boolean = false
-  private var addr_valid_p: Boolean = false
-  private var data_rem: BigInt = 0
-  private var act: Boolean = true
+  private val w: Int = iface.data.getWidth
+  private val data: ListBuffer[Byte] = new ListBuffer[Byte]()
 
   private def printWithBg(s: String): Unit = {
     // black on orange
@@ -52,68 +47,26 @@ class AxiMasterCoreUserDriver(
     data ++= ls
   }
 
-  def start_write(addr: BigInt, len: BigInt): Unit = {
-    this.addr = addr
-    this.len = len
-    data_rem = len
-    addr_valid = true
-    addr_valid_p = false
-    printWithBg(
-      f"      AxiMasterCoreUserDriver($ident): start write (addr=0x${addr}%x, len=${len})"
-    )
-  }
-
   private def get_data_w(): BigInt = {
     var tmp: BigInt = 0
-    for (i <- (write_if.data.getWidth / 8 - 1) to 0 by -1) {
+    for (i <- (w / 8 - 1) to 0 by -1) {
       tmp <<= 8
       tmp |= data.remove(i) & 0xff
     }
     tmp
   }
 
-  def stats(): Unit = {
-    printWithBg(f"      AxiMasterCoreUserDriver($ident): data len = ${data.size}")
-  }
-
   override def update(t: Long, poke: (Bits, BigInt) => Unit): Unit = {
-    if (addr_valid_p) {
-      poke(write_if.addr, 0)
-      poke(write_if.len, 0)
-      poke(write_if.start, 0)
-      addr_valid_p = false
-    }
-
-    if (addr_valid) {
-      poke(write_if.addr, this.addr)
-      poke(write_if.len, this.len)
-      poke(write_if.start, 1)
-      addr_valid = false
-      addr_valid_p = true
-    }
-
-    val ready = peek(write_if.ready) > 0
-
-    if (data_rem > 0) {
-      if (ready) {
-        val data = get_data_w()
-        poke(write_if.data, data)
-        poke(write_if.valid, 1)
-        printWithBg(f"${t}%5d AxiMasterCoreUserDriver($ident): sent data=${data}%x")
-        act = true
-        data_rem -= 1
-      }
-    } else if (act) {
-      if (ready) {
-        act = false
-        printWithBg(f"${t}%5d AxiMasterCoreUserDriver($ident): done")
-      }
+    if (data.nonEmpty) {
+      val d = get_data_w()
+      poke(iface.data, d)
+      poke(iface.valid, 1)
+      printWithBg(f"${t}%5d DecompressorInputAdapterDriver($ident): data=${d}%x")
     } else {
-      poke(write_if.data, 0)
-      poke(write_if.valid, 0)
+      poke(iface.data, 0)
+      poke(iface.valid, 0)
     }
   }
 
-  printWithBg(f"      AxiMasterCoreUserDriver($ident): BFM initialized")
-
+  printWithBg(f"      DecompressorInputAdapterDriver($ident): BFM initialized")
 }

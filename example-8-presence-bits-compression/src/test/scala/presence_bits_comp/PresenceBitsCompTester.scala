@@ -36,9 +36,9 @@ class PresenceBitsCompTester extends ChiselFlatSpec {
         "--test-seed",
         "1234",
         "--target-dir",
-        s"test_run_dir/PresenceBitsCompressionTester",
+        s"test_run_dir/DecompressorKernelTest",
         "--top-name",
-        s"PresenceBitsCompressionTester"
+        s"DecompressorKernelTest"
       ),
       () => new DecompressorKernel(4)
     ) { c =>
@@ -55,13 +55,32 @@ class PresenceBitsCompTester extends ChiselFlatSpec {
         "--test-seed",
         "1234",
         "--target-dir",
-        s"test_run_dir/AxiMasterCoreTester",
+        s"test_run_dir/AxiMasterCoreTest",
         "--top-name",
-        s"AxiMasterCoreTester"
+        s"AxiMasterCoreTest"
       ),
       () => new AxiMasterCoreReg
     ) { c =>
-      new AxiMasterCoreTester(c)
+      new AxiMasterCoreTest(c)
+    } should be(true)
+  }
+
+  it should "check the decompressor adapter" in {
+    iotesters.Driver.execute(
+      Array(
+        "--backend-name",
+        "verilator",
+        "--fint-write-vcd",
+        "--test-seed",
+        "1234",
+        "--target-dir",
+        s"test_run_dir/DecompressorInputAdapterTest",
+        "--top-name",
+        s"DecompressorInputAdapterTest"
+      ),
+      () => new DecompressorInputAdapter(8, 48, 128)
+    ) { c =>
+      new DecompressorInputAdapterTest(c)
     } should be(true)
   }
 }

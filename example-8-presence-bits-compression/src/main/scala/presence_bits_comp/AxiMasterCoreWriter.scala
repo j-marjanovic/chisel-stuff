@@ -25,8 +25,7 @@ package presence_bits_comp
 import chisel3._
 import chisel3.util._
 
-class AxiMasterCoreWriter(val addr_w: Int, val data_w: Int, val id_w: Int)
-    extends Module {
+class AxiMasterCoreWriter(val addr_w: Int, val data_w: Int, val id_w: Int) extends Module {
   val io = IO(new Bundle {
     val awaddr = Output(UInt(addr_w.W))
     val awlen = Output(UInt(8.W))

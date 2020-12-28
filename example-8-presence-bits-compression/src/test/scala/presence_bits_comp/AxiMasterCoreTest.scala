@@ -116,13 +116,13 @@ class AxiMasterCoreReg extends Module {
   io.cntr_rd_resp_decerr := inst_axi.io.cntr_rd_resp_decerr
 }
 
-class AxiMasterCoreTester(c: AxiMasterCoreReg) extends BfmTester(c) {
+class AxiMasterCoreTest(c: AxiMasterCoreReg) extends BfmTester(c) {
 
   val DATA_LEN = 70
 
-  val mod_axi_slave = new AxiMemSlave(c.io.m, this.rnd, peek, poke, println)
-  val mod_usr_drv = new AxiMasterCoreUserDriver(c.io.write, peek, poke, println)
-  val mod_usr_mon = new AxiMasterCoreUserMonitor(c.io.read, peek, poke, println)
+  val mod_axi_slave = new AxiMemSlave(c.io.m, this.rnd, bfm_peek, bfm_poke, println)
+  val mod_usr_drv = new AxiMasterCoreUserDriver(c.io.write, bfm_peek, bfm_poke, println)
+  val mod_usr_mon = new AxiMasterCoreUserMonitor(c.io.read, bfm_peek, bfm_poke, println)
 
   for (y <- 0 until DATA_LEN) {
     mod_usr_drv.add_data((0 to 15).map(x => (x | ((y & 0xf) << 4)).toByte))

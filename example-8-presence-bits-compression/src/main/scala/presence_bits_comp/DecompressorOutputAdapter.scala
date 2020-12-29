@@ -50,7 +50,8 @@ class DecompressorOutputAdapter(val w: Int, val addr_w: Int, val data_w: Int) ex
   val data_cat = Cat(io.from_kernel.data.asUInt(), data_in_prev)
   val data_out = RegEnable(data_cat, 0.U, data_vld && io.from_kernel.vld)
 
+  // TODO: FIFO
+
   io.to_axi.data := data_out
   io.to_axi.valid := data_out_vld
-
 }

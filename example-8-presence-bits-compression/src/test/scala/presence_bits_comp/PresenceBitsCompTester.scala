@@ -22,7 +22,7 @@ SOFTWARE.
 
 package presence_bits_comp
 
-import chisel3.{Module, iotesters}
+import chisel3.iotesters
 import chisel3.iotesters.ChiselFlatSpec
 
 class PresenceBitsCompTester extends ChiselFlatSpec {
@@ -102,4 +102,43 @@ class PresenceBitsCompTester extends ChiselFlatSpec {
       new DecompressorOutputAdapterTest(c)
     } should be(true)
   }
+
+  it should "check the axi slave" in {
+    iotesters.Driver.execute(
+      Array(
+        "--backend-name",
+        "verilator",
+        "--fint-write-vcd",
+        "--test-seed",
+        "1234",
+        "--target-dir",
+        s"test_run_dir/DecompressorAxiSlaveTest",
+        "--top-name",
+        s"DecompressorAxiSlaveTest"
+      ),
+      () => new DecompressorAxiSlave(0x00010203)
+    ) { c =>
+      new DecompressorAxiSlaveTest(c)
+    } should be(true)
+  }
+
+  it should "check the decompressor" in {
+    iotesters.Driver.execute(
+      Array(
+        "--backend-name",
+        "verilator",
+        "--fint-write-vcd",
+        "--test-seed",
+        "1234",
+        "--target-dir",
+        s"test_run_dir/PresenceBitsDecompressorTest",
+        "--top-name",
+        s"PresenceBitsDecompressorTest"
+      ),
+      () => new PresenceBitsDecompressorReg
+    ) { c =>
+      new PresenceBitsDecompressorTest(c)
+    } should be(true)
+  }
+
 }

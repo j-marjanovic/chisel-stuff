@@ -27,11 +27,7 @@ import chisel3._
 import chisel3.util._
 import bfmtester._
 
-class AxiMasterCore extends Module {
-  //==========================================================================
-  val addr_w = 48
-  val data_w = 128
-  val id_w = 6
+class AxiMasterCore(val addr_w: Int = 48, val data_w: Int = 128, val id_w: Int = 6) extends Module {
 
   val io = IO(new Bundle {
     val m = new AxiIf(addr_w.W, data_w.W, id_w.W)

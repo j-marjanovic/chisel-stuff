@@ -42,9 +42,10 @@ class DecompressorInputAdapter(val w: Int, val addr_w: Int, val data_w: Int) ext
   queue_in.valid := io.from_axi.valid
 
   // queue
-  val queue = Queue(queue_in, 64, pipe = true)
+  val queue = Queue(queue_in, 16, pipe = true)
   queue.nodeq()
-  assert((queue_in.valid && queue_in.ready) || (!queue_in.valid))
+  // assert((queue_in.valid && queue_in.ready) || (!queue_in.valid))
+  io.from_axi.ready := queue_in.ready
 
   // queue output
   val queue_out = WireInit(queue.bits)
@@ -54,14 +55,14 @@ class DecompressorInputAdapter(val w: Int, val addr_w: Int, val data_w: Int) ext
   queue_out_vec := queue_out_comb.asTypeOf(queue_out_vec)
 
   // output sel
-  val sel = RegInit(UInt(log2Ceil(data_w / 8 + 2).W), 16.U)
+  val sel = RegInit(UInt((log2Ceil(data_w / 8) + 2).W), 16.U)
   for (i <- 0 to w) {
     io.to_kernel.data(i) := queue_out_vec(sel + i.U)
   }
 
   // select advance
   when(io.to_kernel.adv_en) {
-    when(sel + io.to_kernel.adv >= 24.U) {
+    when((sel + io.to_kernel.adv >= 24.U) && queue.valid) {
       sel := sel + io.to_kernel.adv - 16.U
       queue.deq()
     }.otherwise {
@@ -74,7 +75,7 @@ class DecompressorInputAdapter(val w: Int, val addr_w: Int, val data_w: Int) ext
   io.to_kernel.en := kernel_en_reg
   when(queue.valid) {
     kernel_en_reg := true.B
-  }.elsewhen(sel + io.to_kernel.adv >= 16.U) {
+  }.elsewhen(sel + io.to_kernel.adv >= 32.U) {
     kernel_en_reg := false.B
   }
 }

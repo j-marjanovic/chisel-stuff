@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2020 Jan Marjanovic
+Copyright (c) 2020-2021 Jan Marjanovic
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -35,4 +35,5 @@ class AxiMasterCoreReadIface(
   // data
   val data = Output(UInt(128.W))
   val valid = Output(Bool())
+  val ready = Input(Bool())
 }

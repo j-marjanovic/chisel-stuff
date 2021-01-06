@@ -26,9 +26,11 @@ import chisel3._
 import bfmtester._
 
 import scala.collection.mutable.ListBuffer
+import scala.util.Random
 
 class AxiMasterCoreUserMonitor(
     val read_if: AxiMasterCoreReadIface,
+    val rnd: Random,
     val peek: Bits => BigInt,
     val poke: (Bits, BigInt) => Unit,
     val println: String => Unit,
@@ -85,7 +87,10 @@ class AxiMasterCoreUserMonitor(
     }
 
     val valid: Boolean = peek(read_if.valid) > 0
-    if (valid) {
+    val ready_prev: Boolean = peek(read_if.ready) > 0
+    val ready = if(rnd.nextBoolean()) 1 else 0
+    poke(read_if.ready, ready)
+    if (ready_prev & valid) {
       val data = peek(read_if.data)
       printWithBg(f"${t}%5d AxiMasterCoreUserDriver($ident): recv data=${data}%x")
       data_push(data)
@@ -93,4 +98,6 @@ class AxiMasterCoreUserMonitor(
   }
 
   printWithBg(f"      AxiMasterCoreUserMonitor($ident): BFM initialized")
+
+  // poke(read_if.ready, 1)
 }

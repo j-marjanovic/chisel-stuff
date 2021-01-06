@@ -51,7 +51,7 @@ class DecompressorKernelTest(c: DecompressorKernel) extends BfmTester(c) {
   )
 
   val driver = new DecompressorKernelDriver(c.io.in, this.rnd, bfm_peek, bfm_poke, println)
-  val monitor = new DecompressorKernelMonitor(c.io.out, bfm_peek, bfm_poke, println)
+  val monitor = new DecompressorKernelMonitor(c.io.out, this.rnd, bfm_peek, bfm_poke, println)
 
   driver.stimAppend(STIM1)
   step(100)

@@ -27,4 +27,5 @@ import chisel3._
 class DecompressorKernelOutputInterface(val w: Int) extends Bundle {
   val data: Vec[UInt] = Output(Vec(w, UInt(w.W)))
   val vld: Bool = Output(Bool())
+  val ready: Bool = Input(Bool())
 }

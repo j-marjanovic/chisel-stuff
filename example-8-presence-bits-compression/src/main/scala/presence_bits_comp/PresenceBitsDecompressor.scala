@@ -52,6 +52,7 @@ class PresenceBitsDecompressor(
   val mod_in_adapter = Module(new DecompressorInputAdapter(w, addr_w, data_w))
   mod_in_adapter.io.from_axi.data := axi_read.data
   mod_in_adapter.io.from_axi.valid := axi_read.valid
+  axi_read.ready := mod_in_adapter.io.from_axi.ready
   mod_in_adapter.io.to_kernel <> kernel_in
 
   val mod_kernel = Module(new DecompressorKernel(w))

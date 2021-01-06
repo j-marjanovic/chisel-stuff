@@ -56,13 +56,19 @@ class DecompressorInputAdapterDriver(
     tmp
   }
 
+  var in_drive: Boolean = false
   override def update(t: Long, poke: (Bits, BigInt) => Unit): Unit = {
+    val rdy = peek(iface.ready) > 0
     if (data.nonEmpty) {
-      val d = get_data_w()
-      poke(iface.data, d)
-      poke(iface.valid, 1)
-      printWithBg(f"${t}%5d DecompressorInputAdapterDriver($ident): data=${d}%x")
+      if (!in_drive || (in_drive && rdy)) {
+        in_drive = true
+        val d = get_data_w()
+        poke(iface.data, d)
+        poke(iface.valid, 1)
+        printWithBg(f"${t}%5d DecompressorInputAdapterDriver($ident): data=${d}%x")
+      }
     } else {
+      in_drive = false
       poke(iface.data, 0)
       poke(iface.valid, 0)
     }

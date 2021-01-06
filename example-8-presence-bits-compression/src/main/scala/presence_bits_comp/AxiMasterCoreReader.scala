@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2020 Jan Marjanovic
+Copyright (c) 2020-2021 Jan Marjanovic
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -44,6 +44,7 @@ class AxiMasterCoreReader(val addr_w: Int, val data_w: Int, val id_w: Int) exten
     val read_start = Input(Bool())
     val out_data = Output(UInt(data_w.W))
     val out_valid = Output(Bool())
+    val out_ready = Input(Bool())
 
     val cntr_resp_okay = Output(UInt(32.W))
     val cntr_resp_exokay = Output(UInt(32.W))
@@ -115,7 +116,7 @@ class AxiMasterCoreReader(val addr_w: Int, val data_w: Int, val id_w: Int) exten
     }
   }
 
-  io.rready := true.B
+  io.rready := io.out_ready
   io.out_data := io.rdata
   io.out_valid := io.rready && io.rvalid
 

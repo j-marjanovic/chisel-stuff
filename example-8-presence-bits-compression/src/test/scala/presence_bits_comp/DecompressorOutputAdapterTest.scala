@@ -39,11 +39,15 @@ class DecompressorOutputAdapterTest(c: DecompressorOutputAdapter) extends BfmTes
   val axi_w: Int = c.data_w
 
   var recv_cntr: Int = 0
+  var trans_cntr: Int = 0
 
-  for (j <- 0 until 10) {
+  for (j <- 0 until 20) {
     // recv
     val vld: Boolean = peek(c.io.to_axi.valid) > 0
-    if (vld) {
+    val rdy_prev = peek(c.io.to_axi.ready) > 0
+    val rdy = this.rnd.nextBoolean()
+    poke(c.io.to_axi.ready, rdy)
+    if (vld && rdy_prev) {
       val data = peek(c.io.to_axi.data)
       printWithBg_monitor(f"recv, data = ${data}%x")
       for (i <- 0 until axi_w / 8) {
@@ -59,11 +63,14 @@ class DecompressorOutputAdapterTest(c: DecompressorOutputAdapter) extends BfmTes
     }
 
     // drive
-    for (i <- 0 until kernel_w) {
-      val data = i + 1 + (j << 4)
-      poke(c.io.from_kernel.data(i), data)
-      printWithBg_drive(f"drive, idx = ${i}, data = ${data}%x")
-      poke(c.io.from_kernel.vld, 1)
+    if (rdy_prev) {
+      for (i <- 0 until kernel_w) {
+        val data = i + 1 + (trans_cntr << 4)
+        poke(c.io.from_kernel.data(i), data)
+        printWithBg_drive(f"drive, idx = ${i}, data = ${data}%x")
+        poke(c.io.from_kernel.vld, 1)
+      }
+      trans_cntr += 1
     }
 
     step(1)

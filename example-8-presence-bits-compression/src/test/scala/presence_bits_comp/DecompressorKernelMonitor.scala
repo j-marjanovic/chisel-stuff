@@ -26,9 +26,11 @@ import bfmtester.Bfm
 import chisel3._
 
 import scala.collection.mutable.ListBuffer
+import scala.util.Random
 
 class DecompressorKernelMonitor(
     val iface: DecompressorKernelOutputInterface,
+    val rnd: Random,
     val peek: Bits => BigInt,
     val poke: (Bits, BigInt) => Unit,
     val println: String => Unit,
@@ -58,6 +60,8 @@ class DecompressorKernelMonitor(
 
   override def update(t: Long, poke: (Bits, BigInt) => Unit): Unit = {
     val vld = peek(iface.vld)
+    val rdy = if (rnd.nextBoolean()) 1 else 0
+    poke(iface.ready, rdy)
     var dbg_str: String = ""
     if (vld != 0) {
       for (i <- 0 until w) {
@@ -71,4 +75,5 @@ class DecompressorKernelMonitor(
   }
 
   printWithBg(f"      DecompKernelMonitor($ident): BFM initialized")
+  // poke(iface.ready, 1)
 }

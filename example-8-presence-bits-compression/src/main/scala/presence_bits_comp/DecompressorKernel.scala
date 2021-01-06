@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2020 Jan Marjanovic
+Copyright (c) 2020-2021 Jan Marjanovic
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,7 @@ class DecompressorKernel(val w: Int) extends Module {
 
   //==========================================================================
   // advance input
-  val adv_en_reg: Bool = RegNext(next = io.in.en)
+  val adv_en_reg: Bool = RegNext(next = io.in.en && io.out.ready)
   io.in.adv_en := adv_en_reg
   io.out.vld := adv_en_reg
 
@@ -56,7 +56,7 @@ class DecompressorKernel(val w: Int) extends Module {
   // output
   val out_reg: Vec[UInt] = Reg(Vec(w, UInt(w.W)))
 
-  when(io.in.en) {
+  when(io.in.en && io.out.ready) {
     for (i <- 0 until w) {
       when(pres_bs(i)) {
         out_reg(i) := io.in.data(out_sel(i))

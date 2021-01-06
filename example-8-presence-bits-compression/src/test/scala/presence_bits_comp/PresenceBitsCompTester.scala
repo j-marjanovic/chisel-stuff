@@ -58,6 +58,7 @@ class PresenceBitsCompTester extends ChiselFlatSpec {
         s"test_run_dir/AxiMasterCoreTest",
         "--top-name",
         s"AxiMasterCoreTest"
+        // "--is-verbose"
       ),
       () => new AxiMasterCoreReg
     ) { c =>
@@ -78,7 +79,7 @@ class PresenceBitsCompTester extends ChiselFlatSpec {
         "--top-name",
         s"DecompressorInputAdapterTest"
       ),
-      () => new DecompressorInputAdapter(8, 48, 128)
+      () => new DecompressorInputAdapterReg(8, 48, 128)
     ) { c =>
       new DecompressorInputAdapterTest(c)
     } should be(true)
@@ -140,5 +141,4 @@ class PresenceBitsCompTester extends ChiselFlatSpec {
       new PresenceBitsDecompressorTest(c)
     } should be(true)
   }
-
 }

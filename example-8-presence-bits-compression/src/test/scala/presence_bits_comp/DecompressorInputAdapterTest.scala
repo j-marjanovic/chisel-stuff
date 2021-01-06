@@ -23,10 +23,32 @@ SOFTWARE.
 package presence_bits_comp
 
 import bfmtester._
+import chisel3._
 
 import scala.collection.mutable.ListBuffer
 
-class DecompressorInputAdapterTest(c: DecompressorInputAdapter) extends BfmTester(c) {
+class DecompressorInputAdapterReg(val w: Int, val addr_w: Int, val data_w: Int) extends Module {
+  val io = IO(new Bundle {
+    val from_axi = Flipped(new AxiMasterCoreReadIface(addr_w.W, data_w.W))
+    val to_kernel = Flipped(new DecompressorKernelInputInterface(w))
+  })
+
+  val inst_dut = Module(new DecompressorInputAdapter(w, addr_w, data_w))
+  io.from_axi.addr := inst_dut.io.from_axi.addr
+  io.from_axi.len := inst_dut.io.from_axi.len
+  io.from_axi.start := inst_dut.io.from_axi.start
+  inst_dut.io.from_axi.data := RegNext(io.from_axi.data)
+  inst_dut.io.from_axi.valid := RegNext(io.from_axi.valid)
+  io.from_axi.ready := inst_dut.io.from_axi.ready
+
+  io.to_kernel.en := inst_dut.io.to_kernel.en
+  inst_dut.io.to_kernel.adv := RegNext(io.to_kernel.adv)
+  inst_dut.io.to_kernel.adv_en := RegNext(io.to_kernel.adv_en)
+  io.to_kernel.data := inst_dut.io.to_kernel.data
+}
+
+
+class DecompressorInputAdapterTest(c: DecompressorInputAdapterReg) extends BfmTester(c) {
   private def seq_to_bigint(xs: Seq[Byte]): BigInt = {
     var tmp: BigInt = 0
     for (x <- xs.reverse) {

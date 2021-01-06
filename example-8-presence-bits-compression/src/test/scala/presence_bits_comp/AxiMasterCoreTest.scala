@@ -95,6 +95,7 @@ class AxiMasterCoreReg extends Module {
   inst_axi.io.read.addr := RegNext(io.read.addr)
   inst_axi.io.read.len := RegNext(io.read.len)
   inst_axi.io.read.start := RegNext(io.read.start)
+  inst_axi.io.read.ready := RegNext(io.read.ready)
   io.read.data := inst_axi.io.read.data
   io.read.valid := inst_axi.io.read.valid
 
@@ -117,12 +118,11 @@ class AxiMasterCoreReg extends Module {
 }
 
 class AxiMasterCoreTest(c: AxiMasterCoreReg) extends BfmTester(c) {
-
   val DATA_LEN = 70
 
   val mod_axi_slave = new AxiMemSlave(c.io.m, this.rnd, bfm_peek, bfm_poke, println)
   val mod_usr_drv = new AxiMasterCoreUserDriver(c.io.write, bfm_peek, bfm_poke, println)
-  val mod_usr_mon = new AxiMasterCoreUserMonitor(c.io.read, bfm_peek, bfm_poke, println)
+  val mod_usr_mon = new AxiMasterCoreUserMonitor(c.io.read, this.rnd, bfm_peek, bfm_poke, println)
 
   for (y <- 0 until DATA_LEN) {
     mod_usr_drv.add_data((0 to 15).map(x => (x | ((y & 0xf) << 4)).toByte))
@@ -144,8 +144,11 @@ class AxiMasterCoreTest(c: AxiMasterCoreReg) extends BfmTester(c) {
   mod_usr_mon.start_read(0x4b010000, DATA_LEN)
   step(500)
 
+  println(s"c.io.cntr_rd_resp_okay = ${peek(c.io.cntr_rd_resp_okay)}")
   expect(c.io.cntr_rd_resp_okay, Math.ceil(DATA_LEN / 32).toInt + 1)
   expect(c.io.cntr_rd_resp_exokay, 0)
   expect(c.io.cntr_rd_resp_slverr, 0)
   expect(c.io.cntr_rd_resp_decerr, 0)
+
+
 }

@@ -65,16 +65,20 @@ class DecompressorInputAdapterMonitor(
   override def update(t: Long, poke: (Bits, BigInt) => Unit): Unit = {
     val en = peek(iface.en) > 0
     if (en) {
+      val adv_en = peek(iface.adv_en) > 0
+      val vals_to_read_prev = peek(iface.adv).toInt
       // read slow at the end to check if the last word is handled correctly
       val vals_to_read = if (data.length >= almost_end) rnd.nextInt(2) + 1 else rnd.nextInt(l) + 1
-      val d_lst: immutable.Seq[BigInt] = for (i <- 0 until vals_to_read) yield peek(iface.data(i))
-      val d = seq_to_bigint(d_lst)
-      data ++= d_lst.map(_.toByte)
+      if (adv_en) {
+        val d_lst: immutable.Seq[BigInt] = for (i <- 0 until vals_to_read_prev) yield peek(iface.data(i))
+        val d = seq_to_bigint(d_lst)
+        data ++= d_lst.map(_.toByte)
+        printWithBg(
+          f"${t}%5d DecompressorInputAdapterMonitor($ident): vs = ${vals_to_read_prev}, data = 0x${d}%x"
+        )
+      }
       poke(iface.adv, vals_to_read)
       poke(iface.adv_en, 1)
-      printWithBg(
-        f"${t}%5d DecompressorInputAdapterMonitor($ident): vs = ${vals_to_read}, data = 0x${d}%x"
-      )
     } else {
       poke(iface.adv, 0)
       poke(iface.adv_en, 0)

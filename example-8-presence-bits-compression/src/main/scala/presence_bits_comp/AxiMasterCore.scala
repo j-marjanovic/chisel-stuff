@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2020 Jan Marjanovic
+Copyright (c) 2020-2021 Jan Marjanovic
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -96,6 +96,7 @@ class AxiMasterCore(val addr_w: Int = 48, val data_w: Int = 128, val id_w: Int =
   axi_reader.io.read_start := io.read.start
   io.read.data := axi_reader.io.out_data
   io.read.valid := axi_reader.io.out_valid
+  axi_reader.io.out_ready := io.read.ready
 
   io.cntr_rd_resp_okay := axi_reader.io.cntr_resp_okay
   io.cntr_rd_resp_exokay := axi_reader.io.cntr_resp_exokay

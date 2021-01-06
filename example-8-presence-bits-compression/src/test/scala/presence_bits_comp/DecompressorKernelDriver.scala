@@ -60,7 +60,11 @@ class DecompressorKernelDriver(
   }
 
   override def update(t: Long, poke: (Bits, BigInt) => Unit): Unit = {
-    // drive output
+    update_adv(t, poke)
+    update_drive(t, poke)
+  }
+
+  def update_drive(t: Long, poke: (Bits, BigInt) => Unit): Unit = {
     val rnd_val: Boolean = rnd.nextBoolean()
     if (rnd_val && stim.nonEmpty) {
       poke(iface.en, 1)
@@ -77,12 +81,15 @@ class DecompressorKernelDriver(
         poke(iface.data(i), 0)
       }
     }
+  }
 
+  def update_adv(t: Long, poke: (Bits, BigInt) => Unit): Unit = {
     // remove the words which were already processed
     val adv_en: BigInt = peek(iface.adv_en)
     val adv: BigInt = peek(iface.adv)
 
     if (adv_en != 0) {
+      printWithBg(f"${t}%5d DecompKernelDriver($ident): adv = ${adv}")
       stim.remove(0, adv.toInt)
     }
   }

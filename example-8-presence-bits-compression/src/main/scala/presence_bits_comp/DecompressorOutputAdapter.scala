@@ -39,19 +39,22 @@ class DecompressorOutputAdapter(val w: Int, val addr_w: Int, val data_w: Int) ex
   io.to_axi.start := 0.U
 
   // input data
-  val data_in_prev = RegEnable(io.from_kernel.data.asUInt(), 0.U, io.from_kernel.vld)
+  val data_in_prev =
+    RegEnable(io.from_kernel.data.asUInt(), 0.U, io.from_kernel.vld && io.to_axi.ready)
   val data_vld = RegInit(false.B)
-  when (io.from_kernel.vld) {
-    data_vld := !data_vld
+  when(io.to_axi.ready) {
+    when(io.from_kernel.vld) {
+      data_vld := !data_vld
+    }
   }
 
   // output data
-  val data_out_vld = RegNext(data_vld && io.from_kernel.vld, false.B)
+  val data_out_vld = RegNext(data_vld && io.from_kernel.vld && io.to_axi.ready, false.B)
   val data_cat = Cat(io.from_kernel.data.asUInt(), data_in_prev)
   val data_out = RegEnable(data_cat, 0.U, data_vld && io.from_kernel.vld)
 
-  // TODO: FIFO
-
+  // TODO: FIFO - or maybe not
+  io.from_kernel.ready := io.to_axi.ready
   io.to_axi.data := data_out
   io.to_axi.valid := data_out_vld
 }

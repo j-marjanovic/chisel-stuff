@@ -113,14 +113,15 @@ class PresenceBitsDecompressorTest(c: PresenceBitsDecompressorReg) extends BfmTe
   }
 
   // 1b. load the data into the memory
-  mod_axi_mem_slave.mem_set(READ_ADDR, comp_data)
+  val comp_data_with_zero_pad: List[Byte] = comp_data ++ List.fill[Byte](16)(0)
+  mod_axi_mem_slave.mem_set(READ_ADDR, comp_data_with_zero_pad)
   mod_axi_mem_slave.mem_stats()
 
   // 2. prepare the write side
   // set addresses, lengths
   mod_axi_master.writePush(0x44, data = WRITE_ADDR)
   mod_axi_master.writePush(0x48, data = 0)
-  mod_axi_master.writePush(0x4c, data = orig_len)
+  mod_axi_master.writePush(0x4c, data = orig_len / (128 / 8) + 1)
   mod_axi_master.writePush(0x40, data = 1)
   step(50)
   for (i <- 0 until 4) {
@@ -131,7 +132,7 @@ class PresenceBitsDecompressorTest(c: PresenceBitsDecompressorReg) extends BfmTe
   // 3. prepare the read side
   mod_axi_master.writePush(0x24, data = READ_ADDR)
   mod_axi_master.writePush(0x28, data = 0)
-  mod_axi_master.writePush(0x2c, data = comp_len)
+  mod_axi_master.writePush(0x2c, data = comp_len / (128 / 8) + 1)
   mod_axi_master.writePush(0x20, data = 1)
   step(50)
   for (i <- 0 until 4) {
@@ -140,7 +141,7 @@ class PresenceBitsDecompressorTest(c: PresenceBitsDecompressorReg) extends BfmTe
   }
 
   // 4. check the uncompressed data in the memory
-  // step(1000)
-  // TODO: finish
+  step(10000)
+  // TODO
 
 }

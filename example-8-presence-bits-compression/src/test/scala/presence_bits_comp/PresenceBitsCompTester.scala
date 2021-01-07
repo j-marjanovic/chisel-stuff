@@ -27,7 +27,7 @@ import chisel3.iotesters.ChiselFlatSpec
 
 class PresenceBitsCompTester extends ChiselFlatSpec {
 
-  it should "check the decompressor kernel" in {
+  ignore should "check the decompressor kernel" in {
     iotesters.Driver.execute(
       Array(
         "--backend-name",
@@ -98,7 +98,7 @@ class PresenceBitsCompTester extends ChiselFlatSpec {
         "--top-name",
         s"DecompressorOutputAdapterTest"
       ),
-      () => new DecompressorOutputAdapter(8, 48, 128)
+      () => new DecompressorOutputAdapterReg(8, 48, 128)
     ) { c =>
       new DecompressorOutputAdapterTest(c)
     } should be(true)

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2020 Jan Marjanovic
+Copyright (c) 2020-2021 Jan Marjanovic
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -38,23 +38,31 @@ class DecompressorOutputAdapter(val w: Int, val addr_w: Int, val data_w: Int) ex
   io.to_axi.len := 0.U
   io.to_axi.start := 0.U
 
+  // store enable
+  val store_en = WireInit(false.B)
+
   // input data
-  val data_in_prev =
-    RegEnable(io.from_kernel.data.asUInt(), 0.U, io.from_kernel.vld && io.to_axi.ready)
-  val data_vld = RegInit(false.B)
-  when(io.to_axi.ready) {
-    when(io.from_kernel.vld) {
-      data_vld := !data_vld
+  val data_in_prev = RegEnable(io.from_kernel.data.asUInt(), 0.U, store_en)
+
+  // data count
+  val data_count = RegInit(UInt(2.W), 0.U)
+  when(io.from_kernel.vld && data_count < 2.U) {
+    data_count := data_count + 1.U
+    store_en := true.B
+  }.elsewhen(io.from_kernel.vld && io.to_axi.ready && data_count === 2.U) {
+      data_count := 1.U
+      store_en := true.B
     }
-  }
+    .elsewhen(!io.from_kernel.vld && io.to_axi.ready && data_count >= 2.U) {
+      data_count := 0.U
+    }
 
   // output data
-  val data_out_vld = RegNext(data_vld && io.from_kernel.vld && io.to_axi.ready, false.B)
   val data_cat = Cat(io.from_kernel.data.asUInt(), data_in_prev)
-  val data_out = RegEnable(data_cat, 0.U, data_vld && io.from_kernel.vld)
+  val data_out = RegEnable(data_cat, 0.U, store_en)
 
-  // TODO: FIFO - or maybe not
-  io.from_kernel.ready := io.to_axi.ready
+  io.from_kernel.ready := io.to_axi.ready || data_count < 2.U
+
   io.to_axi.data := data_out
-  io.to_axi.valid := data_out_vld
+  io.to_axi.valid := data_count === 2.U
 }

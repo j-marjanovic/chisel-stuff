@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2020 Jan Marjanovic
+Copyright (c) 2020-2021 Jan Marjanovic
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -96,7 +96,7 @@ class PresenceBitsDecompressorTest(c: PresenceBitsDecompressorReg) extends BfmTe
   //==========================================================================
   // 1. populate the memory with a compressed image
   val filename: String = "/dense_matrix_with_sparse_els.npy"
-  val orig_data = CompressorDecompressor.read_from_file(getClass.getResource(filename))
+  val orig_data: List[Byte] = CompressorDecompressor.read_from_file(getClass.getResource(filename))
   val comp_data: List[Byte] = CompressorDecompressor.compress(orig_data)
   val orig_len = orig_data.length
   val comp_len = comp_data.length
@@ -142,6 +142,20 @@ class PresenceBitsDecompressorTest(c: PresenceBitsDecompressorReg) extends BfmTe
 
   // 4. check the uncompressed data in the memory
   step(10000)
-  // TODO
+  mod_axi_mem_slave.mem_stats()
+
+  var s: String = ""
+  for (i <- 0 until orig_len) {
+    val recv_b: Byte = mod_axi_mem_slave.mem_get_el(WRITE_ADDR + i)
+    val exp_b: Byte = orig_data(i)
+    /*
+    s += f"${recv_b}%02x"
+    if (i % 8 == 7) {
+      println(s)
+      s = ""
+    }
+     */
+    expect(recv_b == exp_b, f"response (offs = ${i}, exp = ${exp_b}%x, recv = ${recv_b}%x)")
+  }
 
 }

@@ -38,9 +38,9 @@ class DecompressorKernel(val w: Int) extends Module {
 
   //==========================================================================
   // advance input
-  val adv_en_reg: Bool = RegNext(next = io.in.en && io.out.ready)
-  io.in.adv_en := adv_en_reg
-  io.out.vld := adv_en_reg
+  val adv_en_reg: Bool = RegNext(next = io.in.en) // && io.out.ready)
+  io.in.adv_en := adv_en_reg && io.out.ready
+
 
   io.in.adv := PopCount(pres_bs) + 1.U
 
@@ -55,6 +55,8 @@ class DecompressorKernel(val w: Int) extends Module {
   //==========================================================================
   // output
   val out_reg: Vec[UInt] = Reg(Vec(w, UInt(w.W)))
+  val out_vld_reg = RegInit(Bool(), false.B)
+  io.out.vld := RegNext(out_vld_reg) // adv_en_reg
 
   when(io.in.en && io.out.ready) {
     for (i <- 0 until w) {
@@ -64,6 +66,12 @@ class DecompressorKernel(val w: Int) extends Module {
         out_reg(i) := 0.U
       }
     }
+  }
+
+  when (io.in.en && io.out.ready) {
+    out_vld_reg := true.B
+  } .elsewhen (out_vld_reg && !io.in.en && io.out.ready) {
+    out_vld_reg := false.B
   }
 
   io.out.data := out_reg

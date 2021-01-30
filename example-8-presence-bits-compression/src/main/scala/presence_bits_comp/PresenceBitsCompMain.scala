@@ -26,7 +26,7 @@ import chisel3.stage.ChiselStage
 
 object PresenceBitsCompMain extends App {
   (new ChiselStage()).emitSystemVerilog(
-    new AxiMasterCore,
-    Array[String]("--target-dir", "ip_cores/axi_master_core/hdl") ++ args
+    new PresenceBitsDecompressor,
+    Array[String]("--target-dir", "ip_cores/presence_bits_decompressor/hdl") ++ args
   )
 }

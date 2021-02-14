@@ -30,42 +30,88 @@ class MemCheckerAxiSlave(val version: Int, val addr_w: Int = 8) extends Module {
 
   val io = IO(new Bundle {
     val ctrl = new AxiLiteIf(addr_w = addr_w.W)
+
+    val ctrl_dir = Output(Bool()) // 0 = read, 1 = write
+    val ctrl_mode = Output(UInt(3.W))
+
     val read_addr = Output(UInt(64.W))
     val read_len = Output(UInt(32.W))
     val read_start = Output(Bool())
+    val rd_stats_resp_cntr = Input(UInt(32.W))
+    val rd_stats_done = Input(Bool())
+    val rd_stats_duration = Input(UInt(32.W))
+
     val write_addr = Output(UInt(64.W))
     val write_len = Output(UInt(32.W))
     val write_start = Output(Bool())
+    val wr_stats_resp_cntr = Input(UInt(32.W))
+    val wr_stats_done = Input(Bool())
+    val wr_stats_duration = Input(UInt(32.W))
+
+    val check_tot = Input(UInt(32.W))
+    val check_ok = Input(UInt(32.W))
   })
 
   //==========================================================================
   // word (32-bit) address
   val ADDR_ID = 0.U
   val ADDR_VERSION = 1.U
-  val ADDR_READ_CTRL = 8.U
-  val ADDR_READ_ADDR_LO = 9.U
-  val ADDR_READ_ADDR_HI = 10.U
-  val ADDR_READ_LEN = 11.U
-  val ADDR_WRITE_CTRL = 16.U
-  val ADDR_WRITE_ADDR_LO = 17.U
-  val ADDR_WRITE_ADDR_HI = 18.U
-  val ADDR_WRITE_LEN = 19.U
+  val ADDR_CTRL = 4.U
+  val ADDR_READ_STATUS = 8.U
+  val ADDR_READ_CTRL = 9.U
+  val ADDR_READ_ADDR_LO = 10.U
+  val ADDR_READ_ADDR_HI = 11.U
+  val ADDR_READ_LEN = 12.U
+  val ADDR_READ_RESP_CNTR = 13.U
+  val ADDR_READ_DURATION = 14.U
+  val ADDR_WRITE_STATUS = 24.U
+  val ADDR_WRITE_CTRL = 25.U
+  val ADDR_WRITE_ADDR_LO = 26.U
+  val ADDR_WRITE_ADDR_HI = 27.U
+  val ADDR_WRITE_LEN = 28.U
+  val ADDR_WRITE_RESP_CNTR = 29.U
+  val ADDR_WRITE_DURATION = 30.U
+  val ADDR_CHECK_TOT = 40.U
+  val ADDR_CHECK_OK = 41.U
 
   val REG_ID = 0x3e3c8ec8.U(32.W) // ~ MEM CHECK
   val REG_VERSION = version.U(32.W)
+  val reg_ctrl_dir = RegInit(Bool(), false.B)
+  val reg_ctrl_mode = RegInit(UInt(3.W), 0.U)
+  val reg_read_status = RegInit(UInt(32.W), 0.U)
+  val reg_read_status_clear = Wire(UInt(32.W))
   val reg_read_start = RegInit(Bool(), false.B)
   val reg_read_addr = RegInit(UInt(64.W), 0.U)
   val reg_read_len = RegInit(UInt(32.W), 0.U)
+  val reg_read_resp_cntr = RegNext(io.rd_stats_resp_cntr)
+  val reg_read_duration = RegNext(io.rd_stats_duration)
+  val reg_write_status = RegInit(UInt(32.W), 0.U)
+  val reg_write_status_clear = Wire(UInt(32.W))
   val reg_write_start = RegInit(Bool(), false.B)
   val reg_write_addr = RegInit(UInt(64.W), 0.U)
   val reg_write_len = RegInit(UInt(32.W), 0.U)
+  val reg_write_resp_cntr = RegNext(io.wr_stats_resp_cntr)
+  val reg_write_duration = RegNext(io.wr_stats_duration)
+  val reg_check_tot = RegNext(io.check_tot)
+  val reg_check_ok = RegNext(io.check_ok)
 
+  io.ctrl_dir := reg_ctrl_dir
+  io.ctrl_mode := reg_ctrl_mode
   io.read_addr := reg_read_addr
   io.read_len := reg_read_len
   io.read_start := reg_read_start
   io.write_addr := reg_write_addr
   io.write_len := reg_write_len
   io.write_start := reg_write_start
+
+  reg_read_status := (reg_read_status & (~reg_read_status_clear).asUInt()) | Cat(
+    0.U(31.W),
+    io.rd_stats_done
+  )
+  reg_write_status := (reg_write_status & (~reg_write_status_clear).asUInt()) | Cat(
+    0.U(31.W),
+    io.wr_stats_done
+  )
 
   //==========================================================================
   // write part
@@ -173,13 +219,21 @@ class MemCheckerAxiSlave(val version: Int, val addr_w: Int = 8) extends Module {
 
   reg_read_start := false.B
   reg_write_start := false.B
+  reg_read_status_clear := 0.U
+  reg_write_status_clear := 0.U
 
   when(wr_en) {
     switch(wr_addr) {
+      is(ADDR_CTRL) {
+        reg_ctrl_dir := wr_data(0)
+        reg_ctrl_mode := wr_data(10, 8)
+      }
+      is(ADDR_READ_STATUS) { reg_read_status_clear := wr_data }
       is(ADDR_READ_CTRL) { reg_read_start := wr_data(0) }
       is(ADDR_READ_ADDR_LO) { reg_read_addr := Cat(reg_read_addr(63, 32), wr_data) }
       is(ADDR_READ_ADDR_HI) { reg_read_addr := Cat(wr_data, reg_read_addr(31, 0)) }
       is(ADDR_READ_LEN) { reg_read_len := wr_data }
+      is(ADDR_WRITE_STATUS) { reg_write_status_clear := wr_data }
       is(ADDR_WRITE_CTRL) { reg_write_start := wr_data(0) }
       is(ADDR_WRITE_ADDR_LO) { reg_write_addr := Cat(reg_write_addr(63, 32), wr_data) }
       is(ADDR_WRITE_ADDR_HI) { reg_write_addr := Cat(wr_data, reg_write_addr(31, 0)) }
@@ -245,14 +299,23 @@ class MemCheckerAxiSlave(val version: Int, val addr_w: Int = 8) extends Module {
     switch(rd_addr) {
       is(ADDR_ID) { rd_data := REG_ID }
       is(ADDR_VERSION) { rd_data := REG_VERSION }
+      is(ADDR_CTRL) { rd_data := Cat(reg_ctrl_mode, 0.U(7.W), reg_ctrl_dir) }
+      is(ADDR_READ_STATUS) { rd_data := reg_read_status }
       is(ADDR_READ_CTRL) { rd_data := 0.U }
       is(ADDR_READ_ADDR_LO) { rd_data := reg_read_addr(31, 0) }
       is(ADDR_READ_ADDR_HI) { rd_data := reg_read_addr(63, 32) }
       is(ADDR_READ_LEN) { rd_data := reg_read_len }
+      is(ADDR_READ_RESP_CNTR) { rd_data := reg_read_resp_cntr }
+      is(ADDR_READ_DURATION) { rd_data := reg_read_duration }
+      is(ADDR_WRITE_STATUS) { rd_data := reg_write_status }
       is(ADDR_WRITE_CTRL) { rd_data := 0.U }
       is(ADDR_WRITE_ADDR_LO) { rd_data := reg_write_addr(31, 0) }
       is(ADDR_WRITE_ADDR_HI) { rd_data := reg_write_addr(63, 32) }
       is(ADDR_WRITE_LEN) { rd_data := reg_write_len }
+      is(ADDR_WRITE_RESP_CNTR) { rd_data := reg_write_resp_cntr }
+      is(ADDR_WRITE_DURATION) { rd_data := reg_write_duration }
+      is(ADDR_CHECK_TOT) { rd_data := reg_check_tot }
+      is(ADDR_CHECK_OK) { rd_data := reg_check_ok }
     }
   }
 }

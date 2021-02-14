@@ -22,104 +22,105 @@ SOFTWARE.
 
 package mem_checker
 
-import chisel3._
 import bfmtester._
 
-class MemCheckerReg(
-    val w: Int = 8,
-    val addr_w: Int = 48,
-    val data_w: Int = 128,
-    val id_w: Int = 6
-) extends Module {
-  val io = IO(new Bundle {
-    val m = new AxiIf(addr_w.W, data_w.W, id_w.W)
-    val ctrl = new AxiLiteIf(8.W, 32.W)
-  })
-
-  val inst_dut = Module(new MemChecker(w, addr_w, data_w, id_w))
-
-  io.m.AW.bits.id := inst_dut.io.m.AW.bits.id
-  io.m.AW.bits.addr := inst_dut.io.m.AW.bits.addr
-  io.m.AW.bits.len := inst_dut.io.m.AW.bits.len
-  io.m.AW.bits.size := inst_dut.io.m.AW.bits.size
-  io.m.AW.bits.burst := inst_dut.io.m.AW.bits.burst
-  io.m.AW.bits.lock := inst_dut.io.m.AW.bits.lock
-  io.m.AW.bits.cache := inst_dut.io.m.AW.bits.cache
-  io.m.AW.bits.prot := inst_dut.io.m.AW.bits.prot
-  io.m.AW.bits.qos := inst_dut.io.m.AW.bits.qos
-  io.m.AW.valid := inst_dut.io.m.AW.valid
-  inst_dut.io.m.AW.ready := RegNext(io.m.AW.ready)
-
-  io.m.AR.bits.id := inst_dut.io.m.AR.bits.id
-  io.m.AR.bits.addr := inst_dut.io.m.AR.bits.addr
-  io.m.AR.bits.len := inst_dut.io.m.AR.bits.len
-  io.m.AR.bits.size := inst_dut.io.m.AR.bits.size
-  io.m.AR.bits.burst := inst_dut.io.m.AR.bits.burst
-  io.m.AR.bits.lock := inst_dut.io.m.AR.bits.lock
-  io.m.AR.bits.cache := inst_dut.io.m.AR.bits.cache
-  io.m.AR.bits.prot := inst_dut.io.m.AR.bits.prot
-  io.m.AR.bits.qos := inst_dut.io.m.AR.bits.qos
-  io.m.AR.valid := inst_dut.io.m.AR.valid
-  inst_dut.io.m.AR.ready := RegNext(io.m.AR.ready)
-
-  io.m.W.bits.id := inst_dut.io.m.W.bits.id
-  io.m.W.bits.data := inst_dut.io.m.W.bits.data
-  io.m.W.bits.strb := inst_dut.io.m.W.bits.strb
-  io.m.W.bits.last := inst_dut.io.m.W.bits.last
-  io.m.W.valid := inst_dut.io.m.W.valid
-  inst_dut.io.m.W.ready := RegNext(io.m.W.ready)
-
-  inst_dut.io.m.B.bits.id := RegNext(io.m.B.bits.id)
-  inst_dut.io.m.B.bits.resp := RegNext(io.m.B.bits.resp)
-  inst_dut.io.m.B.valid := RegNext(io.m.B.valid)
-  io.m.B.ready := inst_dut.io.m.B.ready
-
-  inst_dut.io.m.R.bits.id := RegNext(io.m.R.bits.id)
-  inst_dut.io.m.R.bits.data := RegNext(io.m.R.bits.data)
-  inst_dut.io.m.R.bits.resp := RegNext(io.m.R.bits.resp)
-  inst_dut.io.m.R.bits.last := RegNext(io.m.R.bits.last)
-  inst_dut.io.m.R.valid := RegNext(io.m.R.valid)
-  io.m.R.ready := inst_dut.io.m.R.ready
-
-  io.ctrl <> inst_dut.io.ctrl
-}
-
-class MemCheckerTest(c: MemCheckerReg) extends BfmTester(c) {
+class MemCheckerTest(c: MemChecker) extends BfmTester(c) {
   // BFMs
   val mod_axi_master = BfmFactory.create_axilite_master(c.io.ctrl)
-  val mod_axi_mem_slave = BfmFactory.create_axi_slave(c.io.m)
+  val mod_axi_mem_slave = BfmFactory.create_avalon_slave(c.io.mem)
 
   // constants
-  val READ_ADDR = 0x0a010000
-  val WRITE_ADDR = 0x0a020000
+  val READ_ADDR = 0x0a020000
+  val WRITE_ADDR = READ_ADDR
+  val LEN_BYTES = 32+256
 
-  // 2. prepare the write side
-  // set addresses, lengths
-  mod_axi_master.writePush(0x44, data = WRITE_ADDR)
-  mod_axi_master.writePush(0x48, data = 0)
-  mod_axi_master.writePush(0x4c, data = 1024)
-  mod_axi_master.writePush(0x40, data = 1)
+  // 1. check version
+  mod_axi_master.readPush(4)
   step(50)
-  for (i <- 0 until 4) {
-    val wr_resp = mod_axi_master.getResponse().get
-    expect(wr_resp.success, "write successful")
-  }
-  step(10000)
+  val rd_resp = mod_axi_master.getResponse().get
+  expect(rd_resp.success, "read successful")
+  expect(rd_resp.rd_data == 0x200, "IP version")
 
-  /*
-  // 3. prepare the read side
-  mod_axi_master.writePush(0x24, data = READ_ADDR)
-  mod_axi_master.writePush(0x28, data = 0)
-  mod_axi_master.writePush(0x2c, data = comp_len / (128 / 8) + 1)
-  mod_axi_master.writePush(0x20, data = 1)
-  step(50)
-  for (i <- 0 until 4) {
-    val wr_resp = mod_axi_master.getResponse().get
-    expect(wr_resp.success, "write successful")
-  }
-   */
+  for (mode <- 0 to 7) {
+    // 2. prepare the write side
+    // set addresses, lengths
+    mod_axi_master.writePush(0x10, data = 1 | mode << 8)
+    mod_axi_master.writePush(0x68, data = WRITE_ADDR)
+    mod_axi_master.writePush(0x6C, data = 0)
+    mod_axi_master.writePush(0x70, data = LEN_BYTES)
+    mod_axi_master.writePush(0x64, data = 1)
+    step(100)
+    for (i <- 0 until 5) {
+      val wr_resp = mod_axi_master.getResponse().get
+      expect(wr_resp.success, "write successful")
+    }
+    step(1000)
 
-  // 4. check the uncompressed data in the memory
-  step(10000)
-  mod_axi_mem_slave.mem_stats()
+    // 3. prepare the read side
+    mod_axi_master.writePush(0x10, data = 0 | mode << 8)
+    mod_axi_master.writePush(0x28, data = READ_ADDR)
+    mod_axi_master.writePush(0x2c, data = 0)
+    mod_axi_master.writePush(0x30, data = LEN_BYTES)
+    mod_axi_master.writePush(0x24, data = 1)
+    step(100)
+    for (i <- 0 until 5) {
+      val wr_resp = mod_axi_master.getResponse().get
+      expect(wr_resp.success, "write successful")
+    }
+
+    // 4.
+    step(1000)
+    mod_axi_mem_slave.mem_stats()
+    mod_axi_master.readPush(0x20)
+    mod_axi_master.readPush(0x60)
+    step(100)
+    val read_status = mod_axi_master.getResponse().get
+    val write_status = mod_axi_master.getResponse().get
+    expect(read_status.rd_data == 1, "read status reports done")
+    expect(write_status.rd_data == 1, "write status reports done")
+
+    // clear with write
+    mod_axi_master.writePush(0x20, 1)
+    mod_axi_master.writePush(0x60, 1)
+    step(50)
+    mod_axi_master.getResponse()
+    mod_axi_master.getResponse()
+
+    mod_axi_master.readPush(0x20)
+    mod_axi_master.readPush(0x60)
+    step(50)
+    val read_status_clr = mod_axi_master.getResponse().get
+    val write_status_clr = mod_axi_master.getResponse().get
+    expect(read_status_clr.rd_data == 0, "read status was cleared (W1C)")
+    expect(write_status_clr.rd_data == 0, "write status was cleared (W1C)")
+
+    // check ok, check tot
+    mod_axi_master.readPush(0xa0)
+    mod_axi_master.readPush(0xa4)
+    step(50)
+    val check_tot = mod_axi_master.getResponse().get
+    val check_ok = mod_axi_master.getResponse().get
+    expect(check_tot.rd_data == LEN_BYTES / (c.data_w / 8), "check total")
+    expect(check_ok.rd_data == LEN_BYTES / (c.data_w / 8), "check OK")
+
+    // duration
+    mod_axi_master.readPush(0x38)
+    mod_axi_master.readPush(0x78)
+    step(50)
+    val read_duration = mod_axi_master.getResponse().get
+    val write_duration = mod_axi_master.getResponse().get
+    expect(read_duration.rd_data >= LEN_BYTES / (c.data_w / 8), "read duration")
+    expect(write_duration.rd_data >= LEN_BYTES / (c.data_w / 8), "write duration")
+
+    // counters
+    mod_axi_master.readPush(0x34)
+    mod_axi_master.readPush(0x74)
+    step(50)
+    val read_counter = mod_axi_master.getResponse().get
+    val write_counter = mod_axi_master.getResponse().get
+    val read_counter_exp = LEN_BYTES / (c.data_w / 8)
+    val write_counter_exp = math.ceil(LEN_BYTES / 16 / 8).toInt
+    expect(read_counter.rd_data == read_counter_exp, "read counter")
+    expect(write_counter.rd_data == write_counter_exp, "read counter")
+  }
 }

@@ -27,27 +27,7 @@ import chisel3.iotesters.ChiselFlatSpec
 
 class MemCheckerTester extends ChiselFlatSpec {
 
-  it should "check the AXI master core" in {
-    iotesters.Driver.execute(
-      Array(
-        "--backend-name",
-        "verilator",
-        "--fint-write-vcd",
-        "--test-seed",
-        "1234",
-        "--target-dir",
-        "test_run_dir/AxiMasterCoreTest",
-        "--top-name",
-        "AxiMasterCoreTest"
-        // "--is-verbose"
-      ),
-      () => new AxiMasterCoreReg
-    ) { c =>
-      new AxiMasterCoreTest(c)
-    } should be(true)
-  }
-
-  it should "check the axi slave" in {
+  ignore should "check the axi slave" in {
     iotesters.Driver.execute(
       Array(
         "--backend-name",
@@ -79,7 +59,7 @@ class MemCheckerTester extends ChiselFlatSpec {
         "--top-name",
         "MemCheckerTest"
       ),
-      () => new MemCheckerReg()
+      () => new MemChecker()
     ) { c =>
       new MemCheckerTest(c)
     } should be(true)

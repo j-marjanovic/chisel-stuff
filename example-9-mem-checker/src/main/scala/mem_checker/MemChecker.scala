@@ -26,63 +26,80 @@ import bfmtester._
 import chisel3._
 
 class MemChecker(
-    val w: Int = 8,
     val addr_w: Int = 48,
     val data_w: Int = 128,
-    val id_w: Int = 6
+    val burst_w: Int = 5
 ) extends Module {
   val io = IO(new Bundle {
-    val m = new AxiIf(addr_w.W, data_w.W, id_w.W)
+    val mem = new AvalonMMIf(data_w = data_w, addr_w = addr_w, burst_w = burst_w)
     val ctrl = new AxiLiteIf(8.W, 32.W)
   })
 
-  val VERSION: Int = 0x00000100
-
-  val axi_read = Wire(new AxiMasterCoreReadIface(addr_w.W, data_w.W))
-  val axi_write = Wire(new AxiMasterCoreWriteIface(addr_w.W, data_w.W))
-
-  val mod_axi = Module(new AxiMasterCore(addr_w, data_w, id_w))
-  mod_axi.io.m <> io.m
-  mod_axi.io.write <> axi_write
-  mod_axi.io.read <> axi_read
+  val VERSION: Int = 0x00000200
 
   val mod_axi_slave = Module(
     new MemCheckerAxiSlave(version = VERSION, addr_w = io.ctrl.addr_w.get)
   )
-  mod_axi_slave.io.ctrl <> io.ctrl
-  axi_write.addr := mod_axi_slave.io.write_addr
-  axi_write.len := mod_axi_slave.io.write_len
-  axi_write.start := mod_axi_slave.io.write_start
+  val mod_avalon_wr = Module(new AvalonMMWriter(addr_w, data_w, burst_w, 16))
+  val mod_avalon_rd = Module(new AvalonMMReader(addr_w, data_w, burst_w, 16))
 
-  axi_read.addr := mod_axi_slave.io.read_addr
-  axi_read.len := mod_axi_slave.io.read_len
-  axi_read.start := mod_axi_slave.io.read_start
+  val mod_data_drv = Module(new DataDriver(data_w))
+  val mod_data_chk = Module(new DataChecker(data_w))
 
-  axi_read.ready := true.B
+  io.ctrl <> mod_axi_slave.io.ctrl
 
-  // TMP - just to test the AXI core
-  val cntr = Reg(axi_write.len.cloneType)
+  // avalon wr
+  io.mem.byteenable := mod_avalon_wr.io.byteenable
+  io.mem.write := mod_avalon_wr.io.write
+  io.mem.writedata := mod_avalon_wr.io.writedata
+  mod_avalon_wr.io.response := io.mem.response
+  mod_avalon_wr.io.waitrequest := io.mem.waitrequest
+  mod_avalon_wr.io.writeresponsevalid := io.mem.writeresponsevalid
 
-  val DATA_INIT: BigInt = (7 to 0 by -1).foldLeft(BigInt(0)) { (acc, i) => (acc << 16) | i }
-  val DATA_INC: BigInt = (7 to 0 by -1).foldLeft(BigInt(0)) { (acc, i) => (acc << 16) | 1 }
+  mod_avalon_wr.io.ctrl_addr := mod_axi_slave.io.write_addr
+  mod_avalon_wr.io.ctrl_len_bytes := mod_axi_slave.io.write_len
+  mod_avalon_wr.io.ctrl_start := mod_axi_slave.io.write_start
+  mod_axi_slave.io.wr_stats_resp_cntr := mod_avalon_wr.io.stats_resp_cntr
+  mod_axi_slave.io.wr_stats_done := mod_avalon_wr.io.stats_done
+  mod_axi_slave.io.wr_stats_duration := mod_avalon_wr.io.stats_duration
 
-  val axi_write_data = Reg(axi_write.data.cloneType)
-  val axi_write_valid = Reg(axi_write.valid.cloneType)
-  axi_write.data := axi_write_data
-  axi_write.valid := axi_write_valid
+  // data drv
+  mod_data_drv.io.ctrl_mode := mod_axi_slave.io.ctrl_mode
 
-  when(axi_write.start) {
-    cntr := axi_write.len
-    axi_write_data := DATA_INIT.U
-    axi_write_valid := false.B
-  }.elsewhen(cntr > 0.U) {
-      when(axi_write.ready) {
-        cntr := cntr - 1.U
-        axi_write_data := axi_write.data + DATA_INC.U
-      }
-      axi_write_valid := true.B
-    }
-    .otherwise {
-      axi_write_valid := false.B
-    }
+  mod_data_drv.io.data_init := mod_avalon_wr.io.data_init
+  mod_data_drv.io.data_inc := mod_avalon_wr.io.data_inc
+  mod_avalon_wr.io.data_data := mod_data_drv.io.data_data
+
+  // avalon rd
+  io.mem.read := mod_avalon_rd.io.read
+  mod_avalon_rd.io.readdata := io.mem.readdata
+  mod_avalon_rd.io.response := io.mem.response
+  mod_avalon_rd.io.waitrequest := io.mem.waitrequest
+  mod_avalon_rd.io.readdatavalid := io.mem.readdatavalid
+
+  mod_avalon_rd.io.ctrl_addr := mod_axi_slave.io.read_addr
+  mod_avalon_rd.io.ctrl_len_bytes := mod_axi_slave.io.read_len
+  mod_avalon_rd.io.ctrl_start := mod_axi_slave.io.read_start
+  mod_axi_slave.io.rd_stats_resp_cntr := mod_avalon_rd.io.stats_resp_cntr
+  mod_axi_slave.io.rd_stats_done := mod_avalon_rd.io.stats_done
+  mod_axi_slave.io.rd_stats_duration := mod_avalon_rd.io.stats_duration
+
+  // data check
+  mod_data_chk.io.ctrl_mode := mod_axi_slave.io.ctrl_mode
+
+  mod_data_chk.io.data_init := mod_avalon_rd.io.data_init
+  mod_data_chk.io.data_inc := mod_avalon_rd.io.data_inc
+  mod_data_chk.io.data_data := mod_avalon_rd.io.data_data
+
+  mod_axi_slave.io.check_tot := mod_data_chk.io.check_tot
+  mod_axi_slave.io.check_ok := mod_data_chk.io.check_ok
+
+  // 0 = read, 1 = write
+  when(mod_axi_slave.io.ctrl_dir) {
+    io.mem.address := mod_avalon_wr.io.address
+    io.mem.burstcount := mod_avalon_wr.io.burstcount
+  }.otherwise {
+    io.mem.address := mod_avalon_rd.io.address
+    io.mem.burstcount := mod_avalon_rd.io.burstcount
+  }
 }

@@ -26,11 +26,11 @@ import chisel3._
 import chisel3.util._
 
 class AvalonMMReader(
-                      val addr_w: Int,
-                      val data_w: Int,
-                      val burst_w: Int,
-                      val BURST_LEN: Int
-                    ) extends Module {
+    val addr_w: Int,
+    val data_w: Int,
+    val burst_w: Int,
+    val BURST_LEN: Int
+) extends Module {
   val io = IO(new Bundle {
     // Avalon interface
     val address = Output(UInt(addr_w.W))
@@ -98,7 +98,7 @@ class AvalonMMReader(
             state := sIdle
           }.otherwise {
             state := sRdAddr
-            cur_addr := cur_addr + (BYTES_PER_CYC*BURST_LEN).U
+            cur_addr := cur_addr + (BYTES_PER_CYC * BURST_LEN).U
             when(rem_tot_len_bytes >= (BURST_LEN * BYTES_PER_CYC).U) {
               rem_cyc_len_words := (BURST_LEN - 1).U
             }.otherwise {
@@ -110,15 +110,15 @@ class AvalonMMReader(
     }
   }
 
-  when (state === sRdAddr) {
+  when(state === sRdAddr) {
     io.burstcount := rem_cyc_len_words + 1.U
-  } .otherwise {
+  }.otherwise {
     io.burstcount := 0.U
   }
 
-  when (state === sRdAddr) {
+  when(state === sRdAddr) {
     io.address := cur_addr
-  } .otherwise {
+  }.otherwise {
     io.address := 0.U
   }
 
@@ -135,10 +135,10 @@ class AvalonMMReader(
   val resp_cntr_reg = Reg(UInt(32.W))
   io.stats_resp_cntr := resp_cntr_reg
 
-  when (state === sIdle && io.ctrl_start) {
+  when(state === sIdle && io.ctrl_start) {
     resp_cntr_reg := 0.U
-  } .elsewhen (state =/= sIdle) {
-    when (io.readdatavalid && io.response === 0.U) {
+  }.elsewhen(state =/= sIdle) {
+    when(io.readdatavalid && io.response === 0.U) {
       resp_cntr_reg := resp_cntr_reg + 1.U
     }
   }
@@ -152,15 +152,15 @@ class AvalonMMReader(
   val rd_duration_en = RegInit(Bool(), false.B)
   io.stats_duration := rd_duration
 
-  when (state === sIdle && io.ctrl_start) {
+  when(state === sIdle && io.ctrl_start) {
     rd_duration_en := true.B
-  } .elsewhen (io.stats_done) {
+  }.elsewhen(io.stats_done) {
     rd_duration_en := false.B
   }
 
-  when (rd_duration_en) {
+  when(rd_duration_en) {
     rd_duration := rd_duration + 1.U
-  } .elsewhen(state === sIdle && io.ctrl_start) {
+  }.elsewhen(state === sIdle && io.ctrl_start) {
     rd_duration := 0.U
   }
 }

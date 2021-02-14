@@ -123,7 +123,7 @@ int _mem_check_print_stats(uint32_t base, uint32_t mem_size)
     float write_througput_mbps = mem_size * 200.0 / write_duration;
     float read_througput_mbps = mem_size * 200.0 / read_duration;
 
-    bool mem_check_pass = (check_tot == mem_size / 16) && (check_tot == check_ok);
+    bool mem_check_pass = (check_tot == mem_size / 64) && (check_tot == check_ok);
 
     printf("[mem check]   results = %s (%ld / %ld)\n", mem_check_pass ? "PASS" : "FAIL", check_ok, check_tot);
     printf("[mem check]   write throughput = %d MB/s\n", (int)write_througput_mbps);

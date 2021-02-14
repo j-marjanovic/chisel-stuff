@@ -101,7 +101,7 @@ class AvalonMMWriter(
             state := sIdle
           }.otherwise {
             state := sWrFirst
-            cur_addr := cur_addr + (BYTES_PER_CYC*BURST_LEN).U
+            cur_addr := cur_addr + (BYTES_PER_CYC * BURST_LEN).U
             when(rem_tot_len_bytes >= (BURST_LEN * BYTES_PER_CYC).U) {
               rem_cyc_len_words := (BURST_LEN - 1).U
             }.otherwise {
@@ -115,15 +115,15 @@ class AvalonMMWriter(
 
   io.byteenable := -1.S(io.byteenable.getWidth.W).asUInt()
 
-  when (state === sWrFirst) {
+  when(state === sWrFirst) {
     io.burstcount := rem_cyc_len_words + 1.U
-  } .otherwise {
+  }.otherwise {
     io.burstcount := 0.U
   }
 
-  when (state === sWrFirst) {
+  when(state === sWrFirst) {
     io.address := cur_addr
-  } .otherwise {
+  }.otherwise {
     io.address := 0.U
   }
 
@@ -134,20 +134,18 @@ class AvalonMMWriter(
   io.data_inc := state =/= sIdle && !io.waitrequest
   io.writedata := io.data_data
 
-
   // response counter
 
   val resp_cntr_reg = Reg(UInt(32.W))
   io.stats_resp_cntr := resp_cntr_reg
 
-  when (state === sIdle && io.ctrl_start) {
+  when(state === sIdle && io.ctrl_start) {
     resp_cntr_reg := 0.U
-  } .elsewhen (state =/= sIdle) {
-    when (io.writeresponsevalid && io.response === 0.U) {
+  }.elsewhen(state =/= sIdle) {
+    when(io.writeresponsevalid && io.response === 0.U) {
       resp_cntr_reg := resp_cntr_reg + 1.U
     }
   }
-
 
   // statistics
 
@@ -158,15 +156,15 @@ class AvalonMMWriter(
   val wr_duration_en = RegInit(Bool(), false.B)
   io.stats_duration := wr_duration
 
-  when (state === sIdle && io.ctrl_start) {
+  when(state === sIdle && io.ctrl_start) {
     wr_duration_en := true.B
-  } .elsewhen (io.stats_done) {
+  }.elsewhen(io.stats_done) {
     wr_duration_en := false.B
   }
 
-  when (wr_duration_en) {
+  when(wr_duration_en) {
     wr_duration := wr_duration + 1.U
-  } .elsewhen(state === sIdle && io.ctrl_start) {
+  }.elsewhen(state === sIdle && io.ctrl_start) {
     wr_duration := 0.U
   }
 }

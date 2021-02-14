@@ -40,7 +40,7 @@ class MemCheckerTester extends ChiselFlatSpec {
         "--top-name",
         "DecompressorAxiSlaveTest"
       ),
-      () => new MemCheckerAxiSlave(0x00010203)
+      () => new MemCheckerAxiSlave(0x00010203, 256)
     ) { c =>
       new MemCheckerAxiSlaveTest(c)
     } should be(true)

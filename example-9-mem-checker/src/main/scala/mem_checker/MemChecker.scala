@@ -26,8 +26,8 @@ import bfmtester._
 import chisel3._
 
 class MemChecker(
-    val addr_w: Int = 48,
-    val data_w: Int = 128,
+    val addr_w: Int = 32,
+    val data_w: Int = 512,
     val burst_w: Int = 5
 ) extends Module {
   val io = IO(new Bundle {
@@ -35,10 +35,10 @@ class MemChecker(
     val ctrl = new AxiLiteIf(8.W, 32.W)
   })
 
-  val VERSION: Int = 0x00010000
+  val VERSION: Int = 0x00010003
 
   val mod_axi_slave = Module(
-    new MemCheckerAxiSlave(version = VERSION, addr_w = io.ctrl.addr_w.get)
+    new MemCheckerAxiSlave(version = VERSION, mem_data_w = data_w, addr_w = io.ctrl.addr_w.get)
   )
   val mod_avalon_wr = Module(new AvalonMMWriter(addr_w, data_w, burst_w, 16))
   val mod_avalon_rd = Module(new AvalonMMReader(addr_w, data_w, burst_w, 16))

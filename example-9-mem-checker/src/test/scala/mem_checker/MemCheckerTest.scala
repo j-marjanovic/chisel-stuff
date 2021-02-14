@@ -32,14 +32,15 @@ class MemCheckerTest(c: MemChecker) extends BfmTester(c) {
   // constants
   val READ_ADDR = 0x0a020000
   val WRITE_ADDR = READ_ADDR
-  val LEN_BYTES = 32+256
+  val LEN_BYTES = (32+256) * 4
 
   // 1. check version
   mod_axi_master.readPush(4)
   step(50)
   val rd_resp = mod_axi_master.getResponse().get
   expect(rd_resp.success, "read successful")
-  expect(rd_resp.rd_data == 0x10000, "IP version")
+  expect(((rd_resp.rd_data >> 16) & 0xFF) == 1, "IP version (major)")
+  expect(((rd_resp.rd_data >> 8) & 0xFF) == 0, "IP version (minor)")
 
   for (mode <- 0 to 7) {
     // 2. prepare the write side
@@ -119,7 +120,7 @@ class MemCheckerTest(c: MemChecker) extends BfmTester(c) {
     val read_counter = mod_axi_master.getResponse().get
     val write_counter = mod_axi_master.getResponse().get
     val read_counter_exp = LEN_BYTES / (c.data_w / 8)
-    val write_counter_exp = math.ceil(LEN_BYTES / 16 / 8).toInt
+    val write_counter_exp = math.ceil(LEN_BYTES / 64 / 8).toInt
     expect(read_counter.rd_data == read_counter_exp, "read counter")
     expect(write_counter.rd_data == write_counter_exp, "read counter")
   }

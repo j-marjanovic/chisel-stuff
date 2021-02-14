@@ -35,7 +35,7 @@ class MemChecker(
     val ctrl = new AxiLiteIf(8.W, 32.W)
   })
 
-  val VERSION: Int = 0x00000200
+  val VERSION: Int = 0x00010000
 
   val mod_axi_slave = Module(
     new MemCheckerAxiSlave(version = VERSION, addr_w = io.ctrl.addr_w.get)

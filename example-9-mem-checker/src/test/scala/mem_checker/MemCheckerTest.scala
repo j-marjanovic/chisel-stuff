@@ -39,7 +39,7 @@ class MemCheckerTest(c: MemChecker) extends BfmTester(c) {
   step(50)
   val rd_resp = mod_axi_master.getResponse().get
   expect(rd_resp.success, "read successful")
-  expect(rd_resp.rd_data == 0x200, "IP version")
+  expect(rd_resp.rd_data == 0x10000, "IP version")
 
   for (mode <- 0 to 7) {
     // 2. prepare the write side

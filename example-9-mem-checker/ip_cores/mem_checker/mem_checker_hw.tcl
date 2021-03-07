@@ -154,7 +154,7 @@ set_interface_property mem CMSIS_SVD_VARIABLES ""
 set_interface_property mem SVD_ADDRESS_GROUP ""
 
 add_interface_port mem io_mem_address address Output 32
-add_interface_port mem io_mem_burstcount burstcount Output 5
+add_interface_port mem io_mem_burstcount burstcount Output 8
 add_interface_port mem io_mem_byteenable byteenable Output 64
 add_interface_port mem io_mem_read read Output 1
 add_interface_port mem io_mem_readdata readdata Input 512

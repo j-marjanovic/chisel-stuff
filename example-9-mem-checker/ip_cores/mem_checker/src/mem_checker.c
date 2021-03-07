@@ -29,6 +29,7 @@ SOFTWARE.
 #include "mem_checker.h"
 #include "mem_checker_regs.h"
 
+// clang-format off
 const char* mem_check_mode_str[8] = {
     "all 0s",
     "all 1s",
@@ -39,6 +40,7 @@ const char* mem_check_mode_str[8] = {
     "32-bit counter",
     "128-bit counter"
 };
+// clang-format on
 
 void _mem_check_get_id(uint32_t base, uint32_t* id, uint32_t* ver)
 {
@@ -51,7 +53,8 @@ void _mem_check_ctrl(uint32_t base, bool write_not_read, uint8_t mode)
     IOWR_32DIRECT(base, ADDR_CTRL, (mode << 8) | write_not_read);
 }
 
-void _mem_check_write_start(uint32_t base, uint64_t mem_address, uint32_t mem_size)
+void _mem_check_write_start(uint32_t base, uint64_t mem_address,
+    uint32_t mem_size)
 {
     IOWR_32DIRECT(base, ADDR_WRITE_ADDR_LO, mem_address);
     IOWR_32DIRECT(base, ADDR_WRITE_ADDR_HI, mem_address >> 32);
@@ -89,7 +92,8 @@ void _mem_check_write_clear(uint32_t base)
     IOWR_32DIRECT(base, ADDR_WRITE_STATUS, 1);
 }
 
-void _mem_check_read_start(uint32_t base, uint64_t mem_address, uint32_t mem_size)
+void _mem_check_read_start(uint32_t base, uint64_t mem_address,
+    uint32_t mem_size)
 {
     IOWR_32DIRECT(base, ADDR_READ_ADDR_LO, mem_address);
     IOWR_32DIRECT(base, ADDR_READ_ADDR_HI, mem_address >> 32);
@@ -102,11 +106,8 @@ void _mem_check_read_clear(uint32_t base)
     IOWR_32DIRECT(base, ADDR_READ_STATUS, 1);
 }
 
-void _mem_check_get_stats(
-    uint32_t base,
-    uint32_t* read_duration,
-    uint32_t* write_duration,
-    uint32_t* check_tot,
+void _mem_check_get_stats(uint32_t base, uint32_t* read_duration,
+    uint32_t* write_duration, uint32_t* check_tot,
     uint32_t* check_ok)
 {
     *read_duration = IORD_32DIRECT(base, ADDR_READ_DURATION);
@@ -118,18 +119,29 @@ void _mem_check_get_stats(
 int _mem_check_print_stats(uint32_t base, uint32_t mem_size)
 {
     uint32_t read_duration, write_duration, check_tot, check_ok;
-    _mem_check_get_stats(base, &read_duration, &write_duration, &check_tot, &check_ok);
+    _mem_check_get_stats(base, &read_duration, &write_duration, &check_tot,
+        &check_ok);
 
     float write_througput_mbps = mem_size * 200.0 / write_duration;
     float read_througput_mbps = mem_size * 200.0 / read_duration;
 
     bool mem_check_pass = (check_tot == mem_size / 64) && (check_tot == check_ok);
 
-    printf("[mem check]   results = %s (%ld / %ld)\n", mem_check_pass ? "PASS" : "FAIL", check_ok, check_tot);
-    printf("[mem check]   write throughput = %d MB/s\n", (int)write_througput_mbps);
+    printf("[mem check]   results = %s (%ld / %ld)\n",
+        mem_check_pass ? "PASS" : "FAIL", check_ok, check_tot);
+    printf("[mem check]   write throughput = %d MB/s\n",
+        (int)write_througput_mbps);
     printf("[mem check]   read throughput = %d MB/s\n", (int)read_througput_mbps);
 
     return mem_check_pass ? 0 : -2;
+}
+
+void _mem_check_get_conf(uint32_t base, unsigned int* avalon_width_bytes,
+    unsigned int* avalon_burst_len)
+{
+    uint32_t cfg = IORD_32DIRECT(base, ADDR_CONF);
+    *avalon_width_bytes = cfg & 0xFF;
+    *avalon_burst_len = (cfg >> 8) & 0xFF;
 }
 
 int mem_check(uint32_t base, uint64_t mem_address, uint32_t mem_size)
@@ -141,6 +153,11 @@ int mem_check(uint32_t base, uint64_t mem_address, uint32_t mem_size)
 
     printf("[mem check] =================================================\n");
     printf("[mem check] IP id = 0x%lx, version = %lx\n", id, ver);
+
+    unsigned int avalon_width_bytes, avalon_burst_len;
+    _mem_check_get_conf(base, &avalon_width_bytes, &avalon_burst_len);
+    printf("[mem check] Avalon width = %lu bytes, burst len = %lu\n",
+        avalon_width_bytes, avalon_burst_len);
 
     for (int mode = 0; mode < 8; mode++) {
         printf("[mem check] mode = %s\n", mem_check_mode_str[mode]);

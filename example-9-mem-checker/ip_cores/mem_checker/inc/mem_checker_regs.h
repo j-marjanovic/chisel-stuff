@@ -24,6 +24,7 @@ SOFTWARE.
 
 #define ADDR_ID (0x0)
 #define ADDR_VERSION (0x4)
+#define ADDR_CONF (0x8)
 #define ADDR_CTRL (0x10)
 #define ADDR_READ_STATUS (0x20)
 #define ADDR_READ_CTRL (0x24)

@@ -120,8 +120,8 @@ class MemCheckerTest(c: MemChecker) extends BfmTester(c) {
     val read_counter = mod_axi_master.getResponse().get
     val write_counter = mod_axi_master.getResponse().get
     val read_counter_exp = LEN_BYTES / (c.data_w / 8)
-    val write_counter_exp = math.ceil(LEN_BYTES / 64 / 8).toInt
-    expect(read_counter.rd_data == read_counter_exp, "read counter")
-    expect(write_counter.rd_data == write_counter_exp, "read counter")
+    val write_counter_exp = math.ceil(LEN_BYTES / (c.data_w / 8.0) / c.BURST_LEN).toInt
+    expect(read_counter.rd_data == read_counter_exp, s"read counter")
+    expect(write_counter.rd_data == write_counter_exp, s"write counter")
   }
 }

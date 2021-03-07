@@ -26,7 +26,12 @@ import chisel3._
 import chisel3.util._
 import bfmtester._
 
-class MemCheckerAxiSlave(val version: Int, val mem_data_w: Int, val addr_w: Int = 8) extends Module {
+class MemCheckerAxiSlave(
+    val version: Int,
+    val mem_data_w: Int,
+    val BURST_LEN: Int,
+    val addr_w: Int = 8
+) extends Module {
 
   val io = IO(new Bundle {
     val ctrl = new AxiLiteIf(addr_w = addr_w.W)
@@ -300,7 +305,7 @@ class MemCheckerAxiSlave(val version: Int, val mem_data_w: Int, val addr_w: Int 
     switch(rd_addr) {
       is(ADDR_ID) { rd_data := REG_ID }
       is(ADDR_VERSION) { rd_data := REG_VERSION }
-      is(ADDR_CONF) { rd_data := (mem_data_w/8).U }
+      is(ADDR_CONF) { rd_data := Cat(BURST_LEN.U(8.W), (mem_data_w / 8).U(8.W)) }
       is(ADDR_CTRL) { rd_data := Cat(reg_ctrl_mode, 0.U(7.W), reg_ctrl_dir) }
       is(ADDR_READ_STATUS) { rd_data := reg_read_status }
       is(ADDR_READ_CTRL) { rd_data := 0.U }

@@ -67,9 +67,9 @@ class PoorMansSystemILA(val BUF_LEN: Int = 4096) extends Module {
   )
   io.ctrl <> mod_ctrl.io.ctrl
 
-  mod_ctrl.io.inp("VERSION_MAJOR") := 0x03.U
-  mod_ctrl.io.inp("VERSION_MINOR") := 0x14.U
-  mod_ctrl.io.inp("VERSION_PATCH") := 0x16.U
+  mod_ctrl.io.inp("VERSION_MAJOR") := 0x01.U
+  mod_ctrl.io.inp("VERSION_MINOR") := 0x00.U
+  mod_ctrl.io.inp("VERSION_PATCH") := 0x00.U
 
   val mod_mem = Module(new DualPortRam(32, BUF_LEN))
   mod_mem.io.clk := this.clock

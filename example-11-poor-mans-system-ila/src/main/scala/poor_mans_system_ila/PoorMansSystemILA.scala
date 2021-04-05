@@ -32,25 +32,25 @@ class PoorMansSystemILA(val BUF_LEN: Int = 4096) extends Module {
   // format: off
   val area_map = new AreaMap(
     new Reg("ID_REG", 0,
-      new Field("ID", hw_access = Access.NA, sw_access = Access.R,  hi = 31, Some(0), reset = Some(0x5157311a.U))
+      new Field("ID",     hw_access = Access.NA, sw_access = Access.R,  hi = 31, Some(0), reset = Some(0x5157311a.U))
     ),
     new Reg("VERSION", 4,
-      new Field("PATCH", hw_access = Access.W, sw_access = Access.R, hi = 7, lo = Some(0), reset = Some(3.U)),
-      new Field("MINOR", hw_access = Access.W, sw_access = Access.R, hi = 15, lo = Some(8), reset = Some(2.U)),
-      new Field("MAJOR", hw_access = Access.W, sw_access = Access.R, hi = 23, lo = Some(16), reset = Some(1.U))
+      new Field("PATCH",  hw_access = Access.W,  sw_access = Access.R,  hi =  7, lo = Some(0)),
+      new Field("MINOR",  hw_access = Access.W,  sw_access = Access.R,  hi = 15, lo = Some(8)),
+      new Field("MAJOR",  hw_access = Access.W,  sw_access = Access.R,  hi = 23, lo = Some(16))
     ),
     new Reg("SCRATCH", 0xc,
-      new Field("FIELD", hw_access = Access.NA, sw_access = Access.RW, hi = 31, lo = Some(0))
+      new Field("FIELD",  hw_access = Access.NA, sw_access = Access.RW, hi = 31, lo = Some(0))
     ),
     new Reg("STATUS", 0x10,
-      new Field("DONE", hw_access = Access.W, sw_access = Access.R, hi = 0, lo = None, singlepulse = true),
+      new Field("DONE",   hw_access = Access.W,  sw_access = Access.R,  hi =  0, lo = None, singlepulse = true),
     ),
     new Reg("CONTROL", 0x14,
-      new Field("CLEAR", hw_access = Access.R, sw_access = Access.RW, hi = 0, lo = None, singlepulse = true),
-      new Field("ENABLE", hw_access = Access.R, sw_access = Access.RW, hi = 31, lo = None)
+      new Field("CLEAR",  hw_access = Access.R,  sw_access = Access.RW, hi =  0, lo = None, singlepulse = true),
+      new Field("ENABLE", hw_access = Access.R,  sw_access = Access.RW, hi = 31, lo = None)
     ),
     new Reg("TRIG_CTRL", 0x24,
-      new Field("MASK", hw_access = Access.R, sw_access = Access.RW, hi = 9, lo = Some(0))
+      new Field("MASK",   hw_access = Access.R,  sw_access = Access.RW, hi =  9, lo = Some(0))
     ),
     new Mem("DATA", addr = 0x1000, nr_els = BUF_LEN, data_w = 32),
   )

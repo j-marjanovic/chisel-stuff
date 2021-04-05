@@ -25,6 +25,7 @@ package poor_mans_system_ila
 import bfmtester.util._
 import bfmtester._
 import chisel3._
+import chisel3.util.log2Up
 
 class PoorMansSystemILA(val BUF_LEN: Int = 4096) extends Module {
   import AxiLiteSubordinateGenerator._
@@ -57,15 +58,18 @@ class PoorMansSystemILA(val BUF_LEN: Int = 4096) extends Module {
   )
   // format: on
 
+  private val mem_start_addr = area_map.els.find(_.name == "DATA").get.asInstanceOf[Mem].addr
+  private val addr_w = log2Up(mem_start_addr + BUF_LEN * 4)
+
   val io = IO(new Bundle {
-    val ctrl = new AxiLiteIf(addr_w = 14.W)
+    val ctrl = new AxiLiteIf(addr_w = addr_w.W)
     val MBDEBUG = new MbdebugBundle()
     val DEBUG_SYS_RESET = Input(Bool())
     val int_req = Output(Bool())
   })
 
   val mod_ctrl = Module(
-    new AxiLiteSubordinateGenerator(area_map = area_map, addr_w = 16)
+    new AxiLiteSubordinateGenerator(area_map = area_map, addr_w = addr_w)
   )
   io.ctrl <> mod_ctrl.io.ctrl
 

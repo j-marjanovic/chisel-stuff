@@ -37,20 +37,29 @@ class MbdebugGenerator(val mbdebug: MbdebugBundle,
 
   private var cntr: Int = 0
   private val tdi_queue = mutable.Queue[Int]()
+  private var quiet: Boolean = false
+
+  def quiet_set(_quiet: Boolean): Unit = quiet = _quiet
+
+  def poke_with_quiet(signal: Bits, value: BigInt): Unit = {
+    if (!quiet) {
+      poke(signal, value)
+    }
+  }
 
   override def update(t: Long, poke: (Bits, BigInt) => Unit): Unit = {
     cntr += 1
     if (cntr == 4) {
-      poke(mbdebug.CLK, 0)
+      poke_with_quiet(mbdebug.CLK, 0)
     } else if (cntr >= 9) {
       cntr = 0
-      poke(mbdebug.CLK, 1)
+      poke_with_quiet(mbdebug.CLK, 1)
       val tdi = if (rnd_gen.nextBoolean()) { 1 } else { 0 }
-      poke(mbdebug.TDI, tdi)
+      poke_with_quiet(mbdebug.TDI, tdi)
       tdi_queue.enqueue(tdi)
       if (tdi_queue.size > 5) {
         val tdo = tdi_queue.dequeue()
-        poke(mbdebug.TDO, tdo)
+        poke_with_quiet(mbdebug.TDO, tdo)
       }
     }
   }

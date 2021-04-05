@@ -50,7 +50,8 @@ class PoorMansSystemILA(val BUF_LEN: Int = 4096) extends Module {
       new Field("ENABLE", hw_access = Access.R,  sw_access = Access.RW, hi = 31, lo = None)
     ),
     new Reg("TRIG_CTRL", 0x24,
-      new Field("MASK",   hw_access = Access.R,  sw_access = Access.RW, hi =  9, lo = Some(0))
+      new Field("MASK",   hw_access = Access.R,  sw_access = Access.RW, hi =  9, lo = Some(0)),
+      new Field("FORCE",  hw_access = Access.R,  sw_access = Access.RW, hi =  31, lo = None, singlepulse = true),
     ),
     new Mem("DATA", addr = 0x1000, nr_els = BUF_LEN, data_w = 32),
   )
@@ -60,15 +61,16 @@ class PoorMansSystemILA(val BUF_LEN: Int = 4096) extends Module {
     val ctrl = new AxiLiteIf(addr_w = 14.W)
     val MBDEBUG = new MbdebugBundle()
     val DEBUG_SYS_RESET = Input(Bool())
+    val int_req = Output(Bool())
   })
 
   val mod_ctrl = Module(
-    new AxiLiteSubordinateGenerator(area_map = area_map, addr_w = 14)
+    new AxiLiteSubordinateGenerator(area_map = area_map, addr_w = 16)
   )
   io.ctrl <> mod_ctrl.io.ctrl
 
   mod_ctrl.io.inp("VERSION_MAJOR") := 0x01.U
-  mod_ctrl.io.inp("VERSION_MINOR") := 0x00.U
+  mod_ctrl.io.inp("VERSION_MINOR") := 0x01.U
   mod_ctrl.io.inp("VERSION_PATCH") := 0x00.U
 
   val mod_mem = Module(new DualPortRam(32, BUF_LEN))
@@ -83,6 +85,7 @@ class PoorMansSystemILA(val BUF_LEN: Int = 4096) extends Module {
   mod_kernel.io.DEBUG_SYS_RESET := io.DEBUG_SYS_RESET
 
   mod_kernel.io.trigger_mask := mod_ctrl.io.out("TRIG_CTRL_MASK")
+  mod_kernel.io.trigger_force := mod_ctrl.io.out("TRIG_CTRL_FORCE")
 
   mod_kernel.io.enable := mod_ctrl.io.out("CONTROL_ENABLE")
   mod_kernel.io.clear := mod_ctrl.io.out("CONTROL_CLEAR")
@@ -91,4 +94,6 @@ class PoorMansSystemILA(val BUF_LEN: Int = 4096) extends Module {
   mod_mem.io.addrb := mod_kernel.io.addr
   mod_mem.io.dinb := mod_kernel.io.dout
   mod_mem.io.web := mod_kernel.io.we
+
+  io.int_req := mod_kernel.io.done
 }

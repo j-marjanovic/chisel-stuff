@@ -33,6 +33,7 @@ class PoorMansSystemILAKernel(val nr_els: Int) extends Module {
     val done = Output(Bool())
 
     val trigger_mask = Input(UInt(9.W))
+    val trigger_force = Input(Bool())
 
     val MBDEBUG = new MbdebugBundle()
     val DEBUG_SYS_RESET = Input(Bool())
@@ -85,7 +86,7 @@ class PoorMansSystemILAKernel(val nr_els: Int) extends Module {
   // trigger
   val mbdebug_prev = RegNext(io.MBDEBUG.asUInt())
   val mbdebug_edge = WireInit(mbdebug_prev ^ io.MBDEBUG.asUInt())
-  trigger := (mbdebug_edge & io.trigger_mask) =/= 0.U
+  trigger := ((mbdebug_edge & io.trigger_mask) =/= 0.U) || io.trigger_force
 
   // output
   val cntr = Reg(UInt(16.W))

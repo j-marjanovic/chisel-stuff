@@ -71,7 +71,7 @@ class PoorMansSystemILATester(c: PoorMansSystemILA) extends BfmTester(c) {
   expect(id_reg == 0x5157311a, "ID reg")
 
   val ver_reg = read_blocking(addr = 4)
-  expect(ver_reg == 0x031416, "Version register")
+  expect(ver_reg == 0x010100, "Version register")
 
   val scratch_reg_val = 271828182
   write_blocking(0xc, scratch_reg_val)
@@ -123,6 +123,36 @@ class PoorMansSystemILATester(c: PoorMansSystemILA) extends BfmTester(c) {
     val idx = data.toLong >> 16
     println(f"${idx}%5d | ${rightpad(data.toLong.toBinaryString)}")
   }
+
+  data_list.clear()
+
+  // check the force trigger mode
+  mod_mbdebug.quiet_set(true)
+
+  // clear done
+  write_blocking(0x24, 0x00)
+  write_blocking(0x14, 0x80000001L)
+
+  // wait for pre-trigger, start the acquisition
+  step(200)
+  write_blocking(0x24, 0x80000000L) // bit 31 - force trigger
+  step(200)
+
+  // check done
+  expect(read_blocking(0x10) == 1, "Status done")
+
+  // read data out and print
+  for (i <- 0 until c.BUF_LEN) {
+    val data = read_blocking(0x1000 + i * 4)
+    data_list += data
+  }
+
+  for (data <- data_list) {
+    val idx = data.toLong >> 16
+    println(f"${idx}%5d | ${rightpad(data.toLong.toBinaryString)}")
+  }
+
+  data_list.clear()
 
   println("Simulation done")
 }

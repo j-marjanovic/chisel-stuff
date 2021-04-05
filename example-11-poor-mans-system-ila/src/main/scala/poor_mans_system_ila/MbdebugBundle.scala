@@ -28,7 +28,7 @@ class MbdebugBundle extends Bundle {
   val TDI = Input(Bool())
   val TDO = Input(Bool())
   val CLK = Input(Bool())
-  val REG_EN = Input(Bool())
+  val REG_EN = Input(UInt(8.W))
   val SHIFT = Input(Bool())
   val CAPTURE = Input(Bool())
   val UPDATE = Input(Bool())

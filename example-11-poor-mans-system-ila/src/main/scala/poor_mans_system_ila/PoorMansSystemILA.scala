@@ -51,14 +51,15 @@ class PoorMansSystemILA(val BUF_LEN: Int = 4096) extends Module {
       new Field("ENABLE", hw_access = Access.R,  sw_access = Access.RW, hi = 31, lo = None)
     ),
     new Reg("TRIG_CTRL", 0x24,
-      new Field("MASK",   hw_access = Access.R,  sw_access = Access.RW, hi =  9, lo = Some(0)),
+      new Field("MASK",   hw_access = Access.R,  sw_access = Access.RW, hi =  16, lo = Some(0)),
       new Field("FORCE",  hw_access = Access.R,  sw_access = Access.RW, hi =  31, lo = None, singlepulse = true),
     ),
     new Mem("DATA", addr = 0x1000, nr_els = BUF_LEN, data_w = 32),
   )
   // format: on
 
-  private val mem_start_addr = area_map.els.find(_.name == "DATA").get.asInstanceOf[Mem].addr
+  private val mem_start_addr =
+    area_map.els.find(_.name == "DATA").get.asInstanceOf[Mem].addr
   private val addr_w = log2Up(mem_start_addr + BUF_LEN * 4)
 
   val io = IO(new Bundle {
@@ -66,6 +67,7 @@ class PoorMansSystemILA(val BUF_LEN: Int = 4096) extends Module {
     val MBDEBUG = new MbdebugBundle()
     val DEBUG_SYS_RESET = Input(Bool())
     val int_req = Output(Bool())
+    val trigger_out = Output(Bool())
   })
 
   val mod_ctrl = Module(
@@ -74,7 +76,7 @@ class PoorMansSystemILA(val BUF_LEN: Int = 4096) extends Module {
   io.ctrl <> mod_ctrl.io.ctrl
 
   mod_ctrl.io.inp("VERSION_MAJOR") := 0x01.U
-  mod_ctrl.io.inp("VERSION_MINOR") := 0x01.U
+  mod_ctrl.io.inp("VERSION_MINOR") := 0x03.U
   mod_ctrl.io.inp("VERSION_PATCH") := 0x00.U
 
   val mod_mem = Module(new DualPortRam(32, BUF_LEN))
@@ -100,4 +102,5 @@ class PoorMansSystemILA(val BUF_LEN: Int = 4096) extends Module {
   mod_mem.io.web := mod_kernel.io.we
 
   io.int_req := mod_kernel.io.done
+  io.trigger_out := mod_kernel.io.trigger
 }

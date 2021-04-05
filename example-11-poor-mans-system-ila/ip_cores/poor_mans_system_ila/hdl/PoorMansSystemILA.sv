@@ -7,7 +7,7 @@ module AxiLiteSubordinateGenerator(
   output [11:0] io_out_MEM_DATA_ADDR,
   output [31:0] io_out_MEM_DATA_DIN,
   output        io_out_TRIG_CTRL_FORCE,
-  output [9:0]  io_out_TRIG_CTRL_MASK,
+  output [16:0] io_out_TRIG_CTRL_MASK,
   output        io_out_CONTROL_ENABLE,
   output        io_out_CONTROL_CLEAR,
   output        io_ctrl_AW_ready,
@@ -50,7 +50,7 @@ module AxiLiteSubordinateGenerator(
   reg  STATUS_DONE; // @[AxiLiteSubordinateGenerator.scala 351:14]
   reg  CONTROL_CLEAR; // @[AxiLiteSubordinateGenerator.scala 351:14]
   reg  CONTROL_ENABLE; // @[AxiLiteSubordinateGenerator.scala 351:14]
-  reg [9:0] TRIG_CTRL_MASK; // @[AxiLiteSubordinateGenerator.scala 351:14]
+  reg [16:0] TRIG_CTRL_MASK; // @[AxiLiteSubordinateGenerator.scala 351:14]
   reg  TRIG_CTRL_FORCE; // @[AxiLiteSubordinateGenerator.scala 351:14]
   reg [31:0] MEM_DATA_DIN; // @[AxiLiteSubordinateGenerator.scala 359:45]
   reg [11:0] MEM_DATA_ADDR; // @[AxiLiteSubordinateGenerator.scala 363:46]
@@ -102,7 +102,7 @@ module AxiLiteSubordinateGenerator(
   wire [33:0] _GEN_82 = _T_20 ? 34'h0 : _GEN_79; // @[Conditional.scala 40:58 AxiLiteSubordinateGenerator.scala 214:28]
   wire  _T_36 = rd_addr >= 13'h400 & rd_addr < 13'h1400; // @[AxiLiteSubordinateGenerator.scala 532:29]
   wire [31:0] _GEN_84 = rd_addr == 13'h0 ? 32'h5157311a : 32'hdeadbeef; // @[AxiLiteSubordinateGenerator.scala 439:42 AxiLiteSubordinateGenerator.scala 440:17 AxiLiteSubordinateGenerator.scala 435:13]
-  wire [31:0] _GEN_85 = rd_addr == 13'h1 ? 32'h10100 : _GEN_84; // @[AxiLiteSubordinateGenerator.scala 439:42 AxiLiteSubordinateGenerator.scala 440:17]
+  wire [31:0] _GEN_85 = rd_addr == 13'h1 ? 32'h10300 : _GEN_84; // @[AxiLiteSubordinateGenerator.scala 439:42 AxiLiteSubordinateGenerator.scala 440:17]
   wire [7:0] lo_lo_2 = {SCRATCH_FIELD[7],SCRATCH_FIELD[6],SCRATCH_FIELD[5],SCRATCH_FIELD[4],SCRATCH_FIELD[3],
     SCRATCH_FIELD[2],SCRATCH_FIELD[1],SCRATCH_FIELD[0]}; // @[AxiLiteSubordinateGenerator.scala 425:17]
   wire [15:0] lo_2 = {SCRATCH_FIELD[15],SCRATCH_FIELD[14],SCRATCH_FIELD[13],SCRATCH_FIELD[12],SCRATCH_FIELD[11],
@@ -118,8 +118,10 @@ module AxiLiteSubordinateGenerator(
   wire [31:0] _GEN_88 = rd_addr == 13'h5 ? _T_137 : _GEN_87; // @[AxiLiteSubordinateGenerator.scala 439:42 AxiLiteSubordinateGenerator.scala 440:17]
   wire [7:0] lo_lo_5 = {TRIG_CTRL_MASK[7],TRIG_CTRL_MASK[6],TRIG_CTRL_MASK[5],TRIG_CTRL_MASK[4],TRIG_CTRL_MASK[3],
     TRIG_CTRL_MASK[2],TRIG_CTRL_MASK[1],TRIG_CTRL_MASK[0]}; // @[AxiLiteSubordinateGenerator.scala 425:17]
-  wire [31:0] _T_149 = {TRIG_CTRL_FORCE,1'h0,2'h0,4'h0,8'h0,4'h0,2'h0,TRIG_CTRL_MASK[9],TRIG_CTRL_MASK[8],lo_lo_5}; // @[AxiLiteSubordinateGenerator.scala 425:17]
-  wire [31:0] _GEN_89 = rd_addr == 13'h9 ? _T_149 : _GEN_88; // @[AxiLiteSubordinateGenerator.scala 439:42 AxiLiteSubordinateGenerator.scala 440:17]
+  wire [15:0] lo_5 = {TRIG_CTRL_MASK[15],TRIG_CTRL_MASK[14],TRIG_CTRL_MASK[13],TRIG_CTRL_MASK[12],TRIG_CTRL_MASK[11],
+    TRIG_CTRL_MASK[10],TRIG_CTRL_MASK[9],TRIG_CTRL_MASK[8],lo_lo_5}; // @[AxiLiteSubordinateGenerator.scala 425:17]
+  wire [31:0] _T_156 = {TRIG_CTRL_FORCE,1'h0,2'h0,4'h0,4'h0,2'h0,1'h0,TRIG_CTRL_MASK[16],lo_5}; // @[AxiLiteSubordinateGenerator.scala 425:17]
+  wire [31:0] _GEN_89 = rd_addr == 13'h9 ? _T_156 : _GEN_88; // @[AxiLiteSubordinateGenerator.scala 439:42 AxiLiteSubordinateGenerator.scala 440:17]
   wire [12:0] _MEM_DATA_ADDR_T_3 = io_ctrl_AR_bits_addr[14:2] - 13'h400; // @[AxiLiteSubordinateGenerator.scala 456:54]
   wire [12:0] _GEN_91 = _T_25 ? _MEM_DATA_ADDR_T_3 : _GEN_57; // @[AxiLiteSubordinateGenerator.scala 455:55 AxiLiteSubordinateGenerator.scala 456:43]
   wire [12:0] _GEN_93 = state_rd == 2'h0 ? _GEN_91 : _GEN_57; // @[AxiLiteSubordinateGenerator.scala 238:30]
@@ -152,7 +154,7 @@ module AxiLiteSubordinateGenerator(
     end
     if (wr_en) begin // @[AxiLiteSubordinateGenerator.scala 164:15]
       if (wr_addr == 13'h9) begin // @[AxiLiteSubordinateGenerator.scala 493:46]
-        TRIG_CTRL_MASK <= wr_data[9:0]; // @[AxiLiteSubordinateGenerator.scala 494:42]
+        TRIG_CTRL_MASK <= wr_data[16:0]; // @[AxiLiteSubordinateGenerator.scala 494:42]
       end
     end
     TRIG_CTRL_FORCE <= wr_en & _GEN_47; // @[AxiLiteSubordinateGenerator.scala 164:15 AxiLiteSubordinateGenerator.scala 470:40]
@@ -293,7 +295,7 @@ initial begin
   _RAND_3 = {1{`RANDOM}};
   CONTROL_ENABLE = _RAND_3[0:0];
   _RAND_4 = {1{`RANDOM}};
-  TRIG_CTRL_MASK = _RAND_4[9:0];
+  TRIG_CTRL_MASK = _RAND_4[16:0];
   _RAND_5 = {1{`RANDOM}};
   TRIG_CTRL_FORCE = _RAND_5[0:0];
   _RAND_6 = {1{`RANDOM}};
@@ -336,12 +338,13 @@ module PoorMansSystemILAKernel(
   input         io_enable,
   input         io_clear,
   output        io_done,
-  input  [8:0]  io_trigger_mask,
+  input  [16:0] io_trigger_mask,
   input         io_trigger_force,
+  output        io_trigger,
   input         io_MBDEBUG_TDI,
   input         io_MBDEBUG_TDO,
   input         io_MBDEBUG_CLK,
-  input         io_MBDEBUG_REG_EN,
+  input  [7:0]  io_MBDEBUG_REG_EN,
   input         io_MBDEBUG_SHIFT,
   input         io_MBDEBUG_CAPTURE,
   input         io_MBDEBUG_UPDATE,
@@ -359,68 +362,71 @@ module PoorMansSystemILAKernel(
   reg [31:0] _RAND_3;
   reg [31:0] _RAND_4;
 `endif // RANDOMIZE_REG_INIT
-  reg [11:0] addr; // @[PoorMansSystemILAKernel.scala 49:17]
-  reg [11:0] addr_last; // @[PoorMansSystemILAKernel.scala 50:22]
-  reg [1:0] state; // @[PoorMansSystemILAKernel.scala 57:22]
+  reg [11:0] addr; // @[PoorMansSystemILAKernel.scala 50:17]
+  reg [11:0] addr_last; // @[PoorMansSystemILAKernel.scala 51:22]
+  reg [1:0] state; // @[PoorMansSystemILAKernel.scala 58:22]
   wire  _T_2 = 2'h0 == state; // @[Conditional.scala 37:30]
   wire  _T_5 = 2'h1 == state; // @[Conditional.scala 37:30]
-  wire [11:0] _addr_T_1 = addr + 12'h1; // @[PoorMansSystemILAKernel.scala 67:20]
-  wire [11:0] _addr_last_T_1 = addr - 12'h64; // @[PoorMansSystemILAKernel.scala 70:27]
-  reg [8:0] mbdebug_prev; // @[PoorMansSystemILAKernel.scala 87:29]
-  wire [4:0] mbdebug_edge_hi = {io_MBDEBUG_TDI,io_MBDEBUG_TDO,io_MBDEBUG_CLK,io_MBDEBUG_REG_EN,io_MBDEBUG_SHIFT}; // @[PoorMansSystemILAKernel.scala 88:63]
-  wire [3:0] mbdebug_edge_lo = {io_MBDEBUG_CAPTURE,io_MBDEBUG_UPDATE,io_MBDEBUG_RST,io_MBDEBUG_DISABLE}; // @[PoorMansSystemILAKernel.scala 88:63]
-  wire [8:0] _mbdebug_edge_T = {io_MBDEBUG_TDI,io_MBDEBUG_TDO,io_MBDEBUG_CLK,io_MBDEBUG_REG_EN,io_MBDEBUG_SHIFT,
-    io_MBDEBUG_CAPTURE,io_MBDEBUG_UPDATE,io_MBDEBUG_RST,io_MBDEBUG_DISABLE}; // @[PoorMansSystemILAKernel.scala 88:63]
-  wire [8:0] mbdebug_edge = mbdebug_prev ^ _mbdebug_edge_T; // @[PoorMansSystemILAKernel.scala 88:44]
-  wire [8:0] _trigger_T = mbdebug_edge & io_trigger_mask; // @[PoorMansSystemILAKernel.scala 89:29]
-  wire  trigger = _trigger_T != 9'h0 | io_trigger_force; // @[PoorMansSystemILAKernel.scala 89:57]
+  wire [11:0] _addr_T_1 = addr + 12'h1; // @[PoorMansSystemILAKernel.scala 68:20]
+  wire [11:0] _addr_last_T_1 = addr - 12'h64; // @[PoorMansSystemILAKernel.scala 71:27]
+  reg [15:0] mbdebug_prev; // @[PoorMansSystemILAKernel.scala 88:29]
+  wire [11:0] mbdebug_edge_hi = {io_MBDEBUG_TDI,io_MBDEBUG_TDO,io_MBDEBUG_CLK,io_MBDEBUG_REG_EN,io_MBDEBUG_SHIFT}; // @[PoorMansSystemILAKernel.scala 89:63]
+  wire [3:0] mbdebug_edge_lo = {io_MBDEBUG_CAPTURE,io_MBDEBUG_UPDATE,io_MBDEBUG_RST,io_MBDEBUG_DISABLE}; // @[PoorMansSystemILAKernel.scala 89:63]
+  wire [15:0] _mbdebug_edge_T = {io_MBDEBUG_TDI,io_MBDEBUG_TDO,io_MBDEBUG_CLK,io_MBDEBUG_REG_EN,io_MBDEBUG_SHIFT,
+    io_MBDEBUG_CAPTURE,io_MBDEBUG_UPDATE,io_MBDEBUG_RST,io_MBDEBUG_DISABLE}; // @[PoorMansSystemILAKernel.scala 89:63]
+  wire [15:0] mbdebug_edge = mbdebug_prev ^ _mbdebug_edge_T; // @[PoorMansSystemILAKernel.scala 89:44]
+  wire [16:0] _GEN_15 = {{1'd0}, mbdebug_edge}; // @[PoorMansSystemILAKernel.scala 90:29]
+  wire [16:0] _trigger_T = _GEN_15 & io_trigger_mask; // @[PoorMansSystemILAKernel.scala 90:29]
+  wire  trigger = _trigger_T != 17'h0 | io_trigger_force; // @[PoorMansSystemILAKernel.scala 90:57]
   wire  _T_8 = 2'h2 == state; // @[Conditional.scala 37:30]
-  wire [1:0] _GEN_4 = addr == addr_last ? 2'h3 : state; // @[PoorMansSystemILAKernel.scala 75:32 PoorMansSystemILAKernel.scala 76:15 PoorMansSystemILAKernel.scala 57:22]
+  wire [1:0] _GEN_4 = addr == addr_last ? 2'h3 : state; // @[PoorMansSystemILAKernel.scala 76:32 PoorMansSystemILAKernel.scala 77:15 PoorMansSystemILAKernel.scala 58:22]
   wire  _T_12 = 2'h3 == state; // @[Conditional.scala 37:30]
-  wire [1:0] _GEN_5 = io_clear ? 2'h0 : state; // @[PoorMansSystemILAKernel.scala 80:22 PoorMansSystemILAKernel.scala 81:15 PoorMansSystemILAKernel.scala 57:22]
-  wire [1:0] _GEN_6 = _T_12 ? _GEN_5 : state; // @[Conditional.scala 39:67 PoorMansSystemILAKernel.scala 57:22]
-  reg [15:0] cntr; // @[PoorMansSystemILAKernel.scala 92:17]
-  wire [9:0] out_data_lo_1 = {io_DEBUG_SYS_RESET,io_MBDEBUG_TDI,io_MBDEBUG_TDO,io_MBDEBUG_CLK,io_MBDEBUG_REG_EN,
+  wire [1:0] _GEN_5 = io_clear ? 2'h0 : state; // @[PoorMansSystemILAKernel.scala 81:22 PoorMansSystemILAKernel.scala 82:15 PoorMansSystemILAKernel.scala 58:22]
+  wire [1:0] _GEN_6 = _T_12 ? _GEN_5 : state; // @[Conditional.scala 39:67 PoorMansSystemILAKernel.scala 58:22]
+  wire  _io_trigger_T = state == 2'h1; // @[PoorMansSystemILAKernel.scala 91:34]
+  reg [11:0] cntr; // @[PoorMansSystemILAKernel.scala 94:17]
+  wire [16:0] out_data_lo_1 = {io_DEBUG_SYS_RESET,io_MBDEBUG_TDI,io_MBDEBUG_TDO,io_MBDEBUG_CLK,io_MBDEBUG_REG_EN,
     io_MBDEBUG_SHIFT,io_MBDEBUG_CAPTURE,io_MBDEBUG_UPDATE,io_MBDEBUG_RST,io_MBDEBUG_DISABLE}; // @[Cat.scala 30:58]
-  wire [21:0] out_data_hi_1 = {cntr,4'h0,state}; // @[Cat.scala 30:58]
-  assign io_done = state == 2'h3; // @[PoorMansSystemILAKernel.scala 101:20]
+  wire [14:0] out_data_hi_1 = {cntr,1'h0,state}; // @[Cat.scala 30:58]
+  assign io_done = state == 2'h3; // @[PoorMansSystemILAKernel.scala 103:20]
+  assign io_trigger = trigger & state == 2'h1; // @[PoorMansSystemILAKernel.scala 91:25]
   assign io_dout = {out_data_hi_1,out_data_lo_1}; // @[Cat.scala 30:58]
-  assign io_addr = addr; // @[PoorMansSystemILAKernel.scala 99:11]
-  assign io_we = state == 2'h1 | state == 2'h2; // @[PoorMansSystemILAKernel.scala 100:42]
+  assign io_addr = addr; // @[PoorMansSystemILAKernel.scala 101:11]
+  assign io_we = _io_trigger_T | state == 2'h2; // @[PoorMansSystemILAKernel.scala 102:42]
   always @(posedge clock) begin
     if (_T_2) begin // @[Conditional.scala 40:58]
-      if (io_enable) begin // @[PoorMansSystemILAKernel.scala 61:23]
-        addr <= 12'h0; // @[PoorMansSystemILAKernel.scala 63:14]
+      if (io_enable) begin // @[PoorMansSystemILAKernel.scala 62:23]
+        addr <= 12'h0; // @[PoorMansSystemILAKernel.scala 64:14]
       end
     end else if (_T_5) begin // @[Conditional.scala 39:67]
-      addr <= _addr_T_1; // @[PoorMansSystemILAKernel.scala 67:12]
+      addr <= _addr_T_1; // @[PoorMansSystemILAKernel.scala 68:12]
     end else if (_T_8) begin // @[Conditional.scala 39:67]
-      addr <= _addr_T_1; // @[PoorMansSystemILAKernel.scala 74:12]
+      addr <= _addr_T_1; // @[PoorMansSystemILAKernel.scala 75:12]
     end
     if (!(_T_2)) begin // @[Conditional.scala 40:58]
       if (_T_5) begin // @[Conditional.scala 39:67]
-        if (trigger) begin // @[PoorMansSystemILAKernel.scala 68:21]
-          addr_last <= _addr_last_T_1; // @[PoorMansSystemILAKernel.scala 70:19]
+        if (trigger) begin // @[PoorMansSystemILAKernel.scala 69:21]
+          addr_last <= _addr_last_T_1; // @[PoorMansSystemILAKernel.scala 71:19]
         end
       end
     end
-    if (reset) begin // @[PoorMansSystemILAKernel.scala 57:22]
-      state <= 2'h0; // @[PoorMansSystemILAKernel.scala 57:22]
+    if (reset) begin // @[PoorMansSystemILAKernel.scala 58:22]
+      state <= 2'h0; // @[PoorMansSystemILAKernel.scala 58:22]
     end else if (_T_2) begin // @[Conditional.scala 40:58]
-      if (io_enable) begin // @[PoorMansSystemILAKernel.scala 61:23]
-        state <= 2'h1; // @[PoorMansSystemILAKernel.scala 62:15]
+      if (io_enable) begin // @[PoorMansSystemILAKernel.scala 62:23]
+        state <= 2'h1; // @[PoorMansSystemILAKernel.scala 63:15]
       end
     end else if (_T_5) begin // @[Conditional.scala 39:67]
-      if (trigger) begin // @[PoorMansSystemILAKernel.scala 68:21]
-        state <= 2'h2; // @[PoorMansSystemILAKernel.scala 69:15]
+      if (trigger) begin // @[PoorMansSystemILAKernel.scala 69:21]
+        state <= 2'h2; // @[PoorMansSystemILAKernel.scala 70:15]
       end
     end else if (_T_8) begin // @[Conditional.scala 39:67]
       state <= _GEN_4;
     end else begin
       state <= _GEN_6;
     end
-    mbdebug_prev <= {mbdebug_edge_hi,mbdebug_edge_lo}; // @[PoorMansSystemILAKernel.scala 87:47]
-    cntr <= cntr + 16'h1; // @[PoorMansSystemILAKernel.scala 93:16]
+    mbdebug_prev <= {mbdebug_edge_hi,mbdebug_edge_lo}; // @[PoorMansSystemILAKernel.scala 88:47]
+    cntr <= cntr + 12'h1; // @[PoorMansSystemILAKernel.scala 95:16]
   end
 // Register and memory initialization
 `ifdef RANDOMIZE_GARBAGE_ASSIGN
@@ -465,9 +471,9 @@ initial begin
   _RAND_2 = {1{`RANDOM}};
   state = _RAND_2[1:0];
   _RAND_3 = {1{`RANDOM}};
-  mbdebug_prev = _RAND_3[8:0];
+  mbdebug_prev = _RAND_3[15:0];
   _RAND_4 = {1{`RANDOM}};
-  cntr = _RAND_4[15:0];
+  cntr = _RAND_4[11:0];
 `endif // RANDOMIZE_REG_INIT
   `endif // RANDOMIZE
 end // initial
@@ -501,70 +507,72 @@ module PoorMansSystemILA(
   input         io_MBDEBUG_TDI,
   input         io_MBDEBUG_TDO,
   input         io_MBDEBUG_CLK,
-  input         io_MBDEBUG_REG_EN,
+  input  [7:0]  io_MBDEBUG_REG_EN,
   input         io_MBDEBUG_SHIFT,
   input         io_MBDEBUG_CAPTURE,
   input         io_MBDEBUG_UPDATE,
   input         io_MBDEBUG_RST,
   input         io_MBDEBUG_DISABLE,
   input         io_DEBUG_SYS_RESET,
-  output        io_int_req
+  output        io_int_req,
+  output        io_trigger_out
 );
-  wire  mod_ctrl_clock; // @[PoorMansSystemILA.scala 72:24]
-  wire  mod_ctrl_reset; // @[PoorMansSystemILA.scala 72:24]
-  wire [31:0] mod_ctrl_io_inp_MEM_DATA_DOUT; // @[PoorMansSystemILA.scala 72:24]
-  wire  mod_ctrl_io_inp_STATUS_DONE; // @[PoorMansSystemILA.scala 72:24]
-  wire  mod_ctrl_io_out_MEM_DATA_WE; // @[PoorMansSystemILA.scala 72:24]
-  wire [11:0] mod_ctrl_io_out_MEM_DATA_ADDR; // @[PoorMansSystemILA.scala 72:24]
-  wire [31:0] mod_ctrl_io_out_MEM_DATA_DIN; // @[PoorMansSystemILA.scala 72:24]
-  wire  mod_ctrl_io_out_TRIG_CTRL_FORCE; // @[PoorMansSystemILA.scala 72:24]
-  wire [9:0] mod_ctrl_io_out_TRIG_CTRL_MASK; // @[PoorMansSystemILA.scala 72:24]
-  wire  mod_ctrl_io_out_CONTROL_ENABLE; // @[PoorMansSystemILA.scala 72:24]
-  wire  mod_ctrl_io_out_CONTROL_CLEAR; // @[PoorMansSystemILA.scala 72:24]
-  wire  mod_ctrl_io_ctrl_AW_ready; // @[PoorMansSystemILA.scala 72:24]
-  wire  mod_ctrl_io_ctrl_AW_valid; // @[PoorMansSystemILA.scala 72:24]
-  wire [14:0] mod_ctrl_io_ctrl_AW_bits_addr; // @[PoorMansSystemILA.scala 72:24]
-  wire  mod_ctrl_io_ctrl_W_ready; // @[PoorMansSystemILA.scala 72:24]
-  wire  mod_ctrl_io_ctrl_W_valid; // @[PoorMansSystemILA.scala 72:24]
-  wire [31:0] mod_ctrl_io_ctrl_W_bits_wdata; // @[PoorMansSystemILA.scala 72:24]
-  wire  mod_ctrl_io_ctrl_B_ready; // @[PoorMansSystemILA.scala 72:24]
-  wire  mod_ctrl_io_ctrl_B_valid; // @[PoorMansSystemILA.scala 72:24]
-  wire  mod_ctrl_io_ctrl_AR_ready; // @[PoorMansSystemILA.scala 72:24]
-  wire  mod_ctrl_io_ctrl_AR_valid; // @[PoorMansSystemILA.scala 72:24]
-  wire [14:0] mod_ctrl_io_ctrl_AR_bits_addr; // @[PoorMansSystemILA.scala 72:24]
-  wire  mod_ctrl_io_ctrl_R_ready; // @[PoorMansSystemILA.scala 72:24]
-  wire  mod_ctrl_io_ctrl_R_valid; // @[PoorMansSystemILA.scala 72:24]
-  wire [31:0] mod_ctrl_io_ctrl_R_bits_rdata; // @[PoorMansSystemILA.scala 72:24]
-  wire  mod_mem_clk; // @[PoorMansSystemILA.scala 81:23]
-  wire [11:0] mod_mem_addra; // @[PoorMansSystemILA.scala 81:23]
-  wire [31:0] mod_mem_dina; // @[PoorMansSystemILA.scala 81:23]
-  wire [31:0] mod_mem_douta; // @[PoorMansSystemILA.scala 81:23]
-  wire  mod_mem_wea; // @[PoorMansSystemILA.scala 81:23]
-  wire [11:0] mod_mem_addrb; // @[PoorMansSystemILA.scala 81:23]
-  wire [31:0] mod_mem_dinb; // @[PoorMansSystemILA.scala 81:23]
-  wire [31:0] mod_mem_doutb; // @[PoorMansSystemILA.scala 81:23]
-  wire  mod_mem_web; // @[PoorMansSystemILA.scala 81:23]
-  wire  mod_kernel_clock; // @[PoorMansSystemILA.scala 88:26]
-  wire  mod_kernel_reset; // @[PoorMansSystemILA.scala 88:26]
-  wire  mod_kernel_io_enable; // @[PoorMansSystemILA.scala 88:26]
-  wire  mod_kernel_io_clear; // @[PoorMansSystemILA.scala 88:26]
-  wire  mod_kernel_io_done; // @[PoorMansSystemILA.scala 88:26]
-  wire [8:0] mod_kernel_io_trigger_mask; // @[PoorMansSystemILA.scala 88:26]
-  wire  mod_kernel_io_trigger_force; // @[PoorMansSystemILA.scala 88:26]
-  wire  mod_kernel_io_MBDEBUG_TDI; // @[PoorMansSystemILA.scala 88:26]
-  wire  mod_kernel_io_MBDEBUG_TDO; // @[PoorMansSystemILA.scala 88:26]
-  wire  mod_kernel_io_MBDEBUG_CLK; // @[PoorMansSystemILA.scala 88:26]
-  wire  mod_kernel_io_MBDEBUG_REG_EN; // @[PoorMansSystemILA.scala 88:26]
-  wire  mod_kernel_io_MBDEBUG_SHIFT; // @[PoorMansSystemILA.scala 88:26]
-  wire  mod_kernel_io_MBDEBUG_CAPTURE; // @[PoorMansSystemILA.scala 88:26]
-  wire  mod_kernel_io_MBDEBUG_UPDATE; // @[PoorMansSystemILA.scala 88:26]
-  wire  mod_kernel_io_MBDEBUG_RST; // @[PoorMansSystemILA.scala 88:26]
-  wire  mod_kernel_io_MBDEBUG_DISABLE; // @[PoorMansSystemILA.scala 88:26]
-  wire  mod_kernel_io_DEBUG_SYS_RESET; // @[PoorMansSystemILA.scala 88:26]
-  wire [31:0] mod_kernel_io_dout; // @[PoorMansSystemILA.scala 88:26]
-  wire [11:0] mod_kernel_io_addr; // @[PoorMansSystemILA.scala 88:26]
-  wire  mod_kernel_io_we; // @[PoorMansSystemILA.scala 88:26]
-  AxiLiteSubordinateGenerator mod_ctrl ( // @[PoorMansSystemILA.scala 72:24]
+  wire  mod_ctrl_clock; // @[PoorMansSystemILA.scala 73:24]
+  wire  mod_ctrl_reset; // @[PoorMansSystemILA.scala 73:24]
+  wire [31:0] mod_ctrl_io_inp_MEM_DATA_DOUT; // @[PoorMansSystemILA.scala 73:24]
+  wire  mod_ctrl_io_inp_STATUS_DONE; // @[PoorMansSystemILA.scala 73:24]
+  wire  mod_ctrl_io_out_MEM_DATA_WE; // @[PoorMansSystemILA.scala 73:24]
+  wire [11:0] mod_ctrl_io_out_MEM_DATA_ADDR; // @[PoorMansSystemILA.scala 73:24]
+  wire [31:0] mod_ctrl_io_out_MEM_DATA_DIN; // @[PoorMansSystemILA.scala 73:24]
+  wire  mod_ctrl_io_out_TRIG_CTRL_FORCE; // @[PoorMansSystemILA.scala 73:24]
+  wire [16:0] mod_ctrl_io_out_TRIG_CTRL_MASK; // @[PoorMansSystemILA.scala 73:24]
+  wire  mod_ctrl_io_out_CONTROL_ENABLE; // @[PoorMansSystemILA.scala 73:24]
+  wire  mod_ctrl_io_out_CONTROL_CLEAR; // @[PoorMansSystemILA.scala 73:24]
+  wire  mod_ctrl_io_ctrl_AW_ready; // @[PoorMansSystemILA.scala 73:24]
+  wire  mod_ctrl_io_ctrl_AW_valid; // @[PoorMansSystemILA.scala 73:24]
+  wire [14:0] mod_ctrl_io_ctrl_AW_bits_addr; // @[PoorMansSystemILA.scala 73:24]
+  wire  mod_ctrl_io_ctrl_W_ready; // @[PoorMansSystemILA.scala 73:24]
+  wire  mod_ctrl_io_ctrl_W_valid; // @[PoorMansSystemILA.scala 73:24]
+  wire [31:0] mod_ctrl_io_ctrl_W_bits_wdata; // @[PoorMansSystemILA.scala 73:24]
+  wire  mod_ctrl_io_ctrl_B_ready; // @[PoorMansSystemILA.scala 73:24]
+  wire  mod_ctrl_io_ctrl_B_valid; // @[PoorMansSystemILA.scala 73:24]
+  wire  mod_ctrl_io_ctrl_AR_ready; // @[PoorMansSystemILA.scala 73:24]
+  wire  mod_ctrl_io_ctrl_AR_valid; // @[PoorMansSystemILA.scala 73:24]
+  wire [14:0] mod_ctrl_io_ctrl_AR_bits_addr; // @[PoorMansSystemILA.scala 73:24]
+  wire  mod_ctrl_io_ctrl_R_ready; // @[PoorMansSystemILA.scala 73:24]
+  wire  mod_ctrl_io_ctrl_R_valid; // @[PoorMansSystemILA.scala 73:24]
+  wire [31:0] mod_ctrl_io_ctrl_R_bits_rdata; // @[PoorMansSystemILA.scala 73:24]
+  wire  mod_mem_clk; // @[PoorMansSystemILA.scala 82:23]
+  wire [11:0] mod_mem_addra; // @[PoorMansSystemILA.scala 82:23]
+  wire [31:0] mod_mem_dina; // @[PoorMansSystemILA.scala 82:23]
+  wire [31:0] mod_mem_douta; // @[PoorMansSystemILA.scala 82:23]
+  wire  mod_mem_wea; // @[PoorMansSystemILA.scala 82:23]
+  wire [11:0] mod_mem_addrb; // @[PoorMansSystemILA.scala 82:23]
+  wire [31:0] mod_mem_dinb; // @[PoorMansSystemILA.scala 82:23]
+  wire [31:0] mod_mem_doutb; // @[PoorMansSystemILA.scala 82:23]
+  wire  mod_mem_web; // @[PoorMansSystemILA.scala 82:23]
+  wire  mod_kernel_clock; // @[PoorMansSystemILA.scala 89:26]
+  wire  mod_kernel_reset; // @[PoorMansSystemILA.scala 89:26]
+  wire  mod_kernel_io_enable; // @[PoorMansSystemILA.scala 89:26]
+  wire  mod_kernel_io_clear; // @[PoorMansSystemILA.scala 89:26]
+  wire  mod_kernel_io_done; // @[PoorMansSystemILA.scala 89:26]
+  wire [16:0] mod_kernel_io_trigger_mask; // @[PoorMansSystemILA.scala 89:26]
+  wire  mod_kernel_io_trigger_force; // @[PoorMansSystemILA.scala 89:26]
+  wire  mod_kernel_io_trigger; // @[PoorMansSystemILA.scala 89:26]
+  wire  mod_kernel_io_MBDEBUG_TDI; // @[PoorMansSystemILA.scala 89:26]
+  wire  mod_kernel_io_MBDEBUG_TDO; // @[PoorMansSystemILA.scala 89:26]
+  wire  mod_kernel_io_MBDEBUG_CLK; // @[PoorMansSystemILA.scala 89:26]
+  wire [7:0] mod_kernel_io_MBDEBUG_REG_EN; // @[PoorMansSystemILA.scala 89:26]
+  wire  mod_kernel_io_MBDEBUG_SHIFT; // @[PoorMansSystemILA.scala 89:26]
+  wire  mod_kernel_io_MBDEBUG_CAPTURE; // @[PoorMansSystemILA.scala 89:26]
+  wire  mod_kernel_io_MBDEBUG_UPDATE; // @[PoorMansSystemILA.scala 89:26]
+  wire  mod_kernel_io_MBDEBUG_RST; // @[PoorMansSystemILA.scala 89:26]
+  wire  mod_kernel_io_MBDEBUG_DISABLE; // @[PoorMansSystemILA.scala 89:26]
+  wire  mod_kernel_io_DEBUG_SYS_RESET; // @[PoorMansSystemILA.scala 89:26]
+  wire [31:0] mod_kernel_io_dout; // @[PoorMansSystemILA.scala 89:26]
+  wire [11:0] mod_kernel_io_addr; // @[PoorMansSystemILA.scala 89:26]
+  wire  mod_kernel_io_we; // @[PoorMansSystemILA.scala 89:26]
+  AxiLiteSubordinateGenerator mod_ctrl ( // @[PoorMansSystemILA.scala 73:24]
     .clock(mod_ctrl_clock),
     .reset(mod_ctrl_reset),
     .io_inp_MEM_DATA_DOUT(mod_ctrl_io_inp_MEM_DATA_DOUT),
@@ -591,7 +599,7 @@ module PoorMansSystemILA(
     .io_ctrl_R_valid(mod_ctrl_io_ctrl_R_valid),
     .io_ctrl_R_bits_rdata(mod_ctrl_io_ctrl_R_bits_rdata)
   );
-  DualPortRam #(.RAM_WIDTH(32), .RAM_DEPTH(4096)) mod_mem ( // @[PoorMansSystemILA.scala 81:23]
+  DualPortRam #(.RAM_WIDTH(32), .RAM_DEPTH(4096)) mod_mem ( // @[PoorMansSystemILA.scala 82:23]
     .clk(mod_mem_clk),
     .addra(mod_mem_addra),
     .dina(mod_mem_dina),
@@ -602,7 +610,7 @@ module PoorMansSystemILA(
     .doutb(mod_mem_doutb),
     .web(mod_mem_web)
   );
-  PoorMansSystemILAKernel mod_kernel ( // @[PoorMansSystemILA.scala 88:26]
+  PoorMansSystemILAKernel mod_kernel ( // @[PoorMansSystemILA.scala 89:26]
     .clock(mod_kernel_clock),
     .reset(mod_kernel_reset),
     .io_enable(mod_kernel_io_enable),
@@ -610,6 +618,7 @@ module PoorMansSystemILA(
     .io_done(mod_kernel_io_done),
     .io_trigger_mask(mod_kernel_io_trigger_mask),
     .io_trigger_force(mod_kernel_io_trigger_force),
+    .io_trigger(mod_kernel_io_trigger),
     .io_MBDEBUG_TDI(mod_kernel_io_MBDEBUG_TDI),
     .io_MBDEBUG_TDO(mod_kernel_io_MBDEBUG_TDO),
     .io_MBDEBUG_CLK(mod_kernel_io_MBDEBUG_CLK),
@@ -624,48 +633,49 @@ module PoorMansSystemILA(
     .io_addr(mod_kernel_io_addr),
     .io_we(mod_kernel_io_we)
   );
-  assign io_ctrl_AW_ready = mod_ctrl_io_ctrl_AW_ready; // @[PoorMansSystemILA.scala 75:11]
-  assign io_ctrl_W_ready = mod_ctrl_io_ctrl_W_ready; // @[PoorMansSystemILA.scala 75:11]
-  assign io_ctrl_B_valid = mod_ctrl_io_ctrl_B_valid; // @[PoorMansSystemILA.scala 75:11]
-  assign io_ctrl_B_bits = 2'h0; // @[PoorMansSystemILA.scala 75:11]
-  assign io_ctrl_AR_ready = mod_ctrl_io_ctrl_AR_ready; // @[PoorMansSystemILA.scala 75:11]
-  assign io_ctrl_R_valid = mod_ctrl_io_ctrl_R_valid; // @[PoorMansSystemILA.scala 75:11]
-  assign io_ctrl_R_bits_rdata = mod_ctrl_io_ctrl_R_bits_rdata; // @[PoorMansSystemILA.scala 75:11]
-  assign io_ctrl_R_bits_rresp = 2'h0; // @[PoorMansSystemILA.scala 75:11]
-  assign io_int_req = mod_kernel_io_done; // @[PoorMansSystemILA.scala 103:14]
+  assign io_ctrl_AW_ready = mod_ctrl_io_ctrl_AW_ready; // @[PoorMansSystemILA.scala 76:11]
+  assign io_ctrl_W_ready = mod_ctrl_io_ctrl_W_ready; // @[PoorMansSystemILA.scala 76:11]
+  assign io_ctrl_B_valid = mod_ctrl_io_ctrl_B_valid; // @[PoorMansSystemILA.scala 76:11]
+  assign io_ctrl_B_bits = 2'h0; // @[PoorMansSystemILA.scala 76:11]
+  assign io_ctrl_AR_ready = mod_ctrl_io_ctrl_AR_ready; // @[PoorMansSystemILA.scala 76:11]
+  assign io_ctrl_R_valid = mod_ctrl_io_ctrl_R_valid; // @[PoorMansSystemILA.scala 76:11]
+  assign io_ctrl_R_bits_rdata = mod_ctrl_io_ctrl_R_bits_rdata; // @[PoorMansSystemILA.scala 76:11]
+  assign io_ctrl_R_bits_rresp = 2'h0; // @[PoorMansSystemILA.scala 76:11]
+  assign io_int_req = mod_kernel_io_done; // @[PoorMansSystemILA.scala 104:14]
+  assign io_trigger_out = mod_kernel_io_trigger; // @[PoorMansSystemILA.scala 105:18]
   assign mod_ctrl_clock = clock;
   assign mod_ctrl_reset = reset;
-  assign mod_ctrl_io_inp_MEM_DATA_DOUT = mod_mem_douta; // @[PoorMansSystemILA.scala 86:36]
-  assign mod_ctrl_io_inp_STATUS_DONE = mod_kernel_io_done; // @[PoorMansSystemILA.scala 97:34]
-  assign mod_ctrl_io_ctrl_AW_valid = io_ctrl_AW_valid; // @[PoorMansSystemILA.scala 75:11]
-  assign mod_ctrl_io_ctrl_AW_bits_addr = io_ctrl_AW_bits_addr; // @[PoorMansSystemILA.scala 75:11]
-  assign mod_ctrl_io_ctrl_W_valid = io_ctrl_W_valid; // @[PoorMansSystemILA.scala 75:11]
-  assign mod_ctrl_io_ctrl_W_bits_wdata = io_ctrl_W_bits_wdata; // @[PoorMansSystemILA.scala 75:11]
-  assign mod_ctrl_io_ctrl_B_ready = io_ctrl_B_ready; // @[PoorMansSystemILA.scala 75:11]
-  assign mod_ctrl_io_ctrl_AR_valid = io_ctrl_AR_valid; // @[PoorMansSystemILA.scala 75:11]
-  assign mod_ctrl_io_ctrl_AR_bits_addr = io_ctrl_AR_bits_addr; // @[PoorMansSystemILA.scala 75:11]
-  assign mod_ctrl_io_ctrl_R_ready = io_ctrl_R_ready; // @[PoorMansSystemILA.scala 75:11]
-  assign mod_mem_clk = clock; // @[PoorMansSystemILA.scala 82:18]
-  assign mod_mem_addra = mod_ctrl_io_out_MEM_DATA_ADDR; // @[PoorMansSystemILA.scala 83:20]
-  assign mod_mem_dina = mod_ctrl_io_out_MEM_DATA_DIN; // @[PoorMansSystemILA.scala 84:19]
-  assign mod_mem_wea = mod_ctrl_io_out_MEM_DATA_WE; // @[PoorMansSystemILA.scala 85:67]
-  assign mod_mem_addrb = mod_kernel_io_addr; // @[PoorMansSystemILA.scala 99:20]
-  assign mod_mem_dinb = mod_kernel_io_dout; // @[PoorMansSystemILA.scala 100:19]
-  assign mod_mem_web = mod_kernel_io_we; // @[PoorMansSystemILA.scala 101:18]
+  assign mod_ctrl_io_inp_MEM_DATA_DOUT = mod_mem_douta; // @[PoorMansSystemILA.scala 87:36]
+  assign mod_ctrl_io_inp_STATUS_DONE = mod_kernel_io_done; // @[PoorMansSystemILA.scala 98:34]
+  assign mod_ctrl_io_ctrl_AW_valid = io_ctrl_AW_valid; // @[PoorMansSystemILA.scala 76:11]
+  assign mod_ctrl_io_ctrl_AW_bits_addr = io_ctrl_AW_bits_addr; // @[PoorMansSystemILA.scala 76:11]
+  assign mod_ctrl_io_ctrl_W_valid = io_ctrl_W_valid; // @[PoorMansSystemILA.scala 76:11]
+  assign mod_ctrl_io_ctrl_W_bits_wdata = io_ctrl_W_bits_wdata; // @[PoorMansSystemILA.scala 76:11]
+  assign mod_ctrl_io_ctrl_B_ready = io_ctrl_B_ready; // @[PoorMansSystemILA.scala 76:11]
+  assign mod_ctrl_io_ctrl_AR_valid = io_ctrl_AR_valid; // @[PoorMansSystemILA.scala 76:11]
+  assign mod_ctrl_io_ctrl_AR_bits_addr = io_ctrl_AR_bits_addr; // @[PoorMansSystemILA.scala 76:11]
+  assign mod_ctrl_io_ctrl_R_ready = io_ctrl_R_ready; // @[PoorMansSystemILA.scala 76:11]
+  assign mod_mem_clk = clock; // @[PoorMansSystemILA.scala 83:18]
+  assign mod_mem_addra = mod_ctrl_io_out_MEM_DATA_ADDR; // @[PoorMansSystemILA.scala 84:20]
+  assign mod_mem_dina = mod_ctrl_io_out_MEM_DATA_DIN; // @[PoorMansSystemILA.scala 85:19]
+  assign mod_mem_wea = mod_ctrl_io_out_MEM_DATA_WE; // @[PoorMansSystemILA.scala 86:67]
+  assign mod_mem_addrb = mod_kernel_io_addr; // @[PoorMansSystemILA.scala 100:20]
+  assign mod_mem_dinb = mod_kernel_io_dout; // @[PoorMansSystemILA.scala 101:19]
+  assign mod_mem_web = mod_kernel_io_we; // @[PoorMansSystemILA.scala 102:18]
   assign mod_kernel_clock = clock;
   assign mod_kernel_reset = reset;
-  assign mod_kernel_io_enable = mod_ctrl_io_out_CONTROL_ENABLE; // @[PoorMansSystemILA.scala 95:24]
-  assign mod_kernel_io_clear = mod_ctrl_io_out_CONTROL_CLEAR; // @[PoorMansSystemILA.scala 96:23]
-  assign mod_kernel_io_trigger_mask = mod_ctrl_io_out_TRIG_CTRL_MASK[8:0]; // @[PoorMansSystemILA.scala 92:30]
-  assign mod_kernel_io_trigger_force = mod_ctrl_io_out_TRIG_CTRL_FORCE; // @[PoorMansSystemILA.scala 93:31]
-  assign mod_kernel_io_MBDEBUG_TDI = io_MBDEBUG_TDI; // @[PoorMansSystemILA.scala 89:25]
-  assign mod_kernel_io_MBDEBUG_TDO = io_MBDEBUG_TDO; // @[PoorMansSystemILA.scala 89:25]
-  assign mod_kernel_io_MBDEBUG_CLK = io_MBDEBUG_CLK; // @[PoorMansSystemILA.scala 89:25]
-  assign mod_kernel_io_MBDEBUG_REG_EN = io_MBDEBUG_REG_EN; // @[PoorMansSystemILA.scala 89:25]
-  assign mod_kernel_io_MBDEBUG_SHIFT = io_MBDEBUG_SHIFT; // @[PoorMansSystemILA.scala 89:25]
-  assign mod_kernel_io_MBDEBUG_CAPTURE = io_MBDEBUG_CAPTURE; // @[PoorMansSystemILA.scala 89:25]
-  assign mod_kernel_io_MBDEBUG_UPDATE = io_MBDEBUG_UPDATE; // @[PoorMansSystemILA.scala 89:25]
-  assign mod_kernel_io_MBDEBUG_RST = io_MBDEBUG_RST; // @[PoorMansSystemILA.scala 89:25]
-  assign mod_kernel_io_MBDEBUG_DISABLE = io_MBDEBUG_DISABLE; // @[PoorMansSystemILA.scala 89:25]
-  assign mod_kernel_io_DEBUG_SYS_RESET = io_DEBUG_SYS_RESET; // @[PoorMansSystemILA.scala 90:33]
+  assign mod_kernel_io_enable = mod_ctrl_io_out_CONTROL_ENABLE; // @[PoorMansSystemILA.scala 96:24]
+  assign mod_kernel_io_clear = mod_ctrl_io_out_CONTROL_CLEAR; // @[PoorMansSystemILA.scala 97:23]
+  assign mod_kernel_io_trigger_mask = mod_ctrl_io_out_TRIG_CTRL_MASK; // @[PoorMansSystemILA.scala 93:30]
+  assign mod_kernel_io_trigger_force = mod_ctrl_io_out_TRIG_CTRL_FORCE; // @[PoorMansSystemILA.scala 94:31]
+  assign mod_kernel_io_MBDEBUG_TDI = io_MBDEBUG_TDI; // @[PoorMansSystemILA.scala 90:25]
+  assign mod_kernel_io_MBDEBUG_TDO = io_MBDEBUG_TDO; // @[PoorMansSystemILA.scala 90:25]
+  assign mod_kernel_io_MBDEBUG_CLK = io_MBDEBUG_CLK; // @[PoorMansSystemILA.scala 90:25]
+  assign mod_kernel_io_MBDEBUG_REG_EN = io_MBDEBUG_REG_EN; // @[PoorMansSystemILA.scala 90:25]
+  assign mod_kernel_io_MBDEBUG_SHIFT = io_MBDEBUG_SHIFT; // @[PoorMansSystemILA.scala 90:25]
+  assign mod_kernel_io_MBDEBUG_CAPTURE = io_MBDEBUG_CAPTURE; // @[PoorMansSystemILA.scala 90:25]
+  assign mod_kernel_io_MBDEBUG_UPDATE = io_MBDEBUG_UPDATE; // @[PoorMansSystemILA.scala 90:25]
+  assign mod_kernel_io_MBDEBUG_RST = io_MBDEBUG_RST; // @[PoorMansSystemILA.scala 90:25]
+  assign mod_kernel_io_MBDEBUG_DISABLE = io_MBDEBUG_DISABLE; // @[PoorMansSystemILA.scala 90:25]
+  assign mod_kernel_io_DEBUG_SYS_RESET = io_DEBUG_SYS_RESET; // @[PoorMansSystemILA.scala 91:33]
 endmodule

@@ -3,7 +3,7 @@
   <spirit:vendor>j-marjanovic.io</spirit:vendor>
   <spirit:library>user</spirit:library>
   <spirit:name>PoorMansSystemILA</spirit:name>
-  <spirit:version>1.2</spirit:version>
+  <spirit:version>1.3</spirit:version>
   <spirit:busInterfaces>
     <spirit:busInterface>
       <spirit:name>reset</spirit:name>
@@ -357,7 +357,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>341ca2e4</spirit:value>
+            <spirit:value>c458dd13</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -373,7 +373,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>341ca2e4</spirit:value>
+            <spirit:value>c458dd13</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -745,9 +745,13 @@
         <spirit:name>io_MBDEBUG_REG_EN</spirit:name>
         <spirit:wire>
           <spirit:direction>in</spirit:direction>
+          <spirit:vector>
+            <spirit:left spirit:format="long">7</spirit:left>
+            <spirit:right spirit:format="long">0</spirit:right>
+          </spirit:vector>
           <spirit:wireTypeDefs>
             <spirit:wireTypeDef>
-              <spirit:typeName>std_logic</spirit:typeName>
+              <spirit:typeName>std_logic_vector</spirit:typeName>
               <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
               <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
             </spirit:wireTypeDef>
@@ -845,6 +849,19 @@
           </spirit:wireTypeDefs>
         </spirit:wire>
       </spirit:port>
+      <spirit:port>
+        <spirit:name>io_trigger_out</spirit:name>
+        <spirit:wire>
+          <spirit:direction>out</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
     </spirit:ports>
   </spirit:model>
   <spirit:choices>
@@ -866,7 +883,7 @@
       <spirit:file>
         <spirit:name>hdl/PoorMansSystemILA.sv</spirit:name>
         <spirit:fileType>systemVerilogSource</spirit:fileType>
-        <spirit:userFileType>CHECKSUM_111acd7b</spirit:userFileType>
+        <spirit:userFileType>CHECKSUM_5d1ca88e</spirit:userFileType>
       </spirit:file>
     </spirit:fileSet>
     <spirit:fileSet>
@@ -883,7 +900,7 @@
     <spirit:fileSet>
       <spirit:name>xilinx_xpgui_view_fileset</spirit:name>
       <spirit:file>
-        <spirit:name>xgui/PoorMansSystemILA_v1_2.tcl</spirit:name>
+        <spirit:name>xgui/PoorMansSystemILA_v1_3.tcl</spirit:name>
         <spirit:fileType>tclSource</spirit:fileType>
         <spirit:userFileType>CHECKSUM_f92e9879</spirit:userFileType>
         <spirit:userFileType>XGUI_VERSION_2</spirit:userFileType>
@@ -911,8 +928,8 @@
       </xilinx:taxonomies>
       <xilinx:displayName>Poor Man&apos;s System ILA</xilinx:displayName>
       <xilinx:definitionSource>package_project</xilinx:definitionSource>
-      <xilinx:coreRevision>0</xilinx:coreRevision>
-      <xilinx:coreCreationDateTime>2021-04-05T15:32:03Z</xilinx:coreCreationDateTime>
+      <xilinx:coreRevision>9</xilinx:coreRevision>
+      <xilinx:coreCreationDateTime>2021-04-05T20:10:09Z</xilinx:coreCreationDateTime>
       <xilinx:tags>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@2012f4d3_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@2d72c999_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
@@ -1001,14 +1018,41 @@
         <xilinx:tag xilinx:name="ui.data.coregen.dd@1e9d4580_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@3e182d7e_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@1691463e_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5a78c87_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@608b2196_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@38725c4b_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3e7acbad_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@42c55cc2_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@53709912_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@35590af0_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3523a96e_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4b00eb7e_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@40ec5735_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@415e638_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@37ba3178_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@305c58b7_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@218f33be_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@275ab313_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3446e6b_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@15fdecee_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@31e48eff_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@39c7b4a7_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@78cbd738_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7072d20_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6d4f802f_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7cb83c85_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@75015f5c_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@13a8926d_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@36dc4f8b_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@142341cd_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-11-poor-mans-system-ila/ip_cores/poor_mans_system_ila</xilinx:tag>
       </xilinx:tags>
     </xilinx:coreExtensions>
     <xilinx:packagingInfo>
       <xilinx:xilinxVersion>2020.1</xilinx:xilinxVersion>
       <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="628cb443"/>
       <xilinx:checksum xilinx:scope="memoryMaps" xilinx:value="73824d20"/>
-      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="0a136880"/>
-      <xilinx:checksum xilinx:scope="ports" xilinx:value="584dce7d"/>
+      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="b97bd323"/>
+      <xilinx:checksum xilinx:scope="ports" xilinx:value="4642cbba"/>
       <xilinx:checksum xilinx:scope="parameters" xilinx:value="b0101842"/>
     </xilinx:packagingInfo>
   </spirit:vendorExtensions>

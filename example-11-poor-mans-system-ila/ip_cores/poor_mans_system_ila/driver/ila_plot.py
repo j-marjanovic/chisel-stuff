@@ -17,24 +17,25 @@ def main():
     xs = np.frombuffer(buf, dtype=np.uint32)
 
     # find start of the buffer
-    idx = xs >> 16
-    am = np.argmax(np.diff(idx)) + 1
+    #idx = xs >> 20
+    state = (xs >> 17) & 0x3
+    am = np.argmax(np.diff(state)) + 1
     xs = np.roll(xs, -am)
-    idx = xs >> 16
-    assert np.all(np.diff(idx) == np.ones(len(idx) - 1, dtype=np.uint32))
+    idx = xs >> 20
+    # assert np.all(np.diff(idx) == np.ones(len(idx) - 1, dtype=np.uint32))
 
     # extract individual signals
-    mbdebug_tdi = (xs >> 0) & 1
-    mbdebug_tdo = (xs >> 1) & 1
-    mbdebug_clk = (xs >> 2) & 1
-    mbdebug_reg_en = (xs >> 3) & 1
+    mbdebug_tdi = (xs >> 15) & 1
+    mbdebug_tdo = (xs >> 14) & 1
+    mbdebug_clk = (xs >> 13) & 1
+    mbdebug_reg_en = (xs >> 5) & 0xFF
     mbdebug_shift = (xs >> 4) & 1
-    mbdebug_capture = (xs >> 5) & 1
-    mbdebug_update = (xs >> 6) & 1
-    mbdebug_rst = (xs >> 7) & 1
-    mbdebug_disable = (xs >> 8) & 1
-    debug_sys_reset = (xs >> 9) & 1
-    state = (xs >> 10) & 0x3
+    mbdebug_capture = (xs >> 3) & 1
+    mbdebug_update = (xs >> 2) & 1
+    mbdebug_rst = (xs >> 1) & 1
+    mbdebug_disable = (xs >> 0) & 1
+    debug_sys_reset = (xs >> 16) & 1
+    state = (xs >> 17) & 0x3
 
     signals = [
         (mbdebug_tdi, "mbdebug_tdi"),
@@ -48,6 +49,7 @@ def main():
         (mbdebug_disable, "mbdebug_disable"),
         (debug_sys_reset, "debug_sys_reset"),
         (state, "state"),
+        (idx, "idx"),
     ]
 
     fig = plt.figure(figsize=(12, 10))
@@ -55,7 +57,11 @@ def main():
 
     for ax, signal in zip(axes, signals):
         ax.plot(signal[0], label=signal[1])
-        if signal[1] != "state":
+        if signal[1] == "state" or signal[1] == "idx":
+            pass
+        elif signal[1] == "mbdebug_reg_en":
+            ax.set_ylim(-0.2, 8.2)
+        else:
             ax.set_ylim(-0.2, 1.2)
         ax.legend(loc=1)
 

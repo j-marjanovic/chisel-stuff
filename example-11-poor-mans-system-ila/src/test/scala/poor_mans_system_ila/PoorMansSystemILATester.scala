@@ -71,7 +71,7 @@ class PoorMansSystemILATester(c: PoorMansSystemILA) extends BfmTester(c) {
   expect(id_reg == 0x5157311a, "ID reg")
 
   val ver_reg = read_blocking(addr = 4)
-  expect(ver_reg == 0x010100, "Version register")
+  expect(ver_reg == 0x010300, "Version register")
 
   val scratch_reg_val = 271828182
   write_blocking(0xc, scratch_reg_val)
@@ -81,7 +81,7 @@ class PoorMansSystemILATester(c: PoorMansSystemILA) extends BfmTester(c) {
   // enable
   write_blocking(0x14, 0x80000000L)
   step(200)
-  write_blocking(0x24, 0x80) // 0x80 - TDO
+  write_blocking(0x24, 0x4000) // 0x4000 - TDO
   step(200)
 
   // check done
@@ -95,7 +95,7 @@ class PoorMansSystemILATester(c: PoorMansSystemILA) extends BfmTester(c) {
   }
 
   for (data <- data_list) {
-    val idx = data.toLong >> 16
+    val idx = data.toLong >> 20
     println(f"${idx}%5d | ${rightpad(data.toLong.toBinaryString)}")
   }
 
@@ -107,7 +107,7 @@ class PoorMansSystemILATester(c: PoorMansSystemILA) extends BfmTester(c) {
 
   // wait for pre-trigger, start the acquisition
   step(200)
-  write_blocking(0x24, 0x80) // 0x80 - TDO
+  write_blocking(0x24, 0x4000) // 0x4000 - TDO
   step(200)
 
   // check done
@@ -120,7 +120,7 @@ class PoorMansSystemILATester(c: PoorMansSystemILA) extends BfmTester(c) {
   }
 
   for (data <- data_list) {
-    val idx = data.toLong >> 16
+    val idx = data.toLong >> 20
     println(f"${idx}%5d | ${rightpad(data.toLong.toBinaryString)}")
   }
 
@@ -148,7 +148,7 @@ class PoorMansSystemILATester(c: PoorMansSystemILA) extends BfmTester(c) {
   }
 
   for (data <- data_list) {
-    val idx = data.toLong >> 16
+    val idx = data.toLong >> 20
     println(f"${idx}%5d | ${rightpad(data.toLong.toBinaryString)}")
   }
 

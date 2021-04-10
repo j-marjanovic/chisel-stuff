@@ -26,7 +26,7 @@ import bfmtester._
 
 import scala.collection.mutable.ListBuffer
 
-class PoorMansSystemILATester(c: PoorMansSystemILA) extends BfmTester(c) {
+class PoorMansSystemILAFilterTester(c: PoorMansSystemILA) extends BfmTester(c) {
   def read_blocking(addr: BigInt, CYC_TIMEOUT: Int = 100): BigInt = {
     mod_axi_manager.readPush(addr)
     for (_ <- 0 to CYC_TIMEOUT) {
@@ -55,14 +55,24 @@ class PoorMansSystemILATester(c: PoorMansSystemILA) extends BfmTester(c) {
     throw new RuntimeException("AXI write timeout")
   }
 
+  def step_until_empty(): Unit = {
+    while (true) {
+      if (mod_slow_sig_gen.is_empty()) {
+        return
+      }
+      step(1)
+    }
+  }
+
   def leftPad(s: String, l: Int = 32): String = {
     " " * (l - s.length) + s
   }
 
   // modules
   val mod_axi_manager = BfmFactory.create_axilite_master(c.io.ctrl)
-  val mod_mbdebug =
-    new MbdebugGenerator(c.io.MBDEBUG, bfm_peek, bfm_poke, println, rnd)
+  val mod_slow_sig_gen =
+    new SlowSignalGen(c.io.MBDEBUG.TDO, bfm_peek, bfm_poke, println)
+
 
   step(10)
 
@@ -79,69 +89,29 @@ class PoorMansSystemILATester(c: PoorMansSystemILA) extends BfmTester(c) {
   expect(scratch_reg_val == scratch_reg_readback, "Scratch reg write + read")
 
   // enable
-  write_blocking(0x14, 0x80000000L)
+  write_blocking(0x24, 0x40000000) // 0x4000 - TDO
   step(200)
-  write_blocking(0x24, 0x4000) // 0x4000 - TDO
-  step(200)
+
+  mod_slow_sig_gen.append(0x00000007, 32)
+  mod_slow_sig_gen.append(0x00000007, 32)
+  mod_slow_sig_gen.append(0x00000007, 32)
+  mod_slow_sig_gen.append(0x00000007, 32)
+  step_until_empty()
+  expect(read_blocking(0x10) == 0, "Status - short pulse does not trigger")
+
+
+  mod_slow_sig_gen.append(0x584d4443, 32)
+  mod_slow_sig_gen.append(0, 32)
+  mod_slow_sig_gen.append(0, 32)
+  mod_slow_sig_gen.append(0, 32)
+  step_until_empty()
 
   // check done
   expect(read_blocking(0x10) == 1, "Status done")
 
   // read data out and print
   val data_list = ListBuffer[BigInt]()
-  for (i <- 0 until c.BUF_LEN) {
-    val data = read_blocking(0x1000 + i * 4)
-    data_list += data
-  }
 
-  for (data <- data_list) {
-    val idx = data.toLong >> 20
-    println(f"${idx}%5d | ${leftPad(data.toLong.toBinaryString)}")
-  }
-
-  data_list.clear()
-
-  // clear done
-  write_blocking(0x24, 0x00)
-  write_blocking(0x14, 0x80000001L)
-
-  // wait for pre-trigger, start the acquisition
-  step(200)
-  write_blocking(0x24, 0x4000) // 0x4000 - TDO
-  step(200)
-
-  // check done
-  expect(read_blocking(0x10) == 1, "Status done")
-
-  // read data out and print
-  for (i <- 0 until c.BUF_LEN) {
-    val data = read_blocking(0x1000 + i * 4)
-    data_list += data
-  }
-
-  for (data <- data_list) {
-    val idx = data.toLong >> 20
-    println(f"${idx}%5d | ${leftPad(data.toLong.toBinaryString)}")
-  }
-
-  data_list.clear()
-
-  // check the force trigger mode
-  mod_mbdebug.quiet_set(true)
-
-  // clear done
-  write_blocking(0x24, 0x00)
-  write_blocking(0x14, 0x80000001L)
-
-  // wait for pre-trigger, start the acquisition
-  step(200)
-  write_blocking(0x24, 0x80000000L) // bit 31 - force trigger
-  step(200)
-
-  // check done
-  expect(read_blocking(0x10) == 1, "Status done")
-
-  // read data out and print
   for (i <- 0 until c.BUF_LEN) {
     val data = read_blocking(0x1000 + i * 4)
     data_list += data

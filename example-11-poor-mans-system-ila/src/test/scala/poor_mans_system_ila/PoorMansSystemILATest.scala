@@ -22,12 +22,13 @@ SOFTWARE.
 
 package poor_mans_system_ila
 
+import chisel3._
 import chisel3.iotesters
 import chisel3.iotesters.ChiselFlatSpec
 
 class PoorMansSystemILATest extends ChiselFlatSpec {
 
-  it should "check the generated AXI4-Lite module" in {
+  ignore should "check the generated AXI4-Lite module" in {
     iotesters.Driver.execute(
       Array(
         "--backend-name",
@@ -45,4 +46,65 @@ class PoorMansSystemILATest extends ChiselFlatSpec {
       new PoorMansSystemILATester(c)
     } should be(true)
   }
+
+  ignore should "check the filter trigger behavior" in {
+    iotesters.Driver.execute(
+      Array(
+        "--backend-name",
+        "verilator",
+        "--fint-write-vcd",
+        "--test-seed",
+        "1234",
+        "--target-dir",
+        "test_run_dir/FilterTriggerTester",
+        "--top-name",
+        "FilterTriggerTester"
+      ),
+      () => new FilterTrigger
+    ) { c =>
+      new FilterTriggerTester(c)
+    } should be(true)
+  }
+
+  ignore should "check the filter mode integration in ILA" in {
+    iotesters.Driver.execute(
+      Array(
+        "--backend-name",
+        "verilator",
+        "--fint-write-vcd",
+        "--test-seed",
+        "1234",
+        "--target-dir",
+        "test_run_dir/PoorMansSystemILAFilterTester",
+        "--top-name",
+        "PoorMansSystemILAFilterTester"
+      ),
+      () => new PoorMansSystemILA(256)
+    ) { c =>
+      new PoorMansSystemILAFilterTester(c)
+    } should be(true)
+  }
+
+  val pattern = BigInt("3ff00000003ff00000003ff", 16).U
+
+  it should "check the correlator channel behavior" in {
+    iotesters.Driver.execute(
+      Array(
+        "--backend-name",
+        "verilator",
+        "--fint-write-vcd",
+        "--test-seed",
+        "1234",
+        "--target-dir",
+        "test_run_dir/CorrelatorChannelTester",
+        "--top-name",
+        "CorrelatorChannelTester"
+      ),
+      () => new CorrelatorChannel(pattern) // 32.U(20.W))
+    ) { c =>
+      new CorrelatorChannelTester(c)
+    } should be(true)
+  }
+
+
 }

@@ -34,7 +34,13 @@ class PoorMansSystemILAKernel(val nr_els: Int) extends Module {
 
     val trigger_mask = Input(UInt())
     val trigger_force = Input(Bool())
+    val trigger_filt_en = Input(Bool())
+    val trigger_filt_level = Input(UInt(12.W))
+    val trigger_corr_en = Input(Bool())
+    val trigger_pre_len =  Input(UInt())
     val trigger = Output(Bool())
+
+    val status_filt_high_mark = Output(UInt(12.W))
 
     val MBDEBUG = new MbdebugBundle()
     val DEBUG_SYS_RESET = Input(Bool())
@@ -84,10 +90,23 @@ class PoorMansSystemILAKernel(val nr_els: Int) extends Module {
     }
   }
 
+  // trigger - filter
+  val mod_filt = Module(new FilterTrigger())
+  mod_filt.io.data_in := io.MBDEBUG.TDO
+  mod_filt.io.level := io.trigger_filt_level
+
+  // trigger - correlator
+  val pattern = BigInt("3ff00000003ff00000003ff", 16).U
+  val mod_corr_ch = Module(new CorrelatorChannel(pattern))
+  mod_corr_ch.io.inp := io.MBDEBUG.TDO
+
   // trigger
   val mbdebug_prev = RegNext(io.MBDEBUG.asUInt())
   val mbdebug_edge = WireInit(mbdebug_prev ^ io.MBDEBUG.asUInt())
-  trigger := ((mbdebug_edge & io.trigger_mask) =/= 0.U) || io.trigger_force
+  trigger := ((mbdebug_edge & io.trigger_mask) =/= 0.U) ||
+    io.trigger_force ||
+    (io.trigger_filt_en && mod_filt.io.trigger_out) ||
+    (io.trigger_corr_en && mod_corr_ch.io.out_valid && (mod_corr_ch.io.out > 80.U))
   io.trigger := trigger && state === State.sPreTrigger
 
   // output
@@ -95,10 +114,21 @@ class PoorMansSystemILAKernel(val nr_els: Int) extends Module {
   cntr := cntr + 1.U
 
   val out_data = WireInit(
-    Cat(cntr, 0.U(1.W), state.asUInt(), io.DEBUG_SYS_RESET, io.MBDEBUG.asUInt())
+    Cat(cntr,              // 31:20
+      trigger,             // 19
+      state.asUInt(),      // 18:17
+      io.DEBUG_SYS_RESET,  // 16
+      io.MBDEBUG.asUInt()  // 15:0
+    )
   )
   io.dout := out_data
   io.addr := addr
   io.we := (state === State.sPreTrigger) || (state === State.sPostTrigger)
   io.done := state === State.sDone
+
+  val status_filt_high_mark_reg = RegInit(UInt(12.W), 0.U)
+  when (mod_filt.io.debug_q > status_filt_high_mark_reg) {
+    status_filt_high_mark_reg := mod_filt.io.debug_q
+  }
+  io.status_filt_high_mark := status_filt_high_mark_reg
 }

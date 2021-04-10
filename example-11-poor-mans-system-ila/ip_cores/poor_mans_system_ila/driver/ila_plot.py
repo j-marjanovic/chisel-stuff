@@ -47,23 +47,30 @@ def main():
         (mbdebug_update, "mbdebug_update"),
         (mbdebug_rst, "mbdebug_rst"),
         (mbdebug_disable, "mbdebug_disable"),
-        (debug_sys_reset, "debug_sys_reset"),
-        (state, "state"),
-        (idx, "idx"),
+        #(debug_sys_reset, "debug_sys_reset"),
+        #(state, "state"),
+        #(idx, "idx"),
     ]
 
     fig = plt.figure(figsize=(12, 10))
     axes = fig.subplots(len(signals), 1, sharex=True)
 
     for ax, signal in zip(axes, signals):
-        ax.plot(signal[0], label=signal[1])
+        if signal[1] == "mbdebug_reg_en":
+            for i in range(8):
+                ax.plot(((signal[0] >> i) & 1) + i*1.5, label=str(i))
+        else:
+            ax.plot(signal[0], 'o-', label=signal[1])
+
         if signal[1] == "state" or signal[1] == "idx":
             pass
         elif signal[1] == "mbdebug_reg_en":
-            ax.set_ylim(-0.2, 8.2)
+            #ax.set_ylim(-0.2, 16.2)
+            pass
         else:
             ax.set_ylim(-0.2, 1.2)
         ax.legend(loc=1)
+        ax.grid(True)
 
     fig.suptitle(args.bin)
     plt.show()

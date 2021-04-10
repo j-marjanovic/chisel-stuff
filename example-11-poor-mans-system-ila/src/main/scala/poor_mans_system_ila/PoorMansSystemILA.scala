@@ -48,11 +48,19 @@ class PoorMansSystemILA(val BUF_LEN: Int = 4096) extends Module {
     ),
     new Reg("CONTROL", 0x14,
       new Field("CLEAR",  hw_access = Access.R,  sw_access = Access.RW, hi =  0, lo = None, singlepulse = true),
-      new Field("ENABLE", hw_access = Access.R,  sw_access = Access.RW, hi = 31, lo = None)
     ),
     new Reg("TRIG_CTRL", 0x24,
       new Field("MASK",   hw_access = Access.R,  sw_access = Access.RW, hi =  16, lo = Some(0)),
+      new Field("CORR_EN", hw_access = Access.R, sw_access = Access.RW, hi =  29, lo = None),
+      new Field("FILT_EN", hw_access = Access.R, sw_access = Access.RW, hi =  30, lo = None),
       new Field("FORCE",  hw_access = Access.R,  sw_access = Access.RW, hi =  31, lo = None, singlepulse = true),
+    ),
+    new Reg("TRIG_CTRL2", 0x28,
+      new Field("PRE_LEN", hw_access = Access.R,  sw_access = Access.RW, hi = log2Up(BUF_LEN)-1, lo = Some(0), reset = Some(100.U)),
+    ),
+    new Reg("TRIG_FILT", 0x2C,
+      new Field("HI_MARK", hw_access = Access.W, sw_access = Access.R, hi= 31, lo = Some(16)),
+      new Field("LEVEL", hw_access = Access.R,  sw_access = Access.RW, hi = 12, lo = Some(0), reset = Some(500.U)),
     ),
     new Mem("DATA", addr = 0x1000, nr_els = BUF_LEN, data_w = 32),
   )
@@ -77,7 +85,7 @@ class PoorMansSystemILA(val BUF_LEN: Int = 4096) extends Module {
 
   mod_ctrl.io.inp("VERSION_MAJOR") := 0x01.U
   mod_ctrl.io.inp("VERSION_MINOR") := 0x03.U
-  mod_ctrl.io.inp("VERSION_PATCH") := 0x00.U
+  mod_ctrl.io.inp("VERSION_PATCH") := 0x03.U
 
   val mod_mem = Module(new DualPortRam(32, BUF_LEN))
   mod_mem.io.clk := this.clock
@@ -92,8 +100,13 @@ class PoorMansSystemILA(val BUF_LEN: Int = 4096) extends Module {
 
   mod_kernel.io.trigger_mask := mod_ctrl.io.out("TRIG_CTRL_MASK")
   mod_kernel.io.trigger_force := mod_ctrl.io.out("TRIG_CTRL_FORCE")
+  mod_kernel.io.trigger_filt_en := mod_ctrl.io.out("TRIG_CTRL_FILT_EN")
+  mod_kernel.io.trigger_filt_level := mod_ctrl.io.out("TRIG_FILT_LEVEL")
+  mod_kernel.io.trigger_corr_en := mod_ctrl.io.out("TRIG_CTRL_CORR_EN")
+  mod_kernel.io.trigger_pre_len := mod_ctrl.io.out("TRIG_CTRL2_PRE_LEN")
+  mod_ctrl.io.inp("TRIG_FILT_HI_MARK") := mod_kernel.io.status_filt_high_mark
 
-  mod_kernel.io.enable := mod_ctrl.io.out("CONTROL_ENABLE")
+  mod_kernel.io.enable := true.B
   mod_kernel.io.clear := mod_ctrl.io.out("CONTROL_CLEAR")
   mod_ctrl.io.inp("STATUS_DONE") := mod_kernel.io.done
 

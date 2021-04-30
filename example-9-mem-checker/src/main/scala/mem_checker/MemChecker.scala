@@ -36,7 +36,7 @@ class MemChecker(
   })
 
   val VERSION: Int = 0x00010003
-  val BURST_LEN: Int = 128
+  val BURST_LEN: Int = 64
 
   val mod_axi_slave = Module(
     new MemCheckerAxiSlave(

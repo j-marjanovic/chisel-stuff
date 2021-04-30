@@ -21,10 +21,10 @@ SOFTWARE.
  */
 
 #include <stdbool.h>
-#include <stdio.h>
 #include <unistd.h>
 
 #include "io.h"
+#include "sys/alt_stdio.h"
 
 #include "mem_checker.h"
 #include "mem_checker_regs.h"
@@ -122,17 +122,17 @@ int _mem_check_print_stats(uint32_t base, uint32_t mem_size)
     _mem_check_get_stats(base, &read_duration, &write_duration, &check_tot,
         &check_ok);
 
-    float write_througput_mbps = mem_size * 200.0 / write_duration;
-    float read_througput_mbps = mem_size * 200.0 / read_duration;
+    int write_througput_mbps = mem_size * 200ULL / write_duration;
+    int read_througput_mbps = mem_size * 200ULL / read_duration;
 
     bool mem_check_pass = (check_tot == mem_size / 64) && (check_tot == check_ok);
 
-    printf("[mem check]   results = %s (%ld / %ld)\n",
+    alt_printf("[mem check]   results = %s (%x / %x)\n",
         mem_check_pass ? "PASS" : "FAIL", check_ok, check_tot);
-    printf("[mem check]   write throughput = %d MB/s\n",
-        (int)write_througput_mbps);
-    printf("[mem check]   read throughput = %d MB/s\n", (int)read_througput_mbps);
 
+    alt_printf("[mem check]   write throughput = 0x%x MB/s\n",
+        write_througput_mbps);
+    alt_printf("[mem check]   read throughput = 0x%x MB/s\n", read_througput_mbps);
     return mem_check_pass ? 0 : -2;
 }
 
@@ -151,22 +151,22 @@ int mem_check(uint32_t base, uint64_t mem_address, uint32_t mem_size)
     uint32_t id, ver;
     _mem_check_get_id(base, &id, &ver);
 
-    printf("[mem check] =================================================\n");
-    printf("[mem check] IP id = 0x%lx, version = %lx\n", id, ver);
+    alt_printf("[mem check] =================================================\n");
+    alt_printf("[mem check] IP id = 0x%x, version = %x\n", id, ver);
 
     unsigned int avalon_width_bytes, avalon_burst_len;
     _mem_check_get_conf(base, &avalon_width_bytes, &avalon_burst_len);
-    printf("[mem check] Avalon width = %lu bytes, burst len = %lu\n",
+    alt_printf("[mem check] Avalon width = 0x%x bytes, burst len = 0x%x\n",
         avalon_width_bytes, avalon_burst_len);
 
     for (int mode = 0; mode < 8; mode++) {
-        printf("[mem check] mode = %s\n", mem_check_mode_str[mode]);
+        alt_printf("[mem check] mode = %s\n", mem_check_mode_str[mode]);
 
         _mem_check_ctrl(base, true, mode);
         _mem_check_write_start(base, mem_address, mem_size);
         rc = _mem_check_write_wait_done(base);
         if (rc) {
-            printf("[mem check] ERROR: timeout on write procedure\n");
+            alt_printf("[mem check] ERROR: timeout on write procedure\n");
             return rc;
         }
 
@@ -174,7 +174,7 @@ int mem_check(uint32_t base, uint64_t mem_address, uint32_t mem_size)
         _mem_check_read_start(base, mem_address, mem_size);
         rc = _mem_check_read_wait_done(base);
         if (rc) {
-            printf("[mem check] ERROR: timeout on read procedure\n");
+            alt_printf("[mem check] ERROR: timeout on read procedure\n");
             return rc;
         }
 

@@ -42,18 +42,18 @@ const char* mem_check_mode_str[8] = {
 };
 // clang-format on
 
-void _mem_check_get_id(uint32_t base, uint32_t* id, uint32_t* ver)
+static void _mem_check_get_id(uint32_t base, uint32_t* id, uint32_t* ver)
 {
     *id = IORD_32DIRECT(base, ADDR_ID);
     *ver = IORD_32DIRECT(base, ADDR_VERSION);
 }
 
-void _mem_check_ctrl(uint32_t base, bool write_not_read, uint8_t mode)
+static void _mem_check_ctrl(uint32_t base, bool write_not_read, enum mem_check_mode mode)
 {
     IOWR_32DIRECT(base, ADDR_CTRL, (mode << 8) | write_not_read);
 }
 
-void _mem_check_write_start(uint32_t base, uint64_t mem_address,
+static void _mem_check_write_start(uint32_t base, uint64_t mem_address,
     uint32_t mem_size)
 {
     IOWR_32DIRECT(base, ADDR_WRITE_ADDR_LO, mem_address);
@@ -62,7 +62,7 @@ void _mem_check_write_start(uint32_t base, uint64_t mem_address,
     IOWR_32DIRECT(base, ADDR_WRITE_CTRL, 1);
 }
 
-int _mem_check_wait_done(uint32_t base, uint32_t reg_addr)
+static int _mem_check_wait_done(uint32_t base, uint32_t reg_addr)
 {
     uint32_t status;
 
@@ -77,22 +77,22 @@ int _mem_check_wait_done(uint32_t base, uint32_t reg_addr)
     return -1;
 }
 
-int _mem_check_write_wait_done(uint32_t base)
+static int _mem_check_write_wait_done(uint32_t base)
 {
     return _mem_check_wait_done(base, ADDR_WRITE_STATUS);
 }
 
-int _mem_check_read_wait_done(uint32_t base)
+static int _mem_check_read_wait_done(uint32_t base)
 {
     return _mem_check_wait_done(base, ADDR_READ_STATUS);
 }
 
-void _mem_check_write_clear(uint32_t base)
+static void _mem_check_write_clear(uint32_t base)
 {
     IOWR_32DIRECT(base, ADDR_WRITE_STATUS, 1);
 }
 
-void _mem_check_read_start(uint32_t base, uint64_t mem_address,
+static void _mem_check_read_start(uint32_t base, uint64_t mem_address,
     uint32_t mem_size)
 {
     IOWR_32DIRECT(base, ADDR_READ_ADDR_LO, mem_address);
@@ -101,12 +101,12 @@ void _mem_check_read_start(uint32_t base, uint64_t mem_address,
     IOWR_32DIRECT(base, ADDR_READ_CTRL, 1);
 }
 
-void _mem_check_read_clear(uint32_t base)
+static void _mem_check_read_clear(uint32_t base)
 {
     IOWR_32DIRECT(base, ADDR_READ_STATUS, 1);
 }
 
-void _mem_check_get_stats(uint32_t base, uint32_t* read_duration,
+static void _mem_check_get_stats(uint32_t base, uint32_t* read_duration,
     uint32_t* write_duration, uint32_t* check_tot,
     uint32_t* check_ok)
 {
@@ -116,7 +116,7 @@ void _mem_check_get_stats(uint32_t base, uint32_t* read_duration,
     *check_ok = IORD_32DIRECT(base, ADDR_CHECK_OK);
 }
 
-int _mem_check_print_stats(uint32_t base, uint32_t mem_size)
+static int _mem_check_print_stats(uint32_t base, uint32_t mem_size)
 {
     uint32_t read_duration, write_duration, check_tot, check_ok;
     _mem_check_get_stats(base, &read_duration, &write_duration, &check_tot,
@@ -136,7 +136,7 @@ int _mem_check_print_stats(uint32_t base, uint32_t mem_size)
     return mem_check_pass ? 0 : -2;
 }
 
-void _mem_check_get_conf(uint32_t base, unsigned int* avalon_width_bytes,
+static void _mem_check_get_conf(uint32_t base, unsigned int* avalon_width_bytes,
     unsigned int* avalon_burst_len)
 {
     uint32_t cfg = IORD_32DIRECT(base, ADDR_CONF);
@@ -144,7 +144,43 @@ void _mem_check_get_conf(uint32_t base, unsigned int* avalon_width_bytes,
     *avalon_burst_len = (cfg >> 8) & 0xFF;
 }
 
-int mem_check(uint32_t base, uint64_t mem_address, uint32_t mem_size)
+int mem_check_write(uint32_t base, uint64_t mem_address, uint32_t mem_size, enum mem_check_mode mode)
+{
+    int rc;
+    _mem_check_ctrl(base, true, mode);
+    _mem_check_write_start(base, mem_address, mem_size);
+    rc = _mem_check_write_wait_done(base);
+    if (rc) {
+        alt_printf("[mem check] ERROR: timeout on write procedure\n");
+        return rc;
+    }
+    _mem_check_write_clear(base);
+
+    return 0;
+}
+
+int mem_check_read_and_check(uint32_t base, uint64_t mem_address, uint32_t mem_size, enum mem_check_mode mode)
+{
+    int rc;
+    _mem_check_ctrl(base, false, mode);
+    _mem_check_read_start(base, mem_address, mem_size);
+    rc = _mem_check_read_wait_done(base);
+    if (rc) {
+        alt_printf("[mem check] ERROR: timeout on read procedure\n");
+        return rc;
+    }
+
+    rc = _mem_check_print_stats(base, mem_size);
+    if (rc) {
+        return rc;
+    }
+
+    _mem_check_read_clear(base);
+
+    return 0;
+}
+
+int mem_check_full(uint32_t base, uint64_t mem_address, uint32_t mem_size)
 {
     int rc;
 
@@ -162,29 +198,15 @@ int mem_check(uint32_t base, uint64_t mem_address, uint32_t mem_size)
     for (int mode = 0; mode < 8; mode++) {
         alt_printf("[mem check] mode = %s\n", mem_check_mode_str[mode]);
 
-        _mem_check_ctrl(base, true, mode);
-        _mem_check_write_start(base, mem_address, mem_size);
-        rc = _mem_check_write_wait_done(base);
-        if (rc) {
-            alt_printf("[mem check] ERROR: timeout on write procedure\n");
-            return rc;
-        }
-
-        _mem_check_ctrl(base, false, mode);
-        _mem_check_read_start(base, mem_address, mem_size);
-        rc = _mem_check_read_wait_done(base);
-        if (rc) {
-            alt_printf("[mem check] ERROR: timeout on read procedure\n");
-            return rc;
-        }
-
-        rc = _mem_check_print_stats(base, mem_size);
+        rc = mem_check_write(base, mem_address, mem_size, mode);
         if (rc) {
             return rc;
         }
 
-        _mem_check_write_clear(base);
-        _mem_check_read_clear(base);
+        rc = mem_check_read_and_check(base, mem_address, mem_size, mode);
+        if (rc) {
+            return rc;
+        }
     }
 
     return 0;

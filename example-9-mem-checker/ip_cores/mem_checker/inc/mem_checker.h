@@ -24,4 +24,19 @@ SOFTWARE.
 
 #include <stdint.h>
 
-int mem_check(uint32_t base, uint64_t mem_address, uint32_t mem_size);
+enum mem_check_mode {
+    MEM_CHECK_MODE_ALL_0,
+    MEM_CHECK_MODE_ALL_1,
+    MEM_CHECK_MODE_WALK_0,
+    MEM_CHECK_MODE_WALK_1,
+    MEM_CHECK_MODE_ALT,
+    MEM_CHECK_MODE_CNTR_8,
+    MEM_CHECK_MODE_CNTR_32,
+    MEM_CHECK_MODE_CNTR_128
+};
+
+int mem_check_write(uint32_t base, uint64_t mem_address, uint32_t mem_size, enum mem_check_mode mode);
+
+int mem_check_read_and_check(uint32_t base, uint64_t mem_address, uint32_t mem_size, enum mem_check_mode mode);
+
+int mem_check_full(uint32_t base, uint64_t mem_address, uint32_t mem_size);

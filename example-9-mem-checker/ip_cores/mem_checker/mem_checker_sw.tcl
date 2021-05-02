@@ -2,7 +2,7 @@
 create_driver mem_checker_driver
 
 set_sw_property hw_class_name mem_checker
-set_sw_property version 1.0
+set_sw_property version 1.1
 set_sw_property bsp_subdirectory drivers
 set_sw_property min_compatible_hw_version 0.1
 

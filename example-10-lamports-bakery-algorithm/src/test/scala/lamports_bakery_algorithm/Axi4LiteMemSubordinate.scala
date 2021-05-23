@@ -160,8 +160,8 @@ class Axi4LiteMemSubordinate(
 
     def update_write_resp(t: Long, poke: (Bits, BigInt) => Unit): Unit = {
       if (write_addrs.nonEmpty && write_data.nonEmpty) {
-        val addr = write_addrs.head
-        val data = write_data.head
+        val addr = write_addrs.remove(0)
+        val data = write_data.remove(0)
         mem_set_word(addr, data, width_bits / 8)
         gen_resp = true
       }

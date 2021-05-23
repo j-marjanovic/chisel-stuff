@@ -131,6 +131,7 @@ xilinx.com:ip:axi_vip:1.1\
 xilinx.com:ip:clk_vip:1.0\
 xilinx.com:ip:proc_sys_reset:5.0\
 xilinx.com:ip:rst_vip:1.0\
+xilinx.com:ip:smartconnect:1.0\
 "
 
    set list_ips_missing ""
@@ -221,13 +222,6 @@ proc create_root_design { parentCell } {
    CONFIG.Memory_Type {True_Dual_Port_RAM} \
  ] $axi_bram_ctrl_0_bram
 
-  # Create instance: axi_interconnect_0, and set properties
-  set axi_interconnect_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_interconnect:2.1 axi_interconnect_0 ]
-  set_property -dict [ list \
-   CONFIG.NUM_MI {1} \
-   CONFIG.NUM_SI {5} \
- ] $axi_interconnect_0
-
   # Create instance: axi_interconnect_1, and set properties
   set axi_interconnect_1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_interconnect:2.1 axi_interconnect_1 ]
   set_property -dict [ list \
@@ -279,20 +273,25 @@ proc create_root_design { parentCell } {
    CONFIG.INTERFACE_MODE {MASTER} \
  ] $rst_vip_0
 
+  # Create instance: smartconnect_0, and set properties
+  set smartconnect_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 smartconnect_0 ]
+  set_property -dict [ list \
+   CONFIG.NUM_MI {1} \
+   CONFIG.NUM_SI {5} \
+ ] $smartconnect_0
+
   # Create interface connections
-  connect_bd_intf_net -intf_net LamportsBakeryAlgori_0_M [get_bd_intf_pins LamportsBakeryAlgori_0/M] [get_bd_intf_pins axi_interconnect_0/S01_AXI]
+  connect_bd_intf_net -intf_net LamportsBakeryAlgori_0_M [get_bd_intf_pins LamportsBakeryAlgori_0/M] [get_bd_intf_pins smartconnect_0/S01_AXI]
   set_property SIM_ATTRIBUTE.MARK_SIM "true" [get_bd_intf_nets /LamportsBakeryAlgori_0_M]
+  connect_bd_intf_net -intf_net LamportsBakeryAlgori_1_M [get_bd_intf_pins LamportsBakeryAlgori_1/M] [get_bd_intf_pins smartconnect_0/S02_AXI]
+  set_property SIM_ATTRIBUTE.MARK_SIM "true" [get_bd_intf_nets /LamportsBakeryAlgori_1_M]
+  connect_bd_intf_net -intf_net LamportsBakeryAlgori_2_M [get_bd_intf_pins LamportsBakeryAlgori_2/M] [get_bd_intf_pins smartconnect_0/S03_AXI]
+  set_property SIM_ATTRIBUTE.MARK_SIM "true" [get_bd_intf_nets /LamportsBakeryAlgori_2_M]
+  connect_bd_intf_net -intf_net LamportsBakeryAlgori_3_M [get_bd_intf_pins LamportsBakeryAlgori_3/M] [get_bd_intf_pins smartconnect_0/S04_AXI]
+  set_property SIM_ATTRIBUTE.MARK_SIM "true" [get_bd_intf_nets /LamportsBakeryAlgori_3_M]
   connect_bd_intf_net -intf_net S00_AXI_1 [get_bd_intf_pins axi_interconnect_1/S00_AXI] [get_bd_intf_pins axi_vip_0/M_AXI]
-  connect_bd_intf_net -intf_net S02_AXI_1 [get_bd_intf_pins LamportsBakeryAlgori_1/M] [get_bd_intf_pins axi_interconnect_0/S02_AXI]
-  set_property SIM_ATTRIBUTE.MARK_SIM "true" [get_bd_intf_nets /S02_AXI_1]
-  connect_bd_intf_net -intf_net S03_AXI_1 [get_bd_intf_pins LamportsBakeryAlgori_2/M] [get_bd_intf_pins axi_interconnect_0/S03_AXI]
-  set_property SIM_ATTRIBUTE.MARK_SIM "true" [get_bd_intf_nets /S03_AXI_1]
-  connect_bd_intf_net -intf_net S04_AXI_1 [get_bd_intf_pins LamportsBakeryAlgori_3/M] [get_bd_intf_pins axi_interconnect_0/S04_AXI]
-  set_property SIM_ATTRIBUTE.MARK_SIM "true" [get_bd_intf_nets /S04_AXI_1]
   connect_bd_intf_net -intf_net axi_bram_ctrl_0_BRAM_PORTA [get_bd_intf_pins axi_bram_ctrl_0/BRAM_PORTA] [get_bd_intf_pins axi_bram_ctrl_0_bram/BRAM_PORTA]
-  connect_bd_intf_net -intf_net axi_interconnect_0_M00_AXI [get_bd_intf_pins axi_bram_ctrl_0/S_AXI] [get_bd_intf_pins axi_interconnect_0/M00_AXI]
-  set_property SIM_ATTRIBUTE.MARK_SIM "true" [get_bd_intf_nets /axi_interconnect_0_M00_AXI]
-  connect_bd_intf_net -intf_net axi_interconnect_1_M00_AXI [get_bd_intf_pins axi_interconnect_0/S00_AXI] [get_bd_intf_pins axi_interconnect_1/M00_AXI]
+  connect_bd_intf_net -intf_net axi_interconnect_1_M00_AXI [get_bd_intf_pins axi_interconnect_1/M00_AXI] [get_bd_intf_pins smartconnect_0/S00_AXI]
   connect_bd_intf_net -intf_net axi_interconnect_1_M01_AXI [get_bd_intf_pins LamportsBakeryAlgori_0/CTRL] [get_bd_intf_pins axi_interconnect_1/M01_AXI]
   set_property SIM_ATTRIBUTE.MARK_SIM "true" [get_bd_intf_nets /axi_interconnect_1_M01_AXI]
   connect_bd_intf_net -intf_net axi_interconnect_1_M02_AXI [get_bd_intf_pins LamportsBakeryAlgori_1/CTRL] [get_bd_intf_pins axi_interconnect_1/M02_AXI]
@@ -301,11 +300,13 @@ proc create_root_design { parentCell } {
   set_property SIM_ATTRIBUTE.MARK_SIM "true" [get_bd_intf_nets /axi_interconnect_1_M03_AXI]
   connect_bd_intf_net -intf_net axi_interconnect_1_M04_AXI [get_bd_intf_pins LamportsBakeryAlgori_3/CTRL] [get_bd_intf_pins axi_interconnect_1/M04_AXI]
   set_property SIM_ATTRIBUTE.MARK_SIM "true" [get_bd_intf_nets /axi_interconnect_1_M04_AXI]
+  connect_bd_intf_net -intf_net smartconnect_0_M00_AXI [get_bd_intf_pins axi_bram_ctrl_0/S_AXI] [get_bd_intf_pins smartconnect_0/M00_AXI]
+  set_property SIM_ATTRIBUTE.MARK_SIM "true" [get_bd_intf_nets /smartconnect_0_M00_AXI]
 
   # Create port connections
-  connect_bd_net -net clk_vip_0_clk_out [get_bd_pins LamportsBakeryAlgori_0/clock] [get_bd_pins LamportsBakeryAlgori_1/clock] [get_bd_pins LamportsBakeryAlgori_2/clock] [get_bd_pins LamportsBakeryAlgori_3/clock] [get_bd_pins axi_bram_ctrl_0/s_axi_aclk] [get_bd_pins axi_interconnect_0/ACLK] [get_bd_pins axi_interconnect_0/M00_ACLK] [get_bd_pins axi_interconnect_0/S00_ACLK] [get_bd_pins axi_interconnect_0/S01_ACLK] [get_bd_pins axi_interconnect_0/S02_ACLK] [get_bd_pins axi_interconnect_0/S03_ACLK] [get_bd_pins axi_interconnect_0/S04_ACLK] [get_bd_pins axi_interconnect_1/ACLK] [get_bd_pins axi_interconnect_1/M00_ACLK] [get_bd_pins axi_interconnect_1/M01_ACLK] [get_bd_pins axi_interconnect_1/M02_ACLK] [get_bd_pins axi_interconnect_1/M03_ACLK] [get_bd_pins axi_interconnect_1/M04_ACLK] [get_bd_pins axi_interconnect_1/S00_ACLK] [get_bd_pins axi_vip_0/aclk] [get_bd_pins clk_vip_0/clk_out] [get_bd_pins proc_sys_reset_0/slowest_sync_clk] [get_bd_pins rst_vip_0/sync_clk]
+  connect_bd_net -net clk_vip_0_clk_out [get_bd_pins LamportsBakeryAlgori_0/clock] [get_bd_pins LamportsBakeryAlgori_1/clock] [get_bd_pins LamportsBakeryAlgori_2/clock] [get_bd_pins LamportsBakeryAlgori_3/clock] [get_bd_pins axi_bram_ctrl_0/s_axi_aclk] [get_bd_pins axi_interconnect_1/ACLK] [get_bd_pins axi_interconnect_1/M00_ACLK] [get_bd_pins axi_interconnect_1/M01_ACLK] [get_bd_pins axi_interconnect_1/M02_ACLK] [get_bd_pins axi_interconnect_1/M03_ACLK] [get_bd_pins axi_interconnect_1/M04_ACLK] [get_bd_pins axi_interconnect_1/S00_ACLK] [get_bd_pins axi_vip_0/aclk] [get_bd_pins clk_vip_0/clk_out] [get_bd_pins proc_sys_reset_0/slowest_sync_clk] [get_bd_pins rst_vip_0/sync_clk] [get_bd_pins smartconnect_0/aclk]
   connect_bd_net -net proc_sys_reset_0_peripheral_reset [get_bd_pins LamportsBakeryAlgori_0/reset] [get_bd_pins LamportsBakeryAlgori_1/reset] [get_bd_pins LamportsBakeryAlgori_2/reset] [get_bd_pins LamportsBakeryAlgori_3/reset] [get_bd_pins proc_sys_reset_0/peripheral_reset]
-  connect_bd_net -net rst_vip_0_rst_out [get_bd_pins axi_bram_ctrl_0/s_axi_aresetn] [get_bd_pins axi_interconnect_0/ARESETN] [get_bd_pins axi_interconnect_0/M00_ARESETN] [get_bd_pins axi_interconnect_0/S00_ARESETN] [get_bd_pins axi_interconnect_0/S01_ARESETN] [get_bd_pins axi_interconnect_0/S02_ARESETN] [get_bd_pins axi_interconnect_0/S03_ARESETN] [get_bd_pins axi_interconnect_0/S04_ARESETN] [get_bd_pins axi_interconnect_1/ARESETN] [get_bd_pins axi_interconnect_1/M00_ARESETN] [get_bd_pins axi_interconnect_1/M01_ARESETN] [get_bd_pins axi_interconnect_1/M02_ARESETN] [get_bd_pins axi_interconnect_1/M03_ARESETN] [get_bd_pins axi_interconnect_1/M04_ARESETN] [get_bd_pins axi_interconnect_1/S00_ARESETN] [get_bd_pins axi_vip_0/aresetn] [get_bd_pins proc_sys_reset_0/peripheral_aresetn]
+  connect_bd_net -net rst_vip_0_rst_out [get_bd_pins axi_bram_ctrl_0/s_axi_aresetn] [get_bd_pins axi_interconnect_1/ARESETN] [get_bd_pins axi_interconnect_1/M00_ARESETN] [get_bd_pins axi_interconnect_1/M01_ARESETN] [get_bd_pins axi_interconnect_1/M02_ARESETN] [get_bd_pins axi_interconnect_1/M03_ARESETN] [get_bd_pins axi_interconnect_1/M04_ARESETN] [get_bd_pins axi_interconnect_1/S00_ARESETN] [get_bd_pins axi_vip_0/aresetn] [get_bd_pins proc_sys_reset_0/peripheral_aresetn] [get_bd_pins smartconnect_0/aresetn]
   connect_bd_net -net rst_vip_0_rst_out1 [get_bd_pins proc_sys_reset_0/ext_reset_in] [get_bd_pins rst_vip_0/rst_out]
 
   # Create address segments

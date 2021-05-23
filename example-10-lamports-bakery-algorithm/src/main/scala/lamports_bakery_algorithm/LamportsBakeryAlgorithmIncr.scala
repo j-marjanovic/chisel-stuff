@@ -73,7 +73,6 @@ class LamportsBakeryAlgorithmIncr(val addr_w: Int = 49, val data_w: Int = 128) e
     }
     is(State.Read) {
       rd_cmd_valid := false.B
-      rd_cmd_addr := 0.U
       when(io.rd_cmd.done) {
         state := State.Write
         wr_cmd_addr := io.addr_cntr
@@ -82,8 +81,6 @@ class LamportsBakeryAlgorithmIncr(val addr_w: Int = 49, val data_w: Int = 128) e
       }
     }
     is(State.Write) {
-      wr_cmd_addr := 0.U
-      wr_cmd_data := 0.U
       wr_cmd_valid := false.B
       when(io.wr_cmd.done) {
         done_reg := true.B

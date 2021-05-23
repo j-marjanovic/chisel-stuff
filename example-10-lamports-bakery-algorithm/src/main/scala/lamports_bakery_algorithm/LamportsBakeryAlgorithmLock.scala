@@ -78,6 +78,7 @@ class LamportsBakeryAlgorithmLock(val addr_w: Int = 49, val data_w: Int = 128) e
     is(State.Idle) {
       when(io.lock) {
         state := State.LockWrEntering1
+        // _entering[_thread_index] = 1;
         wr_cmd_valid := true.B
         wr_cmd_addr := io.addr_choosing + io.idx_inst * 4.U
         wr_cmd_data := 1.U
@@ -85,9 +86,8 @@ class LamportsBakeryAlgorithmLock(val addr_w: Int = 49, val data_w: Int = 128) e
     }
     is(State.LockWrEntering1) {
       wr_cmd_valid := false.B
-      wr_cmd_addr := 0.U
-      wr_cmd_data := 0.U
       when(io.wr_cmd.done) {
+        // *std::max_element(_number, _number + nr_threads) + 1
         state := State.LockRdNumber
         max_cur_pos := 0.U
         max_cur_val := 1.U
@@ -97,7 +97,6 @@ class LamportsBakeryAlgorithmLock(val addr_w: Int = 49, val data_w: Int = 128) e
     }
     is(State.LockRdNumber) {
       rd_cmd_valid := false.B
-      rd_cmd_addr := 0.U
       when(io.rd_cmd.done) {
         // handle max
         when(io.rd_cmd.data > max_cur_val) {
@@ -109,29 +108,30 @@ class LamportsBakeryAlgorithmLock(val addr_w: Int = 49, val data_w: Int = 128) e
           rd_cmd_addr := io.addr_number + (max_cur_pos + 1.U) * 4.U
           max_cur_pos := max_cur_pos + 1.U
         }.otherwise {
+          // _number[_thread_index] =
           state := State.LockWrNumber
           wr_cmd_valid := true.B
           wr_cmd_addr := io.addr_number + io.idx_inst * 4.U
           wr_cmd_data := Mux(io.rd_cmd.data > max_cur_val, io.rd_cmd.data + 1.U, max_cur_val)
+          max_cur_val := Mux(io.rd_cmd.data > max_cur_val, io.rd_cmd.data + 1.U, max_cur_val)
         }
       }
     }
     is(State.LockWrNumber) {
       wr_cmd_valid := false.B
-      wr_cmd_addr := 0.U
-      wr_cmd_data := 0.U
       when(io.wr_cmd.done) {
+        // _entering[_thread_index] = 0;
         state := State.LockWrEntering0
         wr_cmd_valid := true.B
         wr_cmd_addr := io.addr_choosing + io.idx_inst * 4.U
-        wr_cmd_data := 1.U
+        wr_cmd_data := 0.U
       }
     }
     is(State.LockWrEntering0) {
       wr_cmd_valid := false.B
-      wr_cmd_addr := 0.U
-      wr_cmd_data := 0.U
       when(io.wr_cmd.done) {
+        // for (int j = 0; j < nr_threads; j++) {
+        // ... _entering[j] ...
         state := State.LockLoopEntering
         loop_idx := 0.U
         rd_cmd_valid := true.B
@@ -140,12 +140,13 @@ class LamportsBakeryAlgorithmLock(val addr_w: Int = 49, val data_w: Int = 128) e
     }
     is(State.LockLoopEntering) {
       rd_cmd_valid := false.B
-      rd_cmd_addr := 0.U
       when(io.rd_cmd.done) {
+        // while (_entering[j]);
         when(io.rd_cmd.data =/= 0.U) {
           rd_cmd_valid := true.B
           rd_cmd_addr := io.addr_choosing + loop_idx * 4.U
         }.otherwise {
+          // ... _number[j] ...
           state := State.LockLoopNumber
           rd_cmd_valid := true.B
           rd_cmd_addr := io.addr_number + loop_idx * 4.U
@@ -154,8 +155,9 @@ class LamportsBakeryAlgorithmLock(val addr_w: Int = 49, val data_w: Int = 128) e
     }
     is(State.LockLoopNumber) {
       rd_cmd_valid := false.B
-      rd_cmd_addr := 0.U
       when(io.rd_cmd.done) {
+        // while ((_number[j] != 0) &&
+        //    _comp_threads(_number[j], j, _number[_thread_index], _thread_index));
         when(
           io.rd_cmd.data =/= 0.U && _comp_threads(
             io.rd_cmd.data,
@@ -167,12 +169,21 @@ class LamportsBakeryAlgorithmLock(val addr_w: Int = 49, val data_w: Int = 128) e
           rd_cmd_valid := true.B
           rd_cmd_addr := io.addr_number + loop_idx * 4.U
         }.otherwise {
-          state := State.Locked
+          when (loop_idx < io.idx_max) {
+            // ... _entering[j] ...
+            state := State.LockLoopEntering
+            loop_idx := loop_idx + 1.U
+            rd_cmd_valid := true.B
+            rd_cmd_addr := io.addr_choosing + (loop_idx + 1.U) * 4.U
+          } .otherwise {
+            state := State.Locked
+          }
         }
       }
     }
     is(State.Locked) {
       when(io.unlock) {
+        // _number[_thread_index] = 0;
         state := State.Unlock
         wr_cmd_valid := true.B
         wr_cmd_addr := io.addr_number + io.idx_inst * 4.U
@@ -181,8 +192,6 @@ class LamportsBakeryAlgorithmLock(val addr_w: Int = 49, val data_w: Int = 128) e
     }
     is(State.Unlock) {
       wr_cmd_valid := false.B
-      wr_cmd_addr := 0.U
-      wr_cmd_data := 0.U
       when(io.wr_cmd.done) {
         state := State.Idle
       }

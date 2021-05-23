@@ -37,7 +37,7 @@ module tb;
   //============================================================================
   // high-level task
 
-  task config_and_start(input longint unsigned base_offset);
+  task config_and_start(input longint unsigned base_offset, int n);
     $display("%6t Config and start at address 0x%x", $time, base_offset);
 
     write_reg(base_offset | 'h24, 'h0);
@@ -47,8 +47,8 @@ module tb;
     write_reg(base_offset | 'h34, 'h0);
     write_reg(base_offset | 'h30, 'hc0001080);
 
-    // config instance (1 of 4)
-    write_reg(base_offset | 'h40, 1);
+    // config instance (n of 4)
+    write_reg(base_offset | 'h40, n);
     write_reg(base_offset | 'h44, 3);
 
     // config nr loops
@@ -106,11 +106,10 @@ module tb;
     write_reg('h44A2_0054, 'hc338);
     write_reg('h44A3_0054, 'hd449);
 
-
-    config_and_start('h44A0_0000);
-    config_and_start('h44A1_0000);
-    config_and_start('h44A2_0000);
-    config_and_start('h44A3_0000);
+    config_and_start('h44A0_0000, 0);
+    config_and_start('h44A1_0000, 1);
+    config_and_start('h44A2_0000, 2);
+    config_and_start('h44A3_0000, 3);
 
     wait_for_done('h44A0_0000);
     wait_for_done('h44A1_0000);

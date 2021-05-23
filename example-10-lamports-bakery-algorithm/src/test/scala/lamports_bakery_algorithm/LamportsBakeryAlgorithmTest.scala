@@ -84,7 +84,7 @@ class LamportsBakeryAlgorithmTest(c: LamportsBakeryAlgorithm) extends BfmTester(
   write_blocking(0x44, 3)
 
   // config nr loops
-  write_blocking(0x50, 9)
+  write_blocking(0x50, 4)
 
   // config PRBS delay
   write_blocking(0x55, 0xa111)
@@ -94,12 +94,12 @@ class LamportsBakeryAlgorithmTest(c: LamportsBakeryAlgorithm) extends BfmTester(
 
   // wait for DONE
   try {
-    for (_ <- 0 until 1000) {
+    for (_ <- 0 until 20) {
       val status = read_blocking(0x10)
       if ((status & 1) == 1) {
         throw DutDone()
       }
-      step(50)
+      step(100)
     }
     expect(good = false, "Dut did not reach DONE state")
   } catch {

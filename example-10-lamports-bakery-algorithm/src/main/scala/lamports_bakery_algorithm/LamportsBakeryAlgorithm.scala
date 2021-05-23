@@ -107,7 +107,7 @@ class LamportsBakeryAlgorithm(
 
   mod_ctrl.io.inp("VERSION_MAJOR") := 1.U
   mod_ctrl.io.inp("VERSION_MINOR") := 1.U
-  mod_ctrl.io.inp("VERSION_PATCH") := 0.U
+  mod_ctrl.io.inp("VERSION_PATCH") := 2.U
 
   // manager interface
   val mod_axi = Module(new Axi4LiteManager(addr_w))

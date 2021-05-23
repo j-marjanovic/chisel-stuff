@@ -99,7 +99,7 @@ class LamportsBakeryAlgorithmLock(val addr_w: Int = 49, val data_w: Int = 128) e
       rd_cmd_valid := false.B
       when(io.rd_cmd.done) {
         // handle max
-        when(io.rd_cmd.data > max_cur_val) {
+        when((io.rd_cmd.data + 1.U) > max_cur_val) {
           max_cur_val := io.rd_cmd.data + 1.U
         }
         // next or end
@@ -112,8 +112,8 @@ class LamportsBakeryAlgorithmLock(val addr_w: Int = 49, val data_w: Int = 128) e
           state := State.LockWrNumber
           wr_cmd_valid := true.B
           wr_cmd_addr := io.addr_number + io.idx_inst * 4.U
-          wr_cmd_data := Mux(io.rd_cmd.data > max_cur_val, io.rd_cmd.data + 1.U, max_cur_val)
-          max_cur_val := Mux(io.rd_cmd.data > max_cur_val, io.rd_cmd.data + 1.U, max_cur_val)
+          wr_cmd_data := Mux((io.rd_cmd.data + 1.U) > max_cur_val, io.rd_cmd.data + 1.U, max_cur_val)
+          max_cur_val := Mux((io.rd_cmd.data + 1.U) > max_cur_val, io.rd_cmd.data + 1.U, max_cur_val)
         }
       }
     }

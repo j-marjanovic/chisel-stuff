@@ -86,6 +86,9 @@ class LamportsBakeryAlgorithmTest(c: LamportsBakeryAlgorithm) extends BfmTester(
   // config nr loops
   write_blocking(0x50, 9)
 
+  // config PRBS delay
+  write_blocking(0x55, 0xa111)
+
   // start
   write_blocking(0x14, 1)
 

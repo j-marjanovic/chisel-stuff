@@ -42,6 +42,9 @@ class LamportsBakeryAlgorithmSequencer extends Module {
     val incr_start = Output(Bool())
     val incr_done = Input(Bool())
 
+    val dly_gen_start = Output(Bool())
+    val dly_gen_done = Input(Bool())
+
     val mux_sel = Output(Bool())
   })
 
@@ -54,6 +57,9 @@ class LamportsBakeryAlgorithmSequencer extends Module {
   val incr_start_reg = RegInit(false.B)
   io.incr_start := incr_start_reg
 
+  val dly_gen_start_reg = RegInit(false.B)
+  io.dly_gen_start := dly_gen_start_reg
+
   val mux_sel_reg = RegInit(false.B)
   io.mux_sel := mux_sel_reg
 
@@ -62,7 +68,7 @@ class LamportsBakeryAlgorithmSequencer extends Module {
 
   // FSM
   object State extends ChiselEnum {
-    val Idle, Lock, Incr, Unlock, Done = Value
+    val Idle, Lock, Incr, Unlock, Wait, Done = Value
   }
   val state = RegInit(State.Idle)
 
@@ -95,12 +101,19 @@ class LamportsBakeryAlgorithmSequencer extends Module {
       lock_unlock_reg := false.B
       when(io.lock_unlocked) {
         when(cntr < io.nr_cycles) {
-          state := State.Lock
-          lock_lock_reg := true.B
+          state := State.Wait
+          dly_gen_start_reg := true.B
           cntr := cntr + 1.U
         }.otherwise {
           state := State.Done
         }
+      }
+    }
+    is(State.Wait) {
+      dly_gen_start_reg := false.B
+      when (io.dly_gen_done) {
+        state := State.Lock
+        lock_lock_reg := true.B
       }
     }
     is(State.Done) {

@@ -29,7 +29,7 @@ import chisel3.util._
 
 class LamportsBakeryAlgorithm(
     val addr_w: Int = 49,
-    val data_w: Int = 128,
+    val data_w: Int = 32,
     val id_w: Int = 6,
     val ctrl_addr_w: Int = 10
 ) extends Module {
@@ -92,7 +92,10 @@ class LamportsBakeryAlgorithm(
     new Reg("CONFIG", 0x50,
       new Field("NR_CYCLES", hw_access = Access.R, sw_access = Access.RW, hi = 31, lo = Some(0))
     ),
-    new Reg("DIAG", 0x54,
+    new Reg("CONFIG", 0x54,
+      new Field("DLY_PRBS_INIT", hw_access = Access.R, sw_access = Access.RW, hi= 15, lo = Some(0))
+    ),
+    new Reg("DIAG", 0x60,
       new Field("LAST_CNTR", hw_access = Access.W, sw_access = Access.R, hi = 31, lo = Some(0))
     ),
   )
@@ -102,9 +105,9 @@ class LamportsBakeryAlgorithm(
   val mod_ctrl = Module(new AxiLiteSubordinateGenerator(area_map = area_map, addr_w = ctrl_addr_w))
   io.ctrl <> mod_ctrl.io.ctrl
 
-  mod_ctrl.io.inp("VERSION_MAJOR") := 0x03.U
-  mod_ctrl.io.inp("VERSION_MINOR") := 0x14.U
-  mod_ctrl.io.inp("VERSION_PATCH") := 0x16.U
+  mod_ctrl.io.inp("VERSION_MAJOR") := 1.U
+  mod_ctrl.io.inp("VERSION_MINOR") := 1.U
+  mod_ctrl.io.inp("VERSION_PATCH") := 0.U
 
   // manager interface
   val mod_axi = Module(new Axi4LiteManager(addr_w))
@@ -127,8 +130,8 @@ class LamportsBakeryAlgorithm(
 
   val mod_incr = Module(new LamportsBakeryAlgorithmIncr(addr_w, data_w))
   mod_incr.io.addr_cntr := Cat(
-    mod_ctrl.io.out("ADDR_COUNTER_LO").asUInt(),
-    mod_ctrl.io.out("ADDR_COUNTER_HI").asUInt()
+    mod_ctrl.io.out("ADDR_COUNTER_HI").asUInt(),
+    mod_ctrl.io.out("ADDR_COUNTER_LO").asUInt()
   )
 
   // mux
@@ -175,4 +178,14 @@ class LamportsBakeryAlgorithm(
   mod_seq.io.incr_done := mod_incr.io.done
 
   mux_sel := mod_seq.io.mux_sel
+
+  // random delay
+  val DLY_CNTR_W = 6
+  val mod_dly_gen = Module(new DelayGenLfsr(DLY_CNTR_W))
+  mod_dly_gen.io.load := mod_ctrl.io.out("CONTROL_START")
+  mod_dly_gen.io.d := mod_ctrl.io.out("CONFIG_DLY_PRBS_INIT")
+
+  mod_dly_gen.io.start := mod_seq.io.dly_gen_start
+  mod_seq.io.dly_gen_done := mod_dly_gen.io.done
+
 }

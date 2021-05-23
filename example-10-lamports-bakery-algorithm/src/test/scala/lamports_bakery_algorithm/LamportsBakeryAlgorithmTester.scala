@@ -46,6 +46,25 @@ class LamportsBakeryAlgorithmTester extends ChiselFlatSpec {
     } should be(true)
   }
 
+  it should "check the delay generation module" in {
+    iotesters.Driver.execute(
+      Array(
+        "--backend-name",
+        "verilator",
+        "--fint-write-vcd",
+        "--test-seed",
+        "1234",
+        "--target-dir",
+        "test_run_dir/DelayGenLfsrTest",
+        "--top-name",
+        "DelayGenLfsrTest"
+      ),
+      () => new DelayGenLfsr(6)
+    ) { c =>
+      new DelayGenLfsrTest(c)
+    } should be(true)
+  }
+
   it should "check the algorithm" in {
     iotesters.Driver.execute(
       Array(

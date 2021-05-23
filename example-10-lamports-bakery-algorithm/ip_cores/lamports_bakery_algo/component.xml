@@ -1,0 +1,1212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<spirit:component xmlns:xilinx="http://www.xilinx.com" xmlns:spirit="http://www.spiritconsortium.org/XMLSchema/SPIRIT/1685-2009" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <spirit:vendor>j-marjanovic.io</spirit:vendor>
+  <spirit:library>user</spirit:library>
+  <spirit:name>LamportsBakeryAlgo</spirit:name>
+  <spirit:version>1.1</spirit:version>
+  <spirit:busInterfaces>
+    <spirit:busInterface>
+      <spirit:name>reset</spirit:name>
+      <spirit:busType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="reset" spirit:version="1.0"/>
+      <spirit:abstractionType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="reset_rtl" spirit:version="1.0"/>
+      <spirit:slave/>
+      <spirit:portMaps>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>RST</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>reset</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+      </spirit:portMaps>
+      <spirit:parameters>
+        <spirit:parameter>
+          <spirit:name>POLARITY</spirit:name>
+          <spirit:value spirit:id="BUSIFPARAM_VALUE.RESET.POLARITY">ACTIVE_HIGH</spirit:value>
+        </spirit:parameter>
+      </spirit:parameters>
+    </spirit:busInterface>
+    <spirit:busInterface>
+      <spirit:name>clock</spirit:name>
+      <spirit:busType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="clock" spirit:version="1.0"/>
+      <spirit:abstractionType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="clock_rtl" spirit:version="1.0"/>
+      <spirit:slave/>
+      <spirit:portMaps>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>CLK</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>clock</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+      </spirit:portMaps>
+      <spirit:parameters>
+        <spirit:parameter>
+          <spirit:name>ASSOCIATED_RESET</spirit:name>
+          <spirit:value spirit:id="BUSIFPARAM_VALUE.CLOCK.ASSOCIATED_RESET">reset</spirit:value>
+        </spirit:parameter>
+        <spirit:parameter>
+          <spirit:name>ASSOCIATED_BUSIF</spirit:name>
+          <spirit:value spirit:id="BUSIFPARAM_VALUE.CLOCK.ASSOCIATED_BUSIF">M:CTRL</spirit:value>
+        </spirit:parameter>
+      </spirit:parameters>
+    </spirit:busInterface>
+    <spirit:busInterface>
+      <spirit:name>CTRL</spirit:name>
+      <spirit:busType spirit:vendor="xilinx.com" spirit:library="interface" spirit:name="aximm" spirit:version="1.0"/>
+      <spirit:abstractionType spirit:vendor="xilinx.com" spirit:library="interface" spirit:name="aximm_rtl" spirit:version="1.0"/>
+      <spirit:slave>
+        <spirit:memoryMapRef spirit:memoryMapRef="CTRL"/>
+      </spirit:slave>
+      <spirit:portMaps>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>RREADY</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_ctrl_R_ready</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>BVALID</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_ctrl_B_valid</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>BREADY</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_ctrl_B_ready</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>AWREADY</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_ctrl_AW_ready</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>AWVALID</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_ctrl_AW_valid</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>AWPROT</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_ctrl_AW_bits_prot</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>WDATA</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_ctrl_W_bits_wdata</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>RRESP</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_ctrl_R_bits_rresp</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>ARPROT</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_ctrl_AR_bits_prot</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>RVALID</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_ctrl_R_valid</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>ARADDR</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_ctrl_AR_bits_addr</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>AWADDR</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_ctrl_AW_bits_addr</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>ARREADY</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_ctrl_AR_ready</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>WREADY</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_ctrl_W_ready</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>WVALID</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_ctrl_W_valid</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>ARVALID</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_ctrl_AR_valid</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>WSTRB</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_ctrl_W_bits_wstrb</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>BRESP</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_ctrl_B_bits</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>RDATA</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_ctrl_R_bits_rdata</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+      </spirit:portMaps>
+      <spirit:parameters>
+        <spirit:parameter>
+          <spirit:name>NUM_READ_OUTSTANDING</spirit:name>
+          <spirit:value spirit:id="BUSIFPARAM_VALUE.CTRL.NUM_READ_OUTSTANDING"/>
+        </spirit:parameter>
+        <spirit:parameter>
+          <spirit:name>NUM_WRITE_OUTSTANDING</spirit:name>
+          <spirit:value spirit:id="BUSIFPARAM_VALUE.CTRL.NUM_WRITE_OUTSTANDING"/>
+        </spirit:parameter>
+        <spirit:parameter>
+          <spirit:name>PROTOCOL</spirit:name>
+          <spirit:value spirit:id="BUSIFPARAM_VALUE.CTRL.PROTOCOL">AXI4LITE</spirit:value>
+        </spirit:parameter>
+      </spirit:parameters>
+    </spirit:busInterface>
+    <spirit:busInterface>
+      <spirit:name>M</spirit:name>
+      <spirit:busType spirit:vendor="xilinx.com" spirit:library="interface" spirit:name="aximm" spirit:version="1.0"/>
+      <spirit:abstractionType spirit:vendor="xilinx.com" spirit:library="interface" spirit:name="aximm_rtl" spirit:version="1.0"/>
+      <spirit:master>
+        <spirit:addressSpaceRef spirit:addressSpaceRef="M"/>
+      </spirit:master>
+      <spirit:portMaps>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>BVALID</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_m_B_valid</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>RREADY</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_m_R_ready</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>BREADY</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_m_B_ready</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>AWREADY</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_m_AW_ready</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>AWVALID</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_m_AW_valid</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>AWPROT</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_m_AW_bits_prot</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>WDATA</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_m_W_bits_wdata</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>RRESP</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_m_R_bits_rresp</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>ARPROT</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_m_AR_bits_prot</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>RVALID</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_m_R_valid</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>ARADDR</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_m_AR_bits_addr</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>AWADDR</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_m_AW_bits_addr</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>ARREADY</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_m_AR_ready</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>WREADY</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_m_W_ready</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>WVALID</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_m_W_valid</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>ARVALID</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_m_AR_valid</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>WSTRB</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_m_W_bits_wstrb</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>BRESP</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_m_B_bits</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>RDATA</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>io_m_R_bits_rdata</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+      </spirit:portMaps>
+      <spirit:parameters>
+        <spirit:parameter>
+          <spirit:name>NUM_READ_OUTSTANDING</spirit:name>
+          <spirit:value spirit:id="BUSIFPARAM_VALUE.M.NUM_READ_OUTSTANDING"/>
+        </spirit:parameter>
+        <spirit:parameter>
+          <spirit:name>NUM_WRITE_OUTSTANDING</spirit:name>
+          <spirit:value spirit:id="BUSIFPARAM_VALUE.M.NUM_WRITE_OUTSTANDING"/>
+        </spirit:parameter>
+        <spirit:parameter>
+          <spirit:name>PROTOCOL</spirit:name>
+          <spirit:value spirit:id="BUSIFPARAM_VALUE.M.PROTOCOL">AXI4LITE</spirit:value>
+        </spirit:parameter>
+      </spirit:parameters>
+    </spirit:busInterface>
+  </spirit:busInterfaces>
+  <spirit:addressSpaces>
+    <spirit:addressSpace>
+      <spirit:name>M</spirit:name>
+      <spirit:range spirit:format="long" spirit:resolve="user" spirit:minimum="4096" spirit:rangeType="long">562949953421312</spirit:range>
+      <spirit:width spirit:format="long" spirit:resolve="user">32</spirit:width>
+    </spirit:addressSpace>
+  </spirit:addressSpaces>
+  <spirit:memoryMaps>
+    <spirit:memoryMap>
+      <spirit:name>CTRL</spirit:name>
+      <spirit:addressBlock>
+        <spirit:name>reg0</spirit:name>
+        <spirit:baseAddress spirit:format="bitString" spirit:resolve="user" spirit:bitStringLength="32">0</spirit:baseAddress>
+        <spirit:range spirit:format="long" spirit:resolve="user" spirit:minimum="4096" spirit:rangeType="long">1024</spirit:range>
+        <spirit:width spirit:format="long" spirit:resolve="user">32</spirit:width>
+        <spirit:usage>register</spirit:usage>
+      </spirit:addressBlock>
+    </spirit:memoryMap>
+  </spirit:memoryMaps>
+  <spirit:model>
+    <spirit:views>
+      <spirit:view>
+        <spirit:name>xilinx_anylanguagesynthesis</spirit:name>
+        <spirit:displayName>Synthesis</spirit:displayName>
+        <spirit:envIdentifier>:vivado.xilinx.com:synthesis</spirit:envIdentifier>
+        <spirit:language>SystemVerilog</spirit:language>
+        <spirit:modelName>LamportsBakeryAlgorithm</spirit:modelName>
+        <spirit:fileSetRef>
+          <spirit:localName>xilinx_anylanguagesynthesis_view_fileset</spirit:localName>
+        </spirit:fileSetRef>
+        <spirit:parameters>
+          <spirit:parameter>
+            <spirit:name>viewChecksum</spirit:name>
+            <spirit:value>93277c65</spirit:value>
+          </spirit:parameter>
+        </spirit:parameters>
+      </spirit:view>
+      <spirit:view>
+        <spirit:name>xilinx_anylanguagebehavioralsimulation</spirit:name>
+        <spirit:displayName>Simulation</spirit:displayName>
+        <spirit:envIdentifier>:vivado.xilinx.com:simulation</spirit:envIdentifier>
+        <spirit:language>SystemVerilog</spirit:language>
+        <spirit:modelName>LamportsBakeryAlgorithm</spirit:modelName>
+        <spirit:fileSetRef>
+          <spirit:localName>xilinx_anylanguagebehavioralsimulation_view_fileset</spirit:localName>
+        </spirit:fileSetRef>
+        <spirit:parameters>
+          <spirit:parameter>
+            <spirit:name>viewChecksum</spirit:name>
+            <spirit:value>93277c65</spirit:value>
+          </spirit:parameter>
+        </spirit:parameters>
+      </spirit:view>
+      <spirit:view>
+        <spirit:name>xilinx_xpgui</spirit:name>
+        <spirit:displayName>UI Layout</spirit:displayName>
+        <spirit:envIdentifier>:vivado.xilinx.com:xgui.ui</spirit:envIdentifier>
+        <spirit:fileSetRef>
+          <spirit:localName>xilinx_xpgui_view_fileset</spirit:localName>
+        </spirit:fileSetRef>
+        <spirit:parameters>
+          <spirit:parameter>
+            <spirit:name>viewChecksum</spirit:name>
+            <spirit:value>f92e9879</spirit:value>
+          </spirit:parameter>
+        </spirit:parameters>
+      </spirit:view>
+    </spirit:views>
+    <spirit:ports>
+      <spirit:port>
+        <spirit:name>clock</spirit:name>
+        <spirit:wire>
+          <spirit:direction>in</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>reset</spirit:name>
+        <spirit:wire>
+          <spirit:direction>in</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_m_AW_ready</spirit:name>
+        <spirit:wire>
+          <spirit:direction>in</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_m_AW_valid</spirit:name>
+        <spirit:wire>
+          <spirit:direction>out</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_m_AW_bits_addr</spirit:name>
+        <spirit:wire>
+          <spirit:direction>out</spirit:direction>
+          <spirit:vector>
+            <spirit:left spirit:format="long">48</spirit:left>
+            <spirit:right spirit:format="long">0</spirit:right>
+          </spirit:vector>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic_vector</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_m_AW_bits_prot</spirit:name>
+        <spirit:wire>
+          <spirit:direction>out</spirit:direction>
+          <spirit:vector>
+            <spirit:left spirit:format="long">2</spirit:left>
+            <spirit:right spirit:format="long">0</spirit:right>
+          </spirit:vector>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic_vector</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_m_W_ready</spirit:name>
+        <spirit:wire>
+          <spirit:direction>in</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_m_W_valid</spirit:name>
+        <spirit:wire>
+          <spirit:direction>out</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_m_W_bits_wdata</spirit:name>
+        <spirit:wire>
+          <spirit:direction>out</spirit:direction>
+          <spirit:vector>
+            <spirit:left spirit:format="long">31</spirit:left>
+            <spirit:right spirit:format="long">0</spirit:right>
+          </spirit:vector>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic_vector</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_m_W_bits_wstrb</spirit:name>
+        <spirit:wire>
+          <spirit:direction>out</spirit:direction>
+          <spirit:vector>
+            <spirit:left spirit:format="long">3</spirit:left>
+            <spirit:right spirit:format="long">0</spirit:right>
+          </spirit:vector>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic_vector</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_m_B_ready</spirit:name>
+        <spirit:wire>
+          <spirit:direction>out</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_m_B_valid</spirit:name>
+        <spirit:wire>
+          <spirit:direction>in</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_m_B_bits</spirit:name>
+        <spirit:wire>
+          <spirit:direction>in</spirit:direction>
+          <spirit:vector>
+            <spirit:left spirit:format="long">1</spirit:left>
+            <spirit:right spirit:format="long">0</spirit:right>
+          </spirit:vector>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic_vector</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_m_AR_ready</spirit:name>
+        <spirit:wire>
+          <spirit:direction>in</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_m_AR_valid</spirit:name>
+        <spirit:wire>
+          <spirit:direction>out</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_m_AR_bits_addr</spirit:name>
+        <spirit:wire>
+          <spirit:direction>out</spirit:direction>
+          <spirit:vector>
+            <spirit:left spirit:format="long">48</spirit:left>
+            <spirit:right spirit:format="long">0</spirit:right>
+          </spirit:vector>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic_vector</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_m_AR_bits_prot</spirit:name>
+        <spirit:wire>
+          <spirit:direction>out</spirit:direction>
+          <spirit:vector>
+            <spirit:left spirit:format="long">2</spirit:left>
+            <spirit:right spirit:format="long">0</spirit:right>
+          </spirit:vector>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic_vector</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_m_R_ready</spirit:name>
+        <spirit:wire>
+          <spirit:direction>out</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_m_R_valid</spirit:name>
+        <spirit:wire>
+          <spirit:direction>in</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_m_R_bits_rdata</spirit:name>
+        <spirit:wire>
+          <spirit:direction>in</spirit:direction>
+          <spirit:vector>
+            <spirit:left spirit:format="long">31</spirit:left>
+            <spirit:right spirit:format="long">0</spirit:right>
+          </spirit:vector>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic_vector</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_m_R_bits_rresp</spirit:name>
+        <spirit:wire>
+          <spirit:direction>in</spirit:direction>
+          <spirit:vector>
+            <spirit:left spirit:format="long">1</spirit:left>
+            <spirit:right spirit:format="long">0</spirit:right>
+          </spirit:vector>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic_vector</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_ctrl_AW_ready</spirit:name>
+        <spirit:wire>
+          <spirit:direction>out</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_ctrl_AW_valid</spirit:name>
+        <spirit:wire>
+          <spirit:direction>in</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_ctrl_AW_bits_addr</spirit:name>
+        <spirit:wire>
+          <spirit:direction>in</spirit:direction>
+          <spirit:vector>
+            <spirit:left spirit:format="long">9</spirit:left>
+            <spirit:right spirit:format="long">0</spirit:right>
+          </spirit:vector>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic_vector</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_ctrl_AW_bits_prot</spirit:name>
+        <spirit:wire>
+          <spirit:direction>in</spirit:direction>
+          <spirit:vector>
+            <spirit:left spirit:format="long">2</spirit:left>
+            <spirit:right spirit:format="long">0</spirit:right>
+          </spirit:vector>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic_vector</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_ctrl_W_ready</spirit:name>
+        <spirit:wire>
+          <spirit:direction>out</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_ctrl_W_valid</spirit:name>
+        <spirit:wire>
+          <spirit:direction>in</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_ctrl_W_bits_wdata</spirit:name>
+        <spirit:wire>
+          <spirit:direction>in</spirit:direction>
+          <spirit:vector>
+            <spirit:left spirit:format="long">31</spirit:left>
+            <spirit:right spirit:format="long">0</spirit:right>
+          </spirit:vector>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic_vector</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+          <spirit:driver>
+            <spirit:defaultValue spirit:format="long">0</spirit:defaultValue>
+          </spirit:driver>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_ctrl_W_bits_wstrb</spirit:name>
+        <spirit:wire>
+          <spirit:direction>in</spirit:direction>
+          <spirit:vector>
+            <spirit:left spirit:format="long">3</spirit:left>
+            <spirit:right spirit:format="long">0</spirit:right>
+          </spirit:vector>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic_vector</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+          <spirit:driver>
+            <spirit:defaultValue spirit:format="long">1</spirit:defaultValue>
+          </spirit:driver>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_ctrl_B_ready</spirit:name>
+        <spirit:wire>
+          <spirit:direction>in</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_ctrl_B_valid</spirit:name>
+        <spirit:wire>
+          <spirit:direction>out</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_ctrl_B_bits</spirit:name>
+        <spirit:wire>
+          <spirit:direction>out</spirit:direction>
+          <spirit:vector>
+            <spirit:left spirit:format="long">1</spirit:left>
+            <spirit:right spirit:format="long">0</spirit:right>
+          </spirit:vector>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic_vector</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_ctrl_AR_ready</spirit:name>
+        <spirit:wire>
+          <spirit:direction>out</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_ctrl_AR_valid</spirit:name>
+        <spirit:wire>
+          <spirit:direction>in</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_ctrl_AR_bits_addr</spirit:name>
+        <spirit:wire>
+          <spirit:direction>in</spirit:direction>
+          <spirit:vector>
+            <spirit:left spirit:format="long">9</spirit:left>
+            <spirit:right spirit:format="long">0</spirit:right>
+          </spirit:vector>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic_vector</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_ctrl_AR_bits_prot</spirit:name>
+        <spirit:wire>
+          <spirit:direction>in</spirit:direction>
+          <spirit:vector>
+            <spirit:left spirit:format="long">2</spirit:left>
+            <spirit:right spirit:format="long">0</spirit:right>
+          </spirit:vector>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic_vector</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_ctrl_R_ready</spirit:name>
+        <spirit:wire>
+          <spirit:direction>in</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_ctrl_R_valid</spirit:name>
+        <spirit:wire>
+          <spirit:direction>out</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_ctrl_R_bits_rdata</spirit:name>
+        <spirit:wire>
+          <spirit:direction>out</spirit:direction>
+          <spirit:vector>
+            <spirit:left spirit:format="long">31</spirit:left>
+            <spirit:right spirit:format="long">0</spirit:right>
+          </spirit:vector>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic_vector</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_ctrl_R_bits_rresp</spirit:name>
+        <spirit:wire>
+          <spirit:direction>out</spirit:direction>
+          <spirit:vector>
+            <spirit:left spirit:format="long">1</spirit:left>
+            <spirit:right spirit:format="long">0</spirit:right>
+          </spirit:vector>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>std_logic_vector</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+    </spirit:ports>
+  </spirit:model>
+  <spirit:fileSets>
+    <spirit:fileSet>
+      <spirit:name>xilinx_anylanguagesynthesis_view_fileset</spirit:name>
+      <spirit:file>
+        <spirit:name>hdl/LamportsBakeryAlgorithm.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:userFileType>CHECKSUM_93277c65</spirit:userFileType>
+      </spirit:file>
+    </spirit:fileSet>
+    <spirit:fileSet>
+      <spirit:name>xilinx_anylanguagebehavioralsimulation_view_fileset</spirit:name>
+      <spirit:file>
+        <spirit:name>hdl/LamportsBakeryAlgorithm.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+      </spirit:file>
+    </spirit:fileSet>
+    <spirit:fileSet>
+      <spirit:name>xilinx_xpgui_view_fileset</spirit:name>
+      <spirit:file>
+        <spirit:name>xgui/LamportsBakeryAlgo_v1_1.tcl</spirit:name>
+        <spirit:fileType>tclSource</spirit:fileType>
+        <spirit:userFileType>CHECKSUM_f92e9879</spirit:userFileType>
+        <spirit:userFileType>XGUI_VERSION_2</spirit:userFileType>
+      </spirit:file>
+    </spirit:fileSet>
+  </spirit:fileSets>
+  <spirit:description>Implementation of Lamport&apos;s Bakery Algorithm</spirit:description>
+  <spirit:parameters>
+    <spirit:parameter>
+      <spirit:name>Component_Name</spirit:name>
+      <spirit:value spirit:resolve="user" spirit:id="PARAM_VALUE.Component_Name" spirit:order="1">LamportsBakeryAlgorithm_v1_0</spirit:value>
+    </spirit:parameter>
+  </spirit:parameters>
+  <spirit:vendorExtensions>
+    <xilinx:coreExtensions>
+      <xilinx:supportedFamilies>
+        <xilinx:family xilinx:lifeCycle="Production">zynquplus</xilinx:family>
+      </xilinx:supportedFamilies>
+      <xilinx:taxonomies>
+        <xilinx:taxonomy>/UserIP</xilinx:taxonomy>
+      </xilinx:taxonomies>
+      <xilinx:displayName>Lamport&apos;s Bakery Algorithm</xilinx:displayName>
+      <xilinx:definitionSource>package_project</xilinx:definitionSource>
+      <xilinx:coreRevision>1</xilinx:coreRevision>
+      <xilinx:upgrades>
+        <xilinx:canUpgradeFrom>j-marjanovic.io:user:LamportsBakeryAlgorithm:1.0</xilinx:canUpgradeFrom>
+      </xilinx:upgrades>
+      <xilinx:coreCreationDateTime>2021-05-22T20:04:53Z</xilinx:coreCreationDateTime>
+      <xilinx:tags>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4056f630_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4cc8f670_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@39209fde_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@646f0fdb_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@69128150_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5a9f46d8_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@468ed98e_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4ea711ec_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5e5bc809_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1228cb72_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@102c78b1_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@48fc668d_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6f3ad684_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6575dc9f_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@75127988_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6b6fc620_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@129ce491_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@62983c32_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@a5e824a_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@52eb3de1_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5fa0dce9_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7954d971_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@76544885_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@39417ab1_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4de639e7_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@a2d776a_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@c17aab7_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3d530edb_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5e264156_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@d53f276_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5ec72d08_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@18aca230_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@36f91e8f_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@a1fdf0e_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3e655060_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@48c5db90_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3834efe1_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@28881351_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@15c2a977_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7ea608b1_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@76ec7d67_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@169039be_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3f576c0f_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@79499837_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@15a2063f_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1154e305_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@15680219_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2f5b23de_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3fe32641_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@58d0902a_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@20c54461_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@10e1ef51_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@228f088b_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@346aac5_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@61640ef3_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4a186d5c_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6336171e_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1f08978b_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7c44b3aa_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@33044fc1_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@71e8f9ab_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2e1c882c_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@28491edd_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@715f5cf4_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@439fec6e_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6fc5087d_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@63700d0f_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7ac9fa9e_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@205651e2_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@454a9b71_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@21152037_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@fe75c1c_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@138bb88f_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+      </xilinx:tags>
+    </xilinx:coreExtensions>
+    <xilinx:packagingInfo>
+      <xilinx:xilinxVersion>2020.2</xilinx:xilinxVersion>
+      <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="1d2fb880"/>
+      <xilinx:checksum xilinx:scope="addressSpaces" xilinx:value="22e54174"/>
+      <xilinx:checksum xilinx:scope="memoryMaps" xilinx:value="12aa01b4"/>
+      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="c9592edb"/>
+      <xilinx:checksum xilinx:scope="ports" xilinx:value="73d91415"/>
+      <xilinx:checksum xilinx:scope="parameters" xilinx:value="521f1008"/>
+    </xilinx:packagingInfo>
+  </spirit:vendorExtensions>
+</spirit:component>

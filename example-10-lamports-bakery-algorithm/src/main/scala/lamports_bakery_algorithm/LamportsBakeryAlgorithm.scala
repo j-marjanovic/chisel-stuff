@@ -36,6 +36,7 @@ class LamportsBakeryAlgorithm(
   val io = IO(new Bundle {
     val m = Flipped(new AxiLiteIf(addr_w.W, data_w.W))
     val ctrl = new AxiLiteIf(ctrl_addr_w.W, 32.W)
+    val irq_req = Output(Bool())
   })
 
   import bfmtester.util.AxiLiteSubordinateGenerator._
@@ -106,8 +107,8 @@ class LamportsBakeryAlgorithm(
   io.ctrl <> mod_ctrl.io.ctrl
 
   mod_ctrl.io.inp("VERSION_MAJOR") := 1.U
-  mod_ctrl.io.inp("VERSION_MINOR") := 1.U
-  mod_ctrl.io.inp("VERSION_PATCH") := 2.U
+  mod_ctrl.io.inp("VERSION_MINOR") := 2.U
+  mod_ctrl.io.inp("VERSION_PATCH") := 0.U
 
   // manager interface
   val mod_axi = Module(new Axi4LiteManager(addr_w))
@@ -168,6 +169,7 @@ class LamportsBakeryAlgorithm(
   mod_seq.io.clear := mod_ctrl.io.out("CONTROL_CLEAR")
   mod_ctrl.io.inp("DIAG_LAST_CNTR") := mod_seq.io.last_cntr
   mod_ctrl.io.inp("STATUS_DONE") := mod_seq.io.done
+  io.irq_req := mod_seq.io.done
 
   mod_lock.io.lock := mod_seq.io.lock_lock
   mod_lock.io.unlock := mod_seq.io.lock_unlock

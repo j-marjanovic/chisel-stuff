@@ -118,7 +118,7 @@ class Axi4LiteManager(val addr_w: Int) extends Module {
       io.m.AW.bits.prot := 0.U
       io.m.W.valid := true.B
       io.m.W.bits.wdata := wdata_reg
-      io.m.W.bits.wstrb := -1.S.asUInt()
+      io.m.W.bits.wstrb := -1.S(io.m.W.bits.wstrb.getWidth.W).asUInt()
       io.m.B.ready := false.B
     }
     is(StateWr.WrData) {
@@ -127,7 +127,7 @@ class Axi4LiteManager(val addr_w: Int) extends Module {
       io.m.AW.bits.prot := 0.U
       io.m.W.valid := true.B
       io.m.W.bits.wdata := wdata_reg
-      io.m.W.bits.wstrb := -1.S.asUInt()
+      io.m.W.bits.wstrb := -1.S(io.m.W.bits.wstrb.getWidth.W).asUInt()
       io.m.B.ready := false.B
     }
     is(StateWr.WrAddr) {

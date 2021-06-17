@@ -3,7 +3,7 @@
   <spirit:vendor>j-marjanovic.io</spirit:vendor>
   <spirit:library>user</spirit:library>
   <spirit:name>LamportsBakeryAlgo</spirit:name>
-  <spirit:version>1.3</spirit:version>
+  <spirit:version>1.4</spirit:version>
   <spirit:busInterfaces>
     <spirit:busInterface>
       <spirit:name>reset</spirit:name>
@@ -439,7 +439,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>3651055b</spirit:value>
+            <spirit:value>f116edcb</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -455,7 +455,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>3651055b</spirit:value>
+            <spirit:value>f116edcb</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -1128,7 +1128,7 @@
       <spirit:file>
         <spirit:name>hdl/LamportsBakeryAlgorithm.sv</spirit:name>
         <spirit:fileType>systemVerilogSource</spirit:fileType>
-        <spirit:userFileType>CHECKSUM_3651055b</spirit:userFileType>
+        <spirit:userFileType>CHECKSUM_f116edcb</spirit:userFileType>
       </spirit:file>
     </spirit:fileSet>
     <spirit:fileSet>
@@ -1141,7 +1141,7 @@
     <spirit:fileSet>
       <spirit:name>xilinx_xpgui_view_fileset</spirit:name>
       <spirit:file>
-        <spirit:name>xgui/LamportsBakeryAlgo_v1_3.tcl</spirit:name>
+        <spirit:name>xgui/LamportsBakeryAlgo_v1_4.tcl</spirit:name>
         <spirit:fileType>tclSource</spirit:fileType>
         <spirit:userFileType>CHECKSUM_f92e9879</spirit:userFileType>
         <spirit:userFileType>XGUI_VERSION_2</spirit:userFileType>
@@ -1169,8 +1169,9 @@
       <xilinx:upgrades>
         <xilinx:canUpgradeFrom>j-marjanovic.io:user:LamportsBakeryAlgorithm:1.0</xilinx:canUpgradeFrom>
         <xilinx:canUpgradeFrom>j-marjanovic.io:user:LamportsBakeryAlgo:1.1</xilinx:canUpgradeFrom>
+        <xilinx:canUpgradeFrom>j-marjanovic.io:user:LamportsBakeryAlgo:1.3</xilinx:canUpgradeFrom>
       </xilinx:upgrades>
-      <xilinx:coreCreationDateTime>2021-06-04T16:48:34Z</xilinx:coreCreationDateTime>
+      <xilinx:coreCreationDateTime>2021-06-17T16:54:20Z</xilinx:coreCreationDateTime>
       <xilinx:tags>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@4056f630_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@4cc8f670_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
@@ -1282,6 +1283,30 @@
         <xilinx:tag xilinx:name="ui.data.coregen.dd@51d97eaa_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@34fd04cc_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@60a0fe28_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@579673b6_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@428885d3_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@29a7465a_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1f078b4d_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5c2bbf7f_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@f3ccab6_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@12c61798_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4c818d05_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5a46159b_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@a9fec9d_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3339d6ff_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2cd4ac77_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6f236e1c_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7a2757a_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4e2c941e_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3805c892_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1826d2b0_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@cb9e14f_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@91e29ee_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@16347b92_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@13d0fbd6_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4c64e212_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@141b2378_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5f756495_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-10-lamports-bakery-algorithm/ip_cores/lamports_bakery_algo</xilinx:tag>
       </xilinx:tags>
     </xilinx:coreExtensions>
     <xilinx:packagingInfo>
@@ -1289,8 +1314,8 @@
       <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="5d1e2ab1"/>
       <xilinx:checksum xilinx:scope="addressSpaces" xilinx:value="22e54174"/>
       <xilinx:checksum xilinx:scope="memoryMaps" xilinx:value="12aa01b4"/>
-      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="2b2586ba"/>
-      <xilinx:checksum xilinx:scope="ports" xilinx:value="a1303658"/>
+      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="851c88c5"/>
+      <xilinx:checksum xilinx:scope="ports" xilinx:value="06eafb19"/>
       <xilinx:checksum xilinx:scope="parameters" xilinx:value="521f1008"/>
     </xilinx:packagingInfo>
   </spirit:vendorExtensions>

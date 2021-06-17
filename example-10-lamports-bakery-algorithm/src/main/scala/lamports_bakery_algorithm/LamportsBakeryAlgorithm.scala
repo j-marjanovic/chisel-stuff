@@ -53,6 +53,9 @@ class LamportsBakeryAlgorithm(
       new Field("MINOR", hw_access = Access.W, sw_access = Access.R, hi = 15, lo = Some(8), reset = Some(2.U)),
       new Field("MAJOR", hw_access = Access.W, sw_access = Access.R, hi = 23, lo = Some(16), reset = Some(1.U))
     ),
+    new Reg("CONFIG", addr = 8,
+      new Field("DIST", hw_access = Access.W, sw_access = Access.R, hi = 6, lo = Some(0)),
+    ),
     new Reg("SCRATCH", 0xc,
       new Field("FIELD", hw_access = Access.NA, sw_access = Access.RW, hi = 31, lo = Some(0))
     ),
@@ -104,20 +107,24 @@ class LamportsBakeryAlgorithm(
   )
   // format: on
 
+  // consts
+  val DIST_BYTES : UInt = 64.U
+
   // control
   val mod_ctrl = Module(new AxiLiteSubordinateGenerator(area_map = area_map, addr_w = ctrl_addr_w))
   io.ctrl <> mod_ctrl.io.ctrl
 
   mod_ctrl.io.inp("VERSION_MAJOR") := 1.U
-  mod_ctrl.io.inp("VERSION_MINOR") := 3.U
+  mod_ctrl.io.inp("VERSION_MINOR") := 4.U
   mod_ctrl.io.inp("VERSION_PATCH") := 0.U
+  mod_ctrl.io.inp("CONFIG_DIST") := DIST_BYTES
 
   // manager interface
   val mod_axi = Module(new Axi4LiteManager(addr_w))
   mod_axi.io.m <> io.m
 
   // lock module
-  val mod_lock = Module(new LamportsBakeryAlgorithmLock(addr_w, data_w))
+  val mod_lock = Module(new LamportsBakeryAlgorithmLock(DIST_BYTES, addr_w, data_w))
   mod_lock.io.addr_choosing := Cat(
     mod_ctrl.io.out("ADDR_CHOOSING_HI").asUInt(),
     mod_ctrl.io.out("ADDR_CHOOSING_LO").asUInt()

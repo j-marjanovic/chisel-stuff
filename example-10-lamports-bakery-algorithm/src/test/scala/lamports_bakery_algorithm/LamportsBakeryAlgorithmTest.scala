@@ -73,11 +73,11 @@ class LamportsBakeryAlgorithmTest(c: LamportsBakeryAlgorithm) extends BfmTester(
 
   // config addresses
   write_blocking(0x24, 0xab)
-  write_blocking(0x20, 0xcd001008L)
+  write_blocking(0x20, 0xcd001040L)
   write_blocking(0x2c, 0xab)
-  write_blocking(0x28, 0xcd001040L)
+  write_blocking(0x28, 0xcd001400L)
   write_blocking(0x34, 0xab)
-  write_blocking(0x30, 0xcd001080L)
+  write_blocking(0x30, 0xcd001800L)
 
   // config instance (1 of 4)
   write_blocking(0x40, 1)

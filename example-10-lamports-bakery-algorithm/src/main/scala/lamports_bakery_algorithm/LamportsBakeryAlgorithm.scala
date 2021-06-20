@@ -28,14 +28,15 @@ import chisel3._
 import chisel3.util._
 
 class LamportsBakeryAlgorithm(
-    val addr_w: Int = 49,
-    val data_w: Int = 32,
-    val id_w: Int = 6,
+    val addr_w: Int = 40,
+    val data_w: Int = 128,
+    val id_w: Int = 5,
+    val ctrl_data_w: Int = 32,
     val ctrl_addr_w: Int = 10
 ) extends Module {
   val io = IO(new Bundle {
-    val m = Flipped(new AxiLiteIf(addr_w.W, data_w.W))
-    val ctrl = new AxiLiteIf(ctrl_addr_w.W, 32.W)
+    val m = new AxiIf(addr_w.W, data_w.W, id_w.W, aruser_w = 2.W, awuser_w = 2.W)
+    val ctrl = new AxiLiteIf(ctrl_addr_w.W, ctrl_data_w.W)
     val irq_req = Output(Bool())
     val dbg_last_cntr = Output(UInt(32.W))
     val dbg_last_data = Output(UInt(32.W))
@@ -101,6 +102,11 @@ class LamportsBakeryAlgorithm(
     new Reg("CONFIG", 0x54,
       new Field("DLY_PRBS_INIT", hw_access = Access.R, sw_access = Access.RW, hi= 15, lo = Some(0))
     ),
+    new Reg("CONFIG_AXI", 0x58,
+      new Field("CACHE", hw_access = Access.R, sw_access = Access.RW, hi= 3, lo = Some(0)),
+      new Field("PROT", hw_access = Access.R, sw_access = Access.RW, hi= 10, lo = Some(8)),
+      new Field("USER", hw_access = Access.R, sw_access = Access.RW, hi= 17, lo = Some(16))
+    ),
     new Reg("DIAG", 0x60,
       new Field("LAST_CNTR", hw_access = Access.W, sw_access = Access.R, hi = 31, lo = Some(0))
     ),
@@ -114,14 +120,17 @@ class LamportsBakeryAlgorithm(
   val mod_ctrl = Module(new AxiLiteSubordinateGenerator(area_map = area_map, addr_w = ctrl_addr_w))
   io.ctrl <> mod_ctrl.io.ctrl
 
-  mod_ctrl.io.inp("VERSION_MAJOR") := 1.U
-  mod_ctrl.io.inp("VERSION_MINOR") := 4.U
-  mod_ctrl.io.inp("VERSION_PATCH") := 0.U
+  mod_ctrl.io.inp("VERSION_MAJOR") := 2.U
+  mod_ctrl.io.inp("VERSION_MINOR") := 0.U
+  mod_ctrl.io.inp("VERSION_PATCH") := 1.U
   mod_ctrl.io.inp("CONFIG_DIST") := DIST_BYTES
 
   // manager interface
-  val mod_axi = Module(new Axi4LiteManager(addr_w))
+  val mod_axi = Module(new Axi4Manager(addr_w))
   mod_axi.io.m <> io.m
+  mod_axi.io.config_axi_cache := mod_ctrl.io.out("CONFIG_AXI_CACHE")
+  mod_axi.io.config_axi_prot := mod_ctrl.io.out("CONFIG_AXI_PROT")
+  mod_axi.io.config_axi_user := mod_ctrl.io.out("CONFIG_AXI_USER")
 
   // lock module
   val mod_lock = Module(new LamportsBakeryAlgorithmLock(DIST_BYTES, addr_w, data_w))
@@ -145,7 +154,7 @@ class LamportsBakeryAlgorithm(
   )
 
   // mux
-  def mux_rd_cmd[T <: Axi4LiteManagerRdCmd](sel: UInt, out: T, in: Vec[T]): Unit = {
+  def mux_rd_cmd[T <: Axi4ManagerRdCmd](sel: UInt, out: T, in: Vec[T]): Unit = {
     out.addr := in(sel).addr
     out.valid := in(sel).valid
 
@@ -156,7 +165,7 @@ class LamportsBakeryAlgorithm(
     }
   }
 
-  def mux_wr_cmd[T <: Axi4LiteManagerWrCmd](sel: UInt, out: T, in: Vec[T]): Unit = {
+  def mux_wr_cmd[T <: Axi4ManagerWrCmd](sel: UInt, out: T, in: Vec[T]): Unit = {
     out.addr := in(sel).addr
     out.valid := in(sel).valid
     out.data := in(sel).data

@@ -27,7 +27,7 @@ import chisel3.iotesters.ChiselFlatSpec
 
 class LamportsBakeryAlgorithmTester extends ChiselFlatSpec {
 
-  it should "check the AXI4-Lite manager" in {
+  it should "check the AXI4 manager" in {
     iotesters.Driver.execute(
       Array(
         "--backend-name",
@@ -36,13 +36,13 @@ class LamportsBakeryAlgorithmTester extends ChiselFlatSpec {
         "--test-seed",
         "1234",
         "--target-dir",
-        "test_run_dir/Axi4LiteManagerTest",
+        "test_run_dir/Axi4ManagerTest",
         "--top-name",
-        "Axi4LiteManagerTest"
+        "Axi4ManagerTest"
       ),
-      () => new Axi4LiteManager(40)
+      () => new Axi4ManagerReg(40)
     ) { c =>
-      new Axi4LiteManagerTest(c)
+      new Axi4ManagerTest(c)
     } should be(true)
   }
 
@@ -78,7 +78,7 @@ class LamportsBakeryAlgorithmTester extends ChiselFlatSpec {
         "--top-name",
         "LamportsBakeryAlgorithmTest"
       ),
-      () => new LamportsBakeryAlgorithm()
+      () => new LamportsBakeryAlgorithmReg()
     ) { c =>
       new LamportsBakeryAlgorithmTest(c)
     } should be(true)

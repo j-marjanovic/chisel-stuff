@@ -22,14 +22,17 @@ SOFTWARE.
 
 package lamports_bakery_algorithm
 
+import chisel3._
 import bfmtester._
 
 case class DutDone(message: String = "") extends Exception(message)
 
-class LamportsBakeryAlgorithmTest(c: LamportsBakeryAlgorithm) extends BfmTester(c) {
+
+
+class LamportsBakeryAlgorithmTest(c: LamportsBakeryAlgorithmReg) extends BfmTester(c) {
   // BFMs
   val mod_axi_mngr = BfmFactory.create_axilite_master(c.io.ctrl)
-  val mod_axi_mem = new Axi4LiteMemSubordinate(c.io.m, rnd, bfm_peek, bfm_poke, println)
+  val mod_axi_mem = BfmFactory.create_axi_slave(c.io.m)
 
   //==========================================================================
   // helper functions
@@ -78,6 +81,12 @@ class LamportsBakeryAlgorithmTest(c: LamportsBakeryAlgorithm) extends BfmTester(
   write_blocking(0x28, 0xcd001400L)
   write_blocking(0x34, 0xab)
   write_blocking(0x30, 0xcd001800L)
+
+  val BYTES_ZERO : Seq[Byte] = for (_ <- 0 until 64*4) yield 0.toByte
+  mod_axi_mem.mem_set(0xabcd001040L, BYTES_ZERO)
+  mod_axi_mem.mem_set(0xabcd001400L, BYTES_ZERO)
+  mod_axi_mem.mem_set(0xabcd001800L, BYTES_ZERO)
+  mod_axi_mem.mem_stats()
 
   // config instance (1 of 4)
   write_blocking(0x40, 1)

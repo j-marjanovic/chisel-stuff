@@ -23,9 +23,13 @@ SOFTWARE.
 package lamports_bakery_algorithm
 
 import bfmtester._
+import chisel3._
 
-class Axi4LiteManagerTest(c: Axi4LiteManager) extends BfmTester(c) {
-  val mod_axi_mem = new Axi4LiteMemSubordinate(c.io.m, rnd, bfm_peek, bfm_poke, println)
+
+
+
+class Axi4ManagerTest(c: Axi4ManagerReg) extends BfmTester(c) {
+  val mod_axi_mem = BfmFactory.create_axi_slave(c.io.m)
 
   step(10)
 

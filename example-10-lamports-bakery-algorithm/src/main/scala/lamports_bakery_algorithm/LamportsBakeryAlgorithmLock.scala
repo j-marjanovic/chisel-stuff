@@ -38,8 +38,8 @@ class LamportsBakeryAlgorithmLock(val DIST_BYTES: UInt, val addr_w: Int = 49, va
     val locked = Output(Bool())
     val unlocked = Output(Bool())
 
-    val rd_cmd = Flipped(new Axi4LiteManagerRdCmd(addr_w, data_w))
-    val wr_cmd = Flipped(new Axi4LiteManagerWrCmd(addr_w, data_w))
+    val rd_cmd = Flipped(new Axi4ManagerRdCmd(addr_w, data_w))
+    val wr_cmd = Flipped(new Axi4ManagerWrCmd(addr_w, data_w))
   })
 
   object State extends ChiselEnum {

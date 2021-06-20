@@ -24,9 +24,9 @@ package lamports_bakery_algorithm
 
 import chisel3._
 
-class Axi4LiteManagerRdCmd(val addr_w: Int, val data_w: Int) extends Bundle {
+class Axi4ManagerWrCmd(val addr_w: Int, val data_w: Int) extends Bundle {
   val addr = Input(UInt(addr_w.W))
-  val data = Output(UInt(data_w.W)) // valid together with done
+  val data = Input(UInt(data_w.W))
   val valid = Input(Bool())
   val ready = Output(Bool())
   val done = Output(Bool())

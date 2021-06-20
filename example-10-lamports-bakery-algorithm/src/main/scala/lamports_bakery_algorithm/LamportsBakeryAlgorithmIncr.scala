@@ -33,8 +33,8 @@ class LamportsBakeryAlgorithmIncr(val addr_w: Int = 49, val data_w: Int = 128) e
     val start = Input(Bool())
     val done = Output(Bool())
 
-    val rd_cmd = Flipped(new Axi4LiteManagerRdCmd(addr_w, data_w))
-    val wr_cmd = Flipped(new Axi4LiteManagerWrCmd(addr_w, data_w))
+    val rd_cmd = Flipped(new Axi4ManagerRdCmd(addr_w, data_w))
+    val wr_cmd = Flipped(new Axi4ManagerWrCmd(addr_w, data_w))
 
     val dbg_last_data = Output(UInt(32.W))
   })

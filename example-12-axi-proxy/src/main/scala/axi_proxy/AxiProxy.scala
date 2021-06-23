@@ -27,7 +27,6 @@ import bfmtester.util._
 import chisel3._
 import chisel3.util._
 
-import scala.collection.immutable
 import scala.collection.mutable.ListBuffer
 
 class AxiProxy(
@@ -42,6 +41,70 @@ class AxiProxy(
     val ctrl = new AxiLiteIf(ctrl_addr_w.W, ctrl_data_w.W)
   })
 
+  import AxiProxy.area_map
+
+  // control
+  private val mod_ctrl = Module(
+    new AxiLiteSubordinateGenerator(area_map = area_map, addr_w = ctrl_addr_w)
+  )
+  io.ctrl <> mod_ctrl.io.ctrl
+
+  // version reg
+  mod_ctrl.io.inp("VERSION_MAJOR") := 0.U
+  mod_ctrl.io.inp("VERSION_MINOR") := 2.U
+  mod_ctrl.io.inp("VERSION_PATCH") := 0.U
+
+  // AXI interface
+  private val mod_axi = Module(new Axi4Manager(addr_w, data_w))
+  mod_axi.io.m <> io.m
+  mod_axi.io.config_axi_cache := mod_ctrl.io.out("CONFIG_AXI_CACHE")
+  mod_axi.io.config_axi_prot := mod_ctrl.io.out("CONFIG_AXI_PROT")
+  mod_axi.io.config_axi_user := mod_ctrl.io.out("CONFIG_AXI_USER")
+
+  // write command
+  mod_axi.io.wr_cmd.addr := Cat(
+    mod_ctrl.io.out("ADDR_HI_").asUInt(),
+    mod_ctrl.io.out("ADDR_LO_").asUInt()
+  )
+  private val wr_data = Wire(Vec(data_w / ctrl_data_w, UInt(ctrl_data_w.W)))
+  for (i <- 0 until data_w / ctrl_data_w) {
+    wr_data(i) := mod_ctrl.io.out(s"DATA_WR${i}_DATA")
+  }
+  mod_axi.io.wr_cmd.data := wr_data.asUInt()
+  mod_axi.io.wr_cmd.valid := mod_ctrl.io.out("CONTROL_START_WR")
+  mod_ctrl.io.inp("STATUS_READY_WR") := mod_axi.io.wr_cmd.ready
+
+  // read command
+  mod_axi.io.rd_cmd.addr := Cat(
+    mod_ctrl.io.out("ADDR_HI_").asUInt(),
+    mod_ctrl.io.out("ADDR_LO_").asUInt()
+  )
+  for (i <- 0 until data_w / ctrl_data_w) {
+    mod_ctrl.io.inp(s"DATA_RD${i}_DATA") := mod_axi.io.rd_cmd.data(32 * i + 31, 32 * i)
+  }
+  mod_axi.io.rd_cmd.valid := mod_ctrl.io.out("CONTROL_START_RD")
+  mod_ctrl.io.inp("STATUS_READY_RD") := mod_axi.io.rd_cmd.ready
+
+  // read done
+  private val reg_done_wr = RegInit(false.B)
+  mod_ctrl.io.inp("STATUS_DONE_WR") := reg_done_wr
+  when(mod_axi.io.wr_cmd.done) {
+    reg_done_wr := true.B
+  }.elsewhen(mod_ctrl.io.out("CONTROL_DONE_CLEAR").asUInt() === true.B) {
+    reg_done_wr := false.B
+  }
+
+  // write done
+  private val reg_done_rd = RegInit(false.B)
+  mod_ctrl.io.inp("STATUS_DONE_RD") := reg_done_rd
+  when(mod_axi.io.rd_cmd.done) {
+    reg_done_rd := true.B
+  }.elsewhen(mod_ctrl.io.out("CONTROL_DONE_CLEAR").asUInt() === true.B) {
+    reg_done_rd := false.B
+  }
+}
+
+object AxiProxy {
   import bfmtester.util.AxiLiteSubordinateGenerator._
 
   // format: off
@@ -73,88 +136,28 @@ class AxiProxy(
       new Field("PROT", hw_access = Access.R, sw_access = Access.RW, hi= 10, lo = Some(8)),
       new Field("USER", hw_access = Access.R, sw_access = Access.RW, hi= 17, lo = Some(16))
     ),
-    new Reg("ADDR", 0x40,
-      new Field("LO", hw_access = Access.R, sw_access = Access.RW, hi= 31, lo = Some(0)),
+    new Reg("ADDR_LO", 0x40,
+      new Field("", hw_access = Access.R, sw_access = Access.RW, hi= 31, lo = Some(0)),
     ),
-    new Reg("ADDR", 0x44,
-      new Field("HI", hw_access = Access.R, sw_access = Access.RW, hi= 31, lo = Some(0)),
+    new Reg("ADDR_HI", 0x44,
+      new Field("", hw_access = Access.R, sw_access = Access.RW, hi= 31, lo = Some(0)),
     ),
   )
 
   regs ++= (
-    for (i <- 0 until data_w/ctrl_data_w) yield
-      new Reg(s"DATA_WR$i", 0x100 + 4*i,
+    for (i <- 0 until 128/32) yield
+      new Reg(s"DATA_WR$i", 0x60 + 4*i,
         new Field("DATA", hw_access = Access.R, sw_access = Access.RW, hi= 31, lo = Some(0))
       )
     )
 
   regs ++= (
-      for (i <- 0 until data_w/ctrl_data_w) yield
-        new Reg(s"DATA_RD$i", 0x200 + 4*i,
-          new Field("DATA", hw_access = Access.W, sw_access = Access.R, hi= 31, lo = Some(0)),
-        )
+    for (i <- 0 until 128/32) yield
+      new Reg(s"DATA_RD$i", 0xa0 + 4*i,
+        new Field("DATA", hw_access = Access.W, sw_access = Access.R, hi= 31, lo = Some(0)),
       )
+    )
   // format: on
 
   val area_map = new AreaMap(regs: _*)
-
-  // control
-  private val mod_ctrl = Module(
-    new AxiLiteSubordinateGenerator(area_map = area_map, addr_w = ctrl_addr_w)
-  )
-  io.ctrl <> mod_ctrl.io.ctrl
-
-  // version reg
-  mod_ctrl.io.inp("VERSION_MAJOR") := 0.U
-  mod_ctrl.io.inp("VERSION_MINOR") := 1.U
-  mod_ctrl.io.inp("VERSION_PATCH") := 0.U
-
-  // AXI interface
-  private val mod_axi = Module(new Axi4Manager(addr_w, data_w))
-  mod_axi.io.m <> io.m
-  mod_axi.io.config_axi_cache := mod_ctrl.io.out("CONFIG_AXI_CACHE")
-  mod_axi.io.config_axi_prot := mod_ctrl.io.out("CONFIG_AXI_PROT")
-  mod_axi.io.config_axi_user := mod_ctrl.io.out("CONFIG_AXI_USER")
-
-  // write command
-  mod_axi.io.wr_cmd.addr := Cat(
-    mod_ctrl.io.out("ADDR_HI").asUInt(),
-    mod_ctrl.io.out("ADDR_LO").asUInt()
-  )
-  private val wr_data = Wire(Vec(data_w / ctrl_data_w, UInt(ctrl_data_w.W)))
-  for (i <- 0 until data_w / ctrl_data_w) {
-    wr_data(i) := mod_ctrl.io.out(s"DATA_WR${i}_DATA")
-  }
-  mod_axi.io.wr_cmd.data := wr_data.asUInt()
-  mod_axi.io.wr_cmd.valid := mod_ctrl.io.out("CONTROL_START_WR")
-  mod_ctrl.io.inp("STATUS_READY_WR") := mod_axi.io.wr_cmd.ready
-
-  // read command
-  mod_axi.io.rd_cmd.addr := Cat(
-    mod_ctrl.io.out("ADDR_HI").asUInt(),
-    mod_ctrl.io.out("ADDR_LO").asUInt()
-  )
-  for (i <- 0 until data_w / ctrl_data_w) {
-    mod_ctrl.io.inp(s"DATA_RD${i}_DATA") := mod_axi.io.rd_cmd.data(32 * i + 31, 32 * i)
-  }
-  mod_axi.io.rd_cmd.valid := mod_ctrl.io.out("CONTROL_START_RD")
-  mod_ctrl.io.inp("STATUS_READY_RD") := mod_axi.io.rd_cmd.ready
-
-  // read done
-  private val reg_done_wr = RegInit(false.B)
-  mod_ctrl.io.inp("STATUS_DONE_WR") := reg_done_wr
-  when(mod_axi.io.wr_cmd.done) {
-    reg_done_wr := true.B
-  }.elsewhen(mod_ctrl.io.out("CONTROL_DONE_CLEAR").asUInt() === true.B) {
-    reg_done_wr := false.B
-  }
-
-  // write done
-  private val reg_done_rd = RegInit(false.B)
-  mod_ctrl.io.inp("STATUS_DONE_RD") := reg_done_rd
-  when(mod_axi.io.rd_cmd.done) {
-    reg_done_rd := true.B
-  }.elsewhen(mod_ctrl.io.out("CONTROL_DONE_CLEAR").asUInt() === true.B) {
-    reg_done_rd := false.B
-  }
 }

@@ -52,7 +52,7 @@ class AxiProxy(
   // version reg
   mod_ctrl.io.inp("VERSION_MAJOR") := 0.U
   mod_ctrl.io.inp("VERSION_MINOR") := 2.U
-  mod_ctrl.io.inp("VERSION_PATCH") := 0.U
+  mod_ctrl.io.inp("VERSION_PATCH") := 1.U
 
   // AXI interface
   private val mod_axi = Module(new Axi4Manager(addr_w, data_w))
@@ -60,6 +60,8 @@ class AxiProxy(
   mod_axi.io.config_axi_cache := mod_ctrl.io.out("CONFIG_AXI_CACHE")
   mod_axi.io.config_axi_prot := mod_ctrl.io.out("CONFIG_AXI_PROT")
   mod_axi.io.config_axi_user := mod_ctrl.io.out("CONFIG_AXI_USER")
+  mod_ctrl.io.inp("STATS_CNTR_RD") := mod_axi.io.diag_cntr_rd
+  mod_ctrl.io.inp("STATS_CNTR_WR") := mod_axi.io.diag_cntr_wr
 
   // write command
   mod_axi.io.wr_cmd.addr := Cat(
@@ -135,6 +137,10 @@ object AxiProxy {
       new Field("CACHE", hw_access = Access.R, sw_access = Access.RW, hi= 3, lo = Some(0)),
       new Field("PROT", hw_access = Access.R, sw_access = Access.RW, hi= 10, lo = Some(8)),
       new Field("USER", hw_access = Access.R, sw_access = Access.RW, hi= 17, lo = Some(16))
+    ),
+    new Reg("STATS", addr = 0x24,
+      new Field("CNTR_WR", hw_access = Access.W, sw_access = Access.R, hi = 9, lo = Some(0)),
+      new Field("CNTR_RD", hw_access = Access.W, sw_access = Access.R, hi = 25, lo = Some(16)),
     ),
     new Reg("ADDR_LO", 0x40,
       new Field("", hw_access = Access.R, sw_access = Access.RW, hi= 31, lo = Some(0)),

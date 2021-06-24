@@ -37,6 +37,9 @@ class Axi4Manager(addr_w: Int, data_w: Int) extends Module {
 
     val wr_cmd = new Axi4ManagerWrCmd(addr_w, data_w)
     val rd_cmd = new Axi4ManagerRdCmd(addr_w, data_w)
+
+    val diag_cntr_rd = Output(UInt(10.W))
+    val diag_cntr_wr = Output(UInt(10.W))
   })
 
   val waddr_reg = Reg(UInt(addr_w.W))
@@ -307,4 +310,26 @@ class Axi4Manager(addr_w: Int, data_w: Int) extends Module {
   io.rd_cmd.ready := state_rd === StateRd.Idle
   io.rd_cmd.done := rd_done_reg
 
+  //==========================================================
+
+  val cntr_wr = Reg(UInt(10.W))
+  val cntr_rd = Reg(UInt(10.W))
+
+  val state_wr_addr_prev = RegNext(state_wr_addr)
+  val state_rd_prev = RegNext(state_rd)
+
+  when (state_rd_prev === StateRd.Idle && state_rd =/= StateRd.Idle) {
+    cntr_rd := 1.U
+  } .elsewhen (state_rd =/= StateRd.Idle) {
+    cntr_rd := cntr_rd + 1.U
+  }
+
+  when (state_wr_addr_prev === StateWrAddr.Idle && state_wr_addr =/= StateWrAddr.Idle) {
+    cntr_wr := 1.U
+  } .elsewhen (state_wr_addr =/= StateWrAddr.Idle) {
+    cntr_wr := cntr_wr + 1.U
+  }
+
+  io.diag_cntr_rd := cntr_rd
+  io.diag_cntr_wr := cntr_wr
 }

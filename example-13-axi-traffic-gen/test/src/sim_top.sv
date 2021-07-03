@@ -94,6 +94,11 @@ module sim_top ();
       else $error("%t Timeout reached while waiting for WR to finish", $time);
     end
 
+    // on purpose damage 2 samples in mem
+    slv_mem_agent.mem_model.backdoor_memory_write(ADDR + 'h120, 'haaaaaaaaaaaaaaaaaaaaaaaa);
+    slv_mem_agent.mem_model.backdoor_memory_write(ADDR + 'h160, 'hbbbbbbbbbbbbbbbbbbbbbbbb);
+
+
     // start read
     mst_agent.AXI4LITE_WRITE_BURST('h14, 0, 'h2, resp);
     mst_agent.wait_drivers_idle();
@@ -119,6 +124,31 @@ module sim_top ();
       assert (i != 1000 - 1)
       else $error("%t Timeout reached while waiting for RD to finish", $time);
     end
+
+    // check counters - read cycles
+    mst_agent.AXI4LITE_READ_BURST('h50, 0, data, resp);
+    mst_agent.wait_drivers_idle();
+    assert (data > LEN * 4);
+
+    mst_agent.AXI4LITE_READ_BURST('h54, 0, data, resp);
+    mst_agent.wait_drivers_idle();
+    assert (data > LEN * 4);
+
+    mst_agent.AXI4LITE_READ_BURST('h58, 0, data, resp);
+    mst_agent.wait_drivers_idle();
+    assert (data == LEN * 4 - 2);
+
+    // clear status
+    mst_agent.AXI4LITE_WRITE_BURST('h14, 0, 'h100, resp);
+    mst_agent.wait_drivers_idle();
+
+    // read status
+    mst_agent.AXI4LITE_READ_BURST('h10, 0, data, resp);
+    mst_agent.wait_drivers_idle();
+    $display("%t Status after done clear = %x", $time, data);
+    assert (data[8]) $display("%t Status indicates WR FSM idle", $time);
+    assert (data[9]) $display("%t Status indicates RD FSM idle", $time);
+
 
     #(100ns);
     $finish;

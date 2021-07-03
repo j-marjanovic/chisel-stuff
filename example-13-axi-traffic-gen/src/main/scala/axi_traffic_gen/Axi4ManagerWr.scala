@@ -38,7 +38,7 @@ class Axi4ManagerWr(addr_w: Int, data_w: Int, id_w: Int) extends Module {
     val wr_cmd = new Axi4ManagerWrCmd(addr_w)
     val done_clear = Input(Bool())
 
-    val diag_cntr_wr = Output(UInt(32.W))
+    val diag_cntr_wr_cyc = Output(UInt(32.W))
   })
 
   val NR_BEATS: Int = 4
@@ -146,7 +146,7 @@ class Axi4ManagerWr(addr_w: Int, data_w: Int, id_w: Int) extends Module {
   switch(state_wr_data) {
     is(StateWrData.Idle) {
       when(io.wr_cmd.valid) {
-        wr_total_cntr := io.wr_cmd.len * 4.U - 1.U
+        wr_total_cntr := io.wr_cmd.len * NR_BEATS.U - 1.U
         wr_beat_cntr := 0.U
         wdata_reg := 0.U
         state_wr_data := StateWrData.WrData
@@ -169,14 +169,27 @@ class Axi4ManagerWr(addr_w: Int, data_w: Int, id_w: Int) extends Module {
       }
     }
     is(StateWrData.Done) {
-      // TODO: go out
+      when(io.done_clear) {
+        state_wr_data := StateWrData.Idle
+      }
     }
   }
 
   io.m.W.valid := state_wr_data === StateWrData.WrData
 
-  // TODO: diag
-  io.diag_cntr_wr := 0.U
+  //==========================================================
+  // statistics
+
+  val wr_cyc_cntr_act = RegInit(false.B)
+  val wr_cyc_cntr = Counter(wr_cyc_cntr_act, (Math.pow(2, 32)-1).toInt)
+
+  when (io.wr_cmd.valid) {
+    wr_cyc_cntr_act := true.B
+  } .elsewhen (state_wr_addr === StateWrAddr.Done && state_wr_data === StateWrData.Done) {
+    wr_cyc_cntr_act := false.B
+  }
+
+  io.diag_cntr_wr_cyc := wr_cyc_cntr._1
 
   // tie-offs
   io.m.AR := DontCare

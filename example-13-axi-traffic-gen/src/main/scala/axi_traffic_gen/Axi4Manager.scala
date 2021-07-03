@@ -39,8 +39,9 @@ class Axi4Manager(addr_w: Int, data_w: Int, id_w: Int) extends Module {
     val rd_cmd = new Axi4ManagerRdCmd(addr_w)
     val done_clear = Input(Bool())
 
-    val diag_cntr_rd = Output(UInt(10.W))
-    val diag_cntr_wr = Output(UInt(10.W))
+    val diag_cntr_rd_cyc = Output(UInt(32.W))
+    val diag_cntr_rd_ok = Output(UInt(32.W))
+    val diag_cntr_wr_cyc = Output(UInt(32.W))
   })
 
   val inst_rd = Module(new Axi4ManagerRd(addr_w, data_w, id_w))
@@ -57,10 +58,10 @@ class Axi4Manager(addr_w: Int, data_w: Int, id_w: Int) extends Module {
 
   inst_rd.io.rd_cmd <> io.rd_cmd
   inst_rd.io.done_clear := io.done_clear
+  io.diag_cntr_rd_cyc := inst_rd.io.diag_cntr_rd_cyc
+  io.diag_cntr_rd_ok := inst_rd.io.diag_cntr_rd_ok
 
   val inst_wr = Module(new Axi4ManagerWr(addr_w, data_w, id_w))
-
-  io.diag_cntr_rd := inst_rd.io.diag_cntr_rd
 
   io.m.AW <> inst_wr.io.m.AW
   io.m.W <> inst_wr.io.m.W
@@ -74,7 +75,7 @@ class Axi4Manager(addr_w: Int, data_w: Int, id_w: Int) extends Module {
 
   inst_wr.io.wr_cmd <> io.wr_cmd
 
-  io.diag_cntr_wr := inst_wr.io.diag_cntr_wr
+  io.diag_cntr_wr_cyc := inst_wr.io.diag_cntr_wr_cyc
   inst_wr.io.done_clear := io.done_clear
 
 }

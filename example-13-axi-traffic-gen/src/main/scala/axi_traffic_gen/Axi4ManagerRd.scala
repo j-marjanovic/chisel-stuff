@@ -38,7 +38,8 @@ class Axi4ManagerRd(addr_w: Int, data_w: Int, id_w: Int) extends Module {
     val rd_cmd = new Axi4ManagerRdCmd(addr_w)
     val done_clear = Input(Bool())
 
-    val diag_cntr_rd = Output(UInt(10.W))
+    val diag_cntr_rd_cyc = Output(UInt(32.W))
+    val diag_cntr_rd_ok = Output(UInt(32.W))
   })
 
   val NR_BEATS: Int = 4
@@ -121,11 +122,39 @@ class Axi4ManagerRd(addr_w: Int, data_w: Int, id_w: Int) extends Module {
 
   //==========================================================
 
-  // TODO: process data
+  val rem_beats = Reg(UInt(32.W))
+  val ref_word = Reg(UInt(data_w.W))
+  val rd_cntr_ok = Reg(UInt(32.W))
 
-  // TODO
-  io.diag_cntr_rd := 0.U
+  when(io.rd_cmd.valid) {
+    rem_beats := io.rd_cmd.len * NR_BEATS.U - 1.U
+    ref_word := 0.U
+    rd_cntr_ok := 0.U
+  }.elsewhen(io.m.R.valid) {
+    rem_beats := rem_beats - 1.U
+    ref_word := ref_word + 1.U
+    when(io.m.R.bits.data === ref_word) {
+      rd_cntr_ok := rd_cntr_ok + 1.U
+    }
+  }
 
+  io.diag_cntr_rd_ok := rd_cntr_ok
+
+  //==========================================================
+  // statistics
+
+  val rd_cyc_cntr_act = RegInit(false.B)
+  val rd_cyc_cntr = Counter(rd_cyc_cntr_act, (Math.pow(2, 32)-1).toInt)
+
+  when(io.rd_cmd.valid) {
+    rd_cyc_cntr_act := true.B
+  }.elsewhen(state_rd === StateRd.Done && rem_beats === 0.U) {
+    rd_cyc_cntr_act := false.B
+  }
+
+  io.diag_cntr_rd_cyc := rd_cyc_cntr._1
+
+  //==========================================================
   // tie-offs
   io.m.AW := DontCare
   io.m.W := DontCare

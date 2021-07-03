@@ -51,8 +51,8 @@ class AxiTrafficGen(
 
   // version reg
   mod_ctrl.io.inp("VERSION_MAJOR") := 0.U
-  mod_ctrl.io.inp("VERSION_MINOR") := 2.U
-  mod_ctrl.io.inp("VERSION_PATCH") := 4.U
+  mod_ctrl.io.inp("VERSION_MINOR") := 3.U
+  mod_ctrl.io.inp("VERSION_PATCH") := 0.U
 
   // AXI interface
   private val mod_axi = Module(new Axi4Manager(addr_w, data_w, id_w))
@@ -62,8 +62,6 @@ class AxiTrafficGen(
   mod_axi.io.config_axi_user := mod_ctrl.io.out("CONFIG_AXI_USER")
   mod_ctrl.io.inp("STATS_CNTR_RD") := mod_axi.io.diag_cntr_rd
   mod_ctrl.io.inp("STATS_CNTR_WR") := mod_axi.io.diag_cntr_wr
-  mod_axi.io.rd_cmd.len := 0.U // TODO - connect to AXI
-  mod_axi.io.wr_cmd.len := 0x100.U // TODO - connect to AXI
 
   // write command
   mod_axi.io.wr_cmd.addr := Cat(
@@ -71,7 +69,9 @@ class AxiTrafficGen(
     mod_ctrl.io.out("ADDR_LO_").asUInt()
   )
   mod_axi.io.wr_cmd.valid := mod_ctrl.io.out("CONTROL_START_WR")
+  mod_axi.io.wr_cmd.len := mod_ctrl.io.out("LENGTH_")
   mod_ctrl.io.inp("STATUS_READY_WR") := mod_axi.io.wr_cmd.ready
+  mod_ctrl.io.inp("STATUS_DONE_WR") := mod_axi.io.wr_cmd.done
 
   // read command
   mod_axi.io.rd_cmd.addr := Cat(
@@ -80,25 +80,13 @@ class AxiTrafficGen(
   )
 
   mod_axi.io.rd_cmd.valid := mod_ctrl.io.out("CONTROL_START_RD")
+  mod_axi.io.rd_cmd.len := mod_ctrl.io.out("LENGTH_")
   mod_ctrl.io.inp("STATUS_READY_RD") := mod_axi.io.rd_cmd.ready
+  mod_ctrl.io.inp("STATUS_DONE_RD") := mod_axi.io.rd_cmd.done
 
-  // read done
-  private val reg_done_wr = RegInit(false.B)
-  mod_ctrl.io.inp("STATUS_DONE_WR") := reg_done_wr
-  when(mod_axi.io.wr_cmd.done) {
-    reg_done_wr := true.B
-  }.elsewhen(mod_ctrl.io.out("CONTROL_DONE_CLEAR").asUInt() === true.B) {
-    reg_done_wr := false.B
-  }
+  // done clear
+  mod_axi.io.done_clear := mod_ctrl.io.out("CONTROL_DONE_CLEAR")
 
-  // write done
-  private val reg_done_rd = RegInit(false.B)
-  mod_ctrl.io.inp("STATUS_DONE_RD") := reg_done_rd
-  when(mod_axi.io.rd_cmd.done) {
-    reg_done_rd := true.B
-  }.elsewhen(mod_ctrl.io.out("CONTROL_DONE_CLEAR").asUInt() === true.B) {
-    reg_done_rd := false.B
-  }
 }
 
 object AxiTrafficGen {
@@ -107,7 +95,7 @@ object AxiTrafficGen {
   // format: off
   val regs: ListBuffer[Reg] = ListBuffer[Reg](
     new Reg("ID_REG", 0,
-      new Field("ID", hw_access = Access.NA, sw_access = Access.R,  hi = 31, Some(0), reset = Some(0xa8122081L.U)) // AXI PROXY
+      new Field("ID", hw_access = Access.NA, sw_access = Access.R,  hi = 31, Some(0), reset = Some(0xa8172a9eL.U)) // AXI TRA GE
     ),
     new Reg("VERSION", 4,
       new Field("PATCH", hw_access = Access.W, sw_access = Access.R, hi = 7, lo = Some(0)),
@@ -136,6 +124,9 @@ object AxiTrafficGen {
     new Reg("STATS", addr = 0x24,
       new Field("CNTR_WR", hw_access = Access.W, sw_access = Access.R, hi = 9, lo = Some(0)),
       new Field("CNTR_RD", hw_access = Access.W, sw_access = Access.R, hi = 25, lo = Some(16)),
+    ),
+    new Reg("LENGTH", addr = 0x30,
+      new Field("", hw_access = Access.R, sw_access = Access.RW, hi= 31, lo = Some(0)),
     ),
     new Reg("ADDR_LO", 0x40,
       new Field("", hw_access = Access.R, sw_access = Access.RW, hi= 31, lo = Some(0)),

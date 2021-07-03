@@ -36,156 +36,98 @@ class Axi4ManagerRd(addr_w: Int, data_w: Int, id_w: Int) extends Module {
     val config_axi_user = Input(UInt(2.W))
 
     val rd_cmd = new Axi4ManagerRdCmd(addr_w)
+    val done_clear = Input(Bool())
 
     val diag_cntr_rd = Output(UInt(10.W))
   })
 
-  val raddr_reg = Reg(UInt(addr_w.W))
-  val rdata_reg = Reg(UInt(data_w.W))
-  val rd_done_reg = RegInit(Bool(), false.B)
+  val NR_BEATS: Int = 4
 
-  object StateRd extends ChiselEnum {
-    val Idle, RdAddr, RdData = Value
-  }
-
-  val state_rd = RegInit(StateRd.Idle)
-
-  val cntr_read = Reg(UInt(3.W))
-
-  rd_done_reg := false.B
-
-  switch(state_rd) {
-    is(StateRd.Idle) {
-      cntr_read := 0.U
-      when(io.rd_cmd.valid) {
-        state_rd := StateRd.RdAddr
-        raddr_reg := io.rd_cmd.addr
-      }
-    }
-    is(StateRd.RdAddr) {
-      when(io.m.AR.ready) {
-        state_rd := StateRd.RdData
-      }
-    }
-    is(StateRd.RdData) {
-      when(io.m.R.valid) {
-        cntr_read := cntr_read + 1.U
-
-        when (cntr_read === 0.U) {
-          rdata_reg := io.m.R.bits.data
-        }
-
-        when(io.m.R.bits.last) {
-          rd_done_reg := true.B
-          state_rd := StateRd.Idle
-        }
-      }
-    }
-  }
-
-  // just to make Chisel happy
-  io.m.AR.valid := false.B
-  io.m.R.ready := false.B
-  io.m.AR.bits.id := 0.U
-  io.m.AR.bits.addr := 0.U
-  io.m.AR.bits.len := 3.U
-  io.m.AR.bits.size := 4.U
-  io.m.AR.bits.burst := 1.U
+  // defaults
+  io.m.R.ready := true.B // we are always ready!
+  io.m.AR.bits.len := (NR_BEATS - 1).U(8.W)
+  io.m.AR.bits.size := 4.U // 16 bytes
+  io.m.AR.bits.burst := 1.U // INCR
   io.m.AR.bits.lock := 0.U
   io.m.AR.bits.cache := io.config_axi_cache
   io.m.AR.bits.prot := io.config_axi_prot
   io.m.AR.bits.qos := 0.U
   io.m.AR.bits.user := io.config_axi_user
 
+  // output regs
+  val raddr_reg = Reg(UInt(addr_w.W))
+  val arid_reg = Reg(UInt(id_w.W))
+  val arvalid_reg = RegInit(Bool(), false.B)
+  io.m.AR.bits.addr := raddr_reg
+  io.m.AR.bits.id := arid_reg
+  io.m.AR.valid := arvalid_reg
+
+  // tx in flight
+  val tx_in_flight = UpDownCounter(0 until 3)
+
+  when(io.m.R.valid && io.m.R.ready && io.m.R.bits.last) {
+    tx_in_flight.dec()
+  }
+
+  // state machine
+  object StateRd extends ChiselEnum {
+    val Idle, RdAddr, RespWait, Done = Value
+  }
+
+  val state_rd = RegInit(StateRd.Idle)
+  val rem_addrs = Reg(UInt(32.W))
+
   switch(state_rd) {
     is(StateRd.Idle) {
-      io.m.AR.valid := false.B
-      io.m.AR.bits.id := 0.U
-      io.m.AR.bits.addr := 0.U
-      io.m.AR.bits.len := 3.U
-      io.m.AR.bits.size := 4.U
-      io.m.AR.bits.burst := 1.U
-      io.m.AR.bits.lock := 0.U
-      io.m.AR.bits.cache := io.config_axi_cache
-      io.m.AR.bits.prot := io.config_axi_prot
-      io.m.AR.bits.qos := 0.U
-      io.m.AR.bits.user := io.config_axi_user
-      io.m.R.ready := false.B
+      when(io.rd_cmd.valid) {
+        rem_addrs := io.rd_cmd.len - 1.U
+        raddr_reg := io.rd_cmd.addr
+        arid_reg := 0.U
+        arvalid_reg := true.B
+        state_rd := StateRd.RdAddr
+      }
     }
     is(StateRd.RdAddr) {
-      io.m.AR.valid := true.B
-      io.m.AR.bits.id := 0.U
-      io.m.AR.bits.addr := raddr_reg
-      io.m.AR.bits.len := 3.U
-      io.m.AR.bits.size := 4.U
-      io.m.AR.bits.burst := 1.U
-      io.m.AR.bits.lock := 0.U
-      io.m.AR.bits.cache := io.config_axi_cache
-      io.m.AR.bits.prot := io.config_axi_prot
-      io.m.AR.bits.qos := 0.U
-      io.m.AR.bits.user := io.config_axi_user
-      io.m.R.ready := false.B
+      when(io.m.AR.ready) {
+        tx_in_flight.inc()
+        raddr_reg := raddr_reg + (NR_BEATS * data_w / 8).U
+        arid_reg := arid_reg + 1.U
+        rem_addrs := rem_addrs - 1.U
+
+        when(rem_addrs === 0.U) {
+          state_rd := StateRd.Done
+          arvalid_reg := false.B
+        }.elsewhen(tx_in_flight.is_almost_full()) {
+          arvalid_reg := false.B
+          state_rd := StateRd.RespWait
+        }
+      }
     }
-    is(StateRd.RdData) {
-      io.m.AR.valid := false.B
-      io.m.AR.bits.id := 0.U
-      io.m.AR.bits.addr := 0.U
-      io.m.AR.bits.len := 3.U
-      io.m.AR.bits.size := 4.U
-      io.m.AR.bits.burst := 1.U
-      io.m.AR.bits.lock := 0.U
-      io.m.AR.bits.cache := io.config_axi_cache
-      io.m.AR.bits.prot := io.config_axi_prot
-      io.m.AR.bits.qos := 0.U
-      io.m.AR.bits.user := io.config_axi_user
-      io.m.R.ready := true.B
+    is(StateRd.RespWait) {
+      when(!tx_in_flight.is_full()) {
+        arvalid_reg := true.B
+        state_rd := StateRd.RdAddr
+      }
+    }
+    is(StateRd.Done) {
+      when(io.done_clear) {
+        state_rd := StateRd.Idle
+      }
     }
   }
 
   io.rd_cmd.ready := state_rd === StateRd.Idle
-  io.rd_cmd.done := rd_done_reg
+  io.rd_cmd.done := state_rd === StateRd.Done
 
   //==========================================================
 
-  /*
-  val cntr_wr = Reg(UInt(10.W))
-  val cntr_rd = Reg(UInt(10.W))
-
-  val state_wr_addr_prev = RegNext(state_wr_addr)
-  val state_rd_prev = RegNext(state_rd)
-
-  when (state_rd_prev === StateRd.Idle && state_rd =/= StateRd.Idle) {
-    cntr_rd := 1.U
-  } .elsewhen (state_rd =/= StateRd.Idle) {
-    cntr_rd := cntr_rd + 1.U
-  }
-
-  when (state_wr_addr_prev === StateWrAddr.Idle && state_wr_addr =/= StateWrAddr.Idle) {
-    cntr_wr := 1.U
-  } .elsewhen (state_wr_addr =/= StateWrAddr.Idle) {
-    cntr_wr := cntr_wr + 1.U
-  }
-
-  io.diag_cntr_rd := cntr_rd
-  io.diag_cntr_wr := cntr_wr
-
-   */
+  // TODO: process data
 
   // TODO
   io.diag_cntr_rd := 0.U
 
   // tie-offs
-  io.m.B.bits.resp := DontCare
-
   io.m.AW := DontCare
   io.m.W := DontCare
-
-    /*.bits.user := DontCare
-  io.m.W.bits.last
-  io.m.W.bits.data
-  io.m.W.bits.strb
-
-     */
-
   io.m.B := DontCare
 }

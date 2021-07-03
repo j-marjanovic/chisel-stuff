@@ -36,15 +36,15 @@ class Axi4ManagerWr(addr_w: Int, data_w: Int, id_w: Int) extends Module {
     val config_axi_user = Input(UInt(2.W))
 
     val wr_cmd = new Axi4ManagerWrCmd(addr_w)
+    val done_clear = Input(Bool())
 
     val diag_cntr_wr = Output(UInt(32.W))
   })
 
+  val NR_BEATS: Int = 4
+
   // defaults
-  //io.m.AW.valid := false.B
-  //io.m.AW.bits.id := 0.U
-  //io.m.AW.bits.addr := 0.U
-  io.m.AW.bits.len := 3.U // 4 beats
+  io.m.AW.bits.len := (NR_BEATS - 1).U(8.W)
   io.m.AW.bits.size := 4.U // 16 bytes
   io.m.AW.bits.burst := 1.U // INCR
   io.m.AW.bits.lock := 0.U
@@ -54,14 +54,7 @@ class Axi4ManagerWr(addr_w: Int, data_w: Int, id_w: Int) extends Module {
   io.m.AW.bits.user := io.config_axi_user
   io.m.B.ready := true.B
 
-  // tx in flight
-  val tx_in_flight = UpDownCounter(0 until 3)
-
-  when(io.m.B.valid) {
-    tx_in_flight.dec()
-  }
-
-  val rem_addrs = Reg(UInt(32.W))
+  // output regs
   val awaddr_reg = Reg(UInt(addr_w.W))
   val awid_reg = Reg(UInt(id_w.W))
   val awvalid_reg = RegInit(Bool(), false.B)
@@ -69,12 +62,20 @@ class Axi4ManagerWr(addr_w: Int, data_w: Int, id_w: Int) extends Module {
   io.m.AW.bits.id := awid_reg
   io.m.AW.valid := awvalid_reg
 
+  // tx in flight
+  val tx_in_flight = UpDownCounter(0 until 3)
+
+  when(io.m.B.valid) {
+    tx_in_flight.dec()
+  }
+
   // state machine
   object StateWrAddr extends ChiselEnum {
     val Idle, WrAddr, WrRespWait, Done = Value
   }
 
   val state_wr_addr = RegInit(StateWrAddr.Idle)
+  val rem_addrs = Reg(UInt(32.W))
 
   switch(state_wr_addr) {
     is(StateWrAddr.Idle) {
@@ -89,7 +90,7 @@ class Axi4ManagerWr(addr_w: Int, data_w: Int, id_w: Int) extends Module {
     is(StateWrAddr.WrAddr) {
       when(io.m.AW.ready) {
         tx_in_flight.inc()
-        awaddr_reg := awaddr_reg + 0x40.U // TOOD : calc
+        awaddr_reg := awaddr_reg + (NR_BEATS * data_w / 8).U
         awid_reg := awid_reg + 1.U
         rem_addrs := rem_addrs - 1.U
 
@@ -109,30 +110,38 @@ class Axi4ManagerWr(addr_w: Int, data_w: Int, id_w: Int) extends Module {
         state_wr_addr := StateWrAddr.WrAddr
       }
     }
+    is(StateWrAddr.Done) {
+      when(io.done_clear) {
+        state_wr_addr := StateWrAddr.Idle
+      }
+    }
   }
 
   //==========================================================
 
   io.wr_cmd.ready := state_wr_addr === StateWrAddr.Idle
-  io.wr_cmd.done := false.B // TODO wr_done_reg
+  io.wr_cmd.done := state_wr_addr === StateWrAddr.Done
 
   //==========================================================
 
+  // constant outptus
+  io.m.W.bits.strb := -1.S(io.m.W.bits.strb.getWidth.W).asUInt()
+  io.m.W.bits.user := 0.U
+
+  // output regs
   val wdata_reg = Reg(UInt(data_w.W))
-  //val wvalid_reg = RegInit(Bool(), false.B)
   val wlast_reg = RegInit(Bool(), false.B)
-  //:= wvalid_reg
   io.m.W.bits.data := wdata_reg
   io.m.W.bits.last := wlast_reg
 
-  val wr_beat_cntr = Reg(UInt(2.W))
-  val wr_total_cntr = Reg(UInt(32.W))
-
+  // state machine
   object StateWrData extends ChiselEnum {
     val Idle, WrData, Done = Value
   }
 
   val state_wr_data = RegInit(StateWrData.Idle)
+  val wr_beat_cntr = Reg(UInt(2.W))
+  val wr_total_cntr = Reg(UInt(32.W))
 
   switch(state_wr_data) {
     is(StateWrData.Idle) {
@@ -170,24 +179,6 @@ class Axi4ManagerWr(addr_w: Int, data_w: Int, id_w: Int) extends Module {
   io.diag_cntr_wr := 0.U
 
   // tie-offs
-  io.m.W.bits.strb := -1.S(io.m.W.bits.strb.getWidth.W).asUInt()
-  io.m.W.bits.user := 0.U
-
-  // tie-offs
-
-  io.m.AR.valid := DontCare
-  io.m.AR.bits.lock := DontCare
-  io.m.AR.bits.cache := DontCare
-  io.m.AR.bits.id := DontCare
-  io.m.AR.bits.qos := DontCare
-  io.m.AR.bits.len := DontCare
-  io.m.AR.bits.burst := DontCare
-  io.m.AR.bits.addr := DontCare
-  io.m.AR.bits.prot := DontCare
-  io.m.AR.bits.user := DontCare
-  io.m.AR.bits.size := DontCare
-
-  io.m.R.bits.id := DontCare
-  io.m.R.ready := DontCare
-
+  io.m.AR := DontCare
+  io.m.R := DontCare
 }

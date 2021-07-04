@@ -22,10 +22,10 @@ SOFTWARE.
 
 package axi_traffic_gen
 
-import bfmtester.util
 import bfmtester.util.AxiLiteSubordinateGenerator
-import bfmtester.util.AxiLiteSubordinateGenerator.{Reg, AreaMap}
 import chisel3.stage.ChiselStage
+
+import java.io.File
 
 object AxiTrafficGenMain extends App {
   new ChiselStage().emitSystemVerilog(
@@ -33,27 +33,15 @@ object AxiTrafficGenMain extends App {
     Array[String]("--target-dir", "ip_cores/axi_traffic_gen/hdl") ++ args
   )
 
-  /*
-  def gen_python(area_map: AreaMap, out_filename : String) = {
-    val regs_sorted = area_map.els.filter(_.isInstanceOf[Reg])
-      .sortBy(_.asInstanceOf[Reg].addr)
-
-    val reg_addr_last = regs_sorted.last.asInstanceOf[AxiLiteSubordinateGenerator.Reg].addr
-
-    var reg_dict: Map[Int, Reg] = Map[Int, Reg]()
-    for (el <- area_map.els.filter(_.isInstanceOf[Reg])) {
-      val reg = el.asInstanceOf[Reg]
-      reg_dict += (reg.addr -> reg)
-    }
-
-    for (i <- 0 to reg_addr_last by 4) {
-      val s: String = reg_dict.get(i).map(_.name).getOrElse(f"rsvd0x${i}%x")
-      println(s"""("${s}", ctypes.c_uint32),""")
-    }
+  val directory: File = new File("ip_cores/axi_traffic_gen/drivers");
+  if (!directory.exists()) {
+    directory.mkdirs()
   }
 
+  AxiLiteSubordinateGenerator.gen_python_header(
+    AxiTrafficGen.area_map,
+    "_AxiTrafficGenMap",
+    "ip_cores/axi_traffic_gen/drivers/_AxiTrafficGenMap.py"
+  )
 
-
-  gen_python(AxiTrafficGen.area_map, "test1.py")
-   */
 }

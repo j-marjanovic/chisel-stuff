@@ -124,7 +124,7 @@ set bCheckIPsPassed 1
 set bCheckIPs 1
 if { $bCheckIPs == 1 } {
    set list_check_ips "\ 
-user.org:user:AxiTrafficGen:0.1\
+user.org:user:AxiTrafficGen:0.9\
 xilinx.com:ip:debug_bridge:3.0\
 xilinx.com:ip:proc_sys_reset:5.0\
 xilinx.com:ip:system_ila:1.1\
@@ -196,13 +196,13 @@ proc create_root_design { parentCell } {
   # Create ports
 
   # Create instance: AxiTrafficGen_ACP, and set properties
-  set AxiTrafficGen_ACP [ create_bd_cell -type ip -vlnv user.org:user:AxiTrafficGen:0.1 AxiTrafficGen_ACP ]
+  set AxiTrafficGen_ACP [ create_bd_cell -type ip -vlnv user.org:user:AxiTrafficGen:0.9 AxiTrafficGen_ACP ]
 
   # Create instance: AxiTrafficGen_HP, and set properties
-  set AxiTrafficGen_HP [ create_bd_cell -type ip -vlnv user.org:user:AxiTrafficGen:0.1 AxiTrafficGen_HP ]
+  set AxiTrafficGen_HP [ create_bd_cell -type ip -vlnv user.org:user:AxiTrafficGen:0.9 AxiTrafficGen_HP ]
 
   # Create instance: AxiTrafficGen_HPC, and set properties
-  set AxiTrafficGen_HPC [ create_bd_cell -type ip -vlnv user.org:user:AxiTrafficGen:0.1 AxiTrafficGen_HPC ]
+  set AxiTrafficGen_HPC [ create_bd_cell -type ip -vlnv user.org:user:AxiTrafficGen:0.9 AxiTrafficGen_HPC ]
 
   # Create instance: debug_bridge_0, and set properties
   set debug_bridge_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:debug_bridge:3.0 debug_bridge_0 ]
@@ -228,21 +228,26 @@ proc create_root_design { parentCell } {
   # Create instance: system_ila_0, and set properties
   set system_ila_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:system_ila:1.1 system_ila_0 ]
   set_property -dict [ list \
-   CONFIG.C_BRAM_CNT {26} \
+   CONFIG.C_BRAM_CNT {36} \
+   CONFIG.C_MON_TYPE {INTERFACE} \
    CONFIG.C_NUM_MONITOR_SLOTS {3} \
+   CONFIG.C_NUM_OF_PROBES {6} \
    CONFIG.C_SLOT {2} \
    CONFIG.C_SLOT_0_APC_EN {1} \
-   CONFIG.C_SLOT_0_APC_STS_EN {1} \
+   CONFIG.C_SLOT_0_APC_STS_EN {0} \
    CONFIG.C_SLOT_0_MAX_RD_BURSTS {8} \
    CONFIG.C_SLOT_0_MAX_WR_BURSTS {8} \
+   CONFIG.C_SLOT_0_TXN_CNTR_EN {0} \
    CONFIG.C_SLOT_1_APC_EN {1} \
-   CONFIG.C_SLOT_1_APC_STS_EN {1} \
+   CONFIG.C_SLOT_1_APC_STS_EN {0} \
    CONFIG.C_SLOT_1_MAX_RD_BURSTS {8} \
    CONFIG.C_SLOT_1_MAX_WR_BURSTS {8} \
+   CONFIG.C_SLOT_1_TXN_CNTR_EN {0} \
    CONFIG.C_SLOT_2_APC_EN {1} \
-   CONFIG.C_SLOT_2_APC_STS_EN {1} \
+   CONFIG.C_SLOT_2_APC_STS_EN {0} \
    CONFIG.C_SLOT_2_MAX_RD_BURSTS {8} \
    CONFIG.C_SLOT_2_MAX_WR_BURSTS {8} \
+   CONFIG.C_SLOT_2_TXN_CNTR_EN {0} \
  ] $system_ila_0
 
   # Create instance: zynq_ultra_ps_e_0, and set properties
@@ -994,6 +999,9 @@ connect_bd_intf_net -intf_net [get_bd_intf_nets AxiTrafficGen_HP_MNGR] [get_bd_i
   connect_bd_net -net zynq_ultra_ps_e_0_pl_resetn0 [get_bd_pins rst_ps8_0_100M/ext_reset_in] [get_bd_pins zynq_ultra_ps_e_0/pl_resetn0]
 
   # Create address segments
+  assign_bd_address -offset 0x00000000 -range 0x80000000 -target_address_space [get_bd_addr_spaces AxiTrafficGen_ACP/MNGR] [get_bd_addr_segs zynq_ultra_ps_e_0/SAXIACP/ACP_DDR_LOW] -force
+  assign_bd_address -offset 0x00000000 -range 0x80000000 -target_address_space [get_bd_addr_spaces AxiTrafficGen_HP/MNGR] [get_bd_addr_segs zynq_ultra_ps_e_0/SAXIGP2/HP0_DDR_LOW] -force
+  assign_bd_address -offset 0x00000000 -range 0x80000000 -target_address_space [get_bd_addr_spaces AxiTrafficGen_HPC/MNGR] [get_bd_addr_segs zynq_ultra_ps_e_0/SAXIGP0/HPC0_DDR_LOW] -force
   assign_bd_address -offset 0xA0040000 -range 0x00010000 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [get_bd_addr_segs AxiTrafficGen_ACP/CTRL/REGS] -force
   assign_bd_address -offset 0xA0020000 -range 0x00010000 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [get_bd_addr_segs AxiTrafficGen_HPC/CTRL/REGS] -force
   assign_bd_address -offset 0xA0030000 -range 0x00010000 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [get_bd_addr_segs AxiTrafficGen_HP/CTRL/REGS] -force
@@ -1003,6 +1011,7 @@ connect_bd_intf_net -intf_net [get_bd_intf_nets AxiTrafficGen_HP_MNGR] [get_bd_i
   # Restore current instance
   current_bd_instance $oldCurInst
 
+  validate_bd_design
   save_bd_design
 }
 # End of create_root_design()
@@ -1014,6 +1023,4 @@ connect_bd_intf_net -intf_net [get_bd_intf_nets AxiTrafficGen_HP_MNGR] [get_bd_i
 
 create_root_design ""
 
-
-common::send_gid_msg -ssname BD::TCL -id 2053 -severity "WARNING" "This Tcl script was generated from a block design that has not been validated. It is possible that design <$design_name> may result in errors during validation."
 

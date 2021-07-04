@@ -56,10 +56,9 @@ class Axi4ManagerWr(addr_w: Int, data_w: Int, id_w: Int) extends Module {
 
   // output regs
   val awaddr_reg = Reg(UInt(addr_w.W))
-  val awid_reg = Reg(UInt(id_w.W))
   val awvalid_reg = RegInit(Bool(), false.B)
   io.m.AW.bits.addr := awaddr_reg
-  io.m.AW.bits.id := awid_reg
+  io.m.AW.bits.id := 0.U
   io.m.AW.valid := awvalid_reg
 
   // tx in flight
@@ -80,7 +79,6 @@ class Axi4ManagerWr(addr_w: Int, data_w: Int, id_w: Int) extends Module {
       when(io.wr_cmd.valid) {
         rem_addrs := io.wr_cmd.len - 1.U
         awaddr_reg := io.wr_cmd.addr
-        awid_reg := 0.U
         awvalid_reg := true.B
         state_wr_addr := StateWrAddr.WrAddr
       }
@@ -88,7 +86,6 @@ class Axi4ManagerWr(addr_w: Int, data_w: Int, id_w: Int) extends Module {
     is(StateWrAddr.WrAddr) {
       when(io.m.AW.ready) {
         awaddr_reg := awaddr_reg + (NR_BEATS * data_w / 8).U
-        awid_reg := awid_reg + 1.U
         rem_addrs := rem_addrs - 1.U
 
         when(rem_addrs === 0.U) {

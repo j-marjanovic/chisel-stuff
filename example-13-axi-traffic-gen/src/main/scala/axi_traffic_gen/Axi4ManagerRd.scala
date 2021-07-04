@@ -57,10 +57,9 @@ class Axi4ManagerRd(addr_w: Int, data_w: Int, id_w: Int) extends Module {
 
   // output regs
   val raddr_reg = Reg(UInt(addr_w.W))
-  val arid_reg = Reg(UInt(id_w.W))
   val arvalid_reg = RegInit(Bool(), false.B)
   io.m.AR.bits.addr := raddr_reg
-  io.m.AR.bits.id := arid_reg
+  io.m.AR.bits.id := 0.U
   io.m.AR.valid := arvalid_reg
 
   // tx in flight
@@ -81,7 +80,6 @@ class Axi4ManagerRd(addr_w: Int, data_w: Int, id_w: Int) extends Module {
       when(io.rd_cmd.valid) {
         rem_addrs := io.rd_cmd.len - 1.U
         raddr_reg := io.rd_cmd.addr
-        arid_reg := 0.U
         arvalid_reg := true.B
         state_rd := StateRd.RdAddr
       }
@@ -89,7 +87,6 @@ class Axi4ManagerRd(addr_w: Int, data_w: Int, id_w: Int) extends Module {
     is(StateRd.RdAddr) {
       when(io.m.AR.ready) {
         raddr_reg := raddr_reg + (NR_BEATS * data_w / 8).U
-        arid_reg := arid_reg + 1.U
         rem_addrs := rem_addrs - 1.U
 
         when(rem_addrs === 0.U) {

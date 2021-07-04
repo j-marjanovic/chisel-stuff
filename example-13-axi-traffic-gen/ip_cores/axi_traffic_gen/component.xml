@@ -3,7 +3,7 @@
   <spirit:vendor>user.org</spirit:vendor>
   <spirit:library>user</spirit:library>
   <spirit:name>AxiTrafficGen</spirit:name>
-  <spirit:version>0.1</spirit:version>
+  <spirit:version>0.9</spirit:version>
   <spirit:busInterfaces>
     <spirit:busInterface>
       <spirit:name>reset</spirit:name>
@@ -57,7 +57,9 @@
       <spirit:name>MNGR</spirit:name>
       <spirit:busType spirit:vendor="xilinx.com" spirit:library="interface" spirit:name="aximm" spirit:version="1.0"/>
       <spirit:abstractionType spirit:vendor="xilinx.com" spirit:library="interface" spirit:name="aximm_rtl" spirit:version="1.0"/>
-      <spirit:master/>
+      <spirit:master>
+        <spirit:addressSpaceRef spirit:addressSpaceRef="MNGR"/>
+      </spirit:master>
       <spirit:portMaps>
         <spirit:portMap>
           <spirit:logicalPort>
@@ -556,6 +558,13 @@
       </spirit:parameters>
     </spirit:busInterface>
   </spirit:busInterfaces>
+  <spirit:addressSpaces>
+    <spirit:addressSpace>
+      <spirit:name>MNGR</spirit:name>
+      <spirit:range spirit:format="long" spirit:resolve="user" spirit:minimum="4096" spirit:rangeType="long">1099511627776</spirit:range>
+      <spirit:width spirit:format="long" spirit:resolve="user">128</spirit:width>
+    </spirit:addressSpace>
+  </spirit:addressSpaces>
   <spirit:memoryMaps>
     <spirit:memoryMap>
       <spirit:name>CTRL</spirit:name>
@@ -581,7 +590,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>9cbad77a</spirit:value>
+            <spirit:value>45262d96</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -597,7 +606,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>9cbad77a</spirit:value>
+            <spirit:value>45262d96</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -1541,7 +1550,7 @@
       <spirit:file>
         <spirit:name>hdl/AxiTrafficGen.sv</spirit:name>
         <spirit:fileType>systemVerilogSource</spirit:fileType>
-        <spirit:userFileType>CHECKSUM_9cbad77a</spirit:userFileType>
+        <spirit:userFileType>CHECKSUM_45262d96</spirit:userFileType>
       </spirit:file>
     </spirit:fileSet>
     <spirit:fileSet>
@@ -1554,7 +1563,7 @@
     <spirit:fileSet>
       <spirit:name>xilinx_xpgui_view_fileset</spirit:name>
       <spirit:file>
-        <spirit:name>xgui/AxiTrafficGen_v0_1.tcl</spirit:name>
+        <spirit:name>xgui/AxiTrafficGen_v0_9.tcl</spirit:name>
         <spirit:fileType>tclSource</spirit:fileType>
         <spirit:userFileType>CHECKSUM_f92e9879</spirit:userFileType>
         <spirit:userFileType>XGUI_VERSION_2</spirit:userFileType>
@@ -1578,8 +1587,11 @@
       </xilinx:taxonomies>
       <xilinx:displayName>Jan&apos;s AXI4 Traffic Generator</xilinx:displayName>
       <xilinx:definitionSource>package_project</xilinx:definitionSource>
-      <xilinx:coreRevision>3</xilinx:coreRevision>
-      <xilinx:coreCreationDateTime>2021-06-29T20:20:12Z</xilinx:coreCreationDateTime>
+      <xilinx:coreRevision>1</xilinx:coreRevision>
+      <xilinx:upgrades>
+        <xilinx:canUpgradeFrom>user.org:user:AxiTrafficGen:0.1</xilinx:canUpgradeFrom>
+      </xilinx:upgrades>
+      <xilinx:coreCreationDateTime>2021-07-04T16:13:19Z</xilinx:coreCreationDateTime>
       <xilinx:tags>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@7c30fa04_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@3b417204_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
@@ -1607,13 +1619,44 @@
         <xilinx:tag xilinx:name="ui.data.coregen.dd@6a97379f_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@414ae6ce_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@1e66f4b6_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4c399503_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6c3e9fbb_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1e8b7e81_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@403ff9ed_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@15ee09f7_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@424540f0_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@476a5b22_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@686a9642_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3aa3c20c_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1ac31676_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6ea82ed7_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1f3f4359_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@28bcfaf8_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5d5e3816_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3db82fd6_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3143d436_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@69de33ca_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1737c5ac_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@14944f43_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@15672abc_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@50edee3b_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@194378e9_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@47592209_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2f28a6e1_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@565a8702_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@363aeec6_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@616cf449_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@18385e1d_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@482f3b71_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7e0d8f1c_ARCHIVE_LOCATION">/home/jan/FPGA/Chisel/chisel-stuff/example-13-axi-traffic-gen/ip_cores/axi_traffic_gen</xilinx:tag>
       </xilinx:tags>
     </xilinx:coreExtensions>
     <xilinx:packagingInfo>
       <xilinx:xilinxVersion>2020.2</xilinx:xilinxVersion>
-      <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="240a96c5"/>
+      <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="971aacdf"/>
+      <xilinx:checksum xilinx:scope="addressSpaces" xilinx:value="2b846855"/>
       <xilinx:checksum xilinx:scope="memoryMaps" xilinx:value="6ce2b319"/>
-      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="ff902b66"/>
+      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="726f43f1"/>
       <xilinx:checksum xilinx:scope="ports" xilinx:value="96413499"/>
       <xilinx:checksum xilinx:scope="parameters" xilinx:value="beb17480"/>
     </xilinx:packagingInfo>

@@ -48,7 +48,7 @@ class Axi4ManagerRd(addr_w: Int, data_w: Int, id_w: Int) extends Module {
   io.m.R.ready := true.B // we are always ready!
   io.m.AR.bits.len := (NR_BEATS - 1).U(8.W)
   io.m.AR.bits.size := 4.U // 16 bytes
-  io.m.AR.bits.burst := 1.U // INCR
+  io.m.AR.bits.burst := AxiIfBurstType.BURST
   io.m.AR.bits.lock := 0.U
   io.m.AR.bits.cache := io.config_axi_cache
   io.m.AR.bits.prot := io.config_axi_prot
@@ -64,11 +64,9 @@ class Axi4ManagerRd(addr_w: Int, data_w: Int, id_w: Int) extends Module {
   io.m.AR.valid := arvalid_reg
 
   // tx in flight
-  val tx_in_flight = UpDownCounter(0 until 3)
-
-  when(io.m.R.valid && io.m.R.ready && io.m.R.bits.last) {
-    tx_in_flight.dec()
-  }
+  val tx_in_flight_inc = Wire(Bool())
+  val tx_in_flight_dec = Wire(Bool())
+  val tx_in_flight = UpDownCounter(0 to 4, tx_in_flight_inc, tx_in_flight_dec)
 
   // state machine
   object StateRd extends ChiselEnum {
@@ -90,7 +88,6 @@ class Axi4ManagerRd(addr_w: Int, data_w: Int, id_w: Int) extends Module {
     }
     is(StateRd.RdAddr) {
       when(io.m.AR.ready) {
-        tx_in_flight.inc()
         raddr_reg := raddr_reg + (NR_BEATS * data_w / 8).U
         arid_reg := arid_reg + 1.U
         rem_addrs := rem_addrs - 1.U
@@ -116,6 +113,9 @@ class Axi4ManagerRd(addr_w: Int, data_w: Int, id_w: Int) extends Module {
       }
     }
   }
+
+  tx_in_flight_dec := io.m.R.valid && io.m.R.ready && io.m.R.bits.last
+  tx_in_flight_inc := io.m.AR.ready && io.m.AR.valid
 
   io.rd_cmd.ready := state_rd === StateRd.Idle
   io.rd_cmd.done := state_rd === StateRd.Done
@@ -144,10 +144,11 @@ class Axi4ManagerRd(addr_w: Int, data_w: Int, id_w: Int) extends Module {
   // statistics
 
   val rd_cyc_cntr_act = RegInit(false.B)
-  val rd_cyc_cntr = Counter(rd_cyc_cntr_act, (Math.pow(2, 32)-1).toInt)
+  val rd_cyc_cntr = Counter(rd_cyc_cntr_act, (Math.pow(2, 32) - 1).toInt)
 
   when(io.rd_cmd.valid) {
     rd_cyc_cntr_act := true.B
+    rd_cyc_cntr._1 := 0.U
   }.elsewhen(state_rd === StateRd.Done && rem_beats === 0.U) {
     rd_cyc_cntr_act := false.B
   }

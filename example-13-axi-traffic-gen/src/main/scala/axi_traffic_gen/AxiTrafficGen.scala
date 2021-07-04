@@ -51,8 +51,8 @@ class AxiTrafficGen(
 
   // version reg
   mod_ctrl.io.inp("VERSION_MAJOR") := 0.U
-  mod_ctrl.io.inp("VERSION_MINOR") := 4.U
-  mod_ctrl.io.inp("VERSION_PATCH") := 0.U
+  mod_ctrl.io.inp("VERSION_MINOR") := 9.U
+  mod_ctrl.io.inp("VERSION_PATCH") := 5.U
 
   // AXI interface
   private val mod_axi = Module(new Axi4Manager(addr_w, data_w, id_w))
@@ -86,7 +86,6 @@ class AxiTrafficGen(
   mod_axi.io.done_clear := mod_ctrl.io.out("CONTROL_DONE_CLEAR")
 
   // diag
-
   mod_ctrl.io.inp("CNTR_WR_CYC_") := mod_axi.io.diag_cntr_wr_cyc
   mod_ctrl.io.inp("CNTR_RD_CYC_") := mod_axi.io.diag_cntr_rd_cyc
   mod_ctrl.io.inp("CNTR_RD_OK_") := mod_axi.io.diag_cntr_rd_ok

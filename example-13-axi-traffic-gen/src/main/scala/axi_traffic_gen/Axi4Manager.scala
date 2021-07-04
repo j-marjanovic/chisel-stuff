@@ -52,7 +52,7 @@ class Axi4Manager(addr_w: Int, data_w: Int, id_w: Int) extends Module {
   inst_rd.io.m.W := DontCare
   inst_rd.io.m.B := DontCare
 
-  inst_rd.io.config_axi_cache := io.config_axi_user
+  inst_rd.io.config_axi_cache := io.config_axi_cache
   inst_rd.io.config_axi_prot := io.config_axi_prot
   inst_rd.io.config_axi_user := io.config_axi_user
 
@@ -69,13 +69,12 @@ class Axi4Manager(addr_w: Int, data_w: Int, id_w: Int) extends Module {
   inst_wr.io.m.AR := DontCare
   inst_wr.io.m.R := DontCare
 
-  inst_wr.io.config_axi_cache := io.config_axi_user
+  inst_wr.io.config_axi_cache := io.config_axi_cache
   inst_wr.io.config_axi_prot := io.config_axi_prot
   inst_wr.io.config_axi_user := io.config_axi_user
 
   inst_wr.io.wr_cmd <> io.wr_cmd
-
-  io.diag_cntr_wr_cyc := inst_wr.io.diag_cntr_wr_cyc
   inst_wr.io.done_clear := io.done_clear
+  io.diag_cntr_wr_cyc := inst_wr.io.diag_cntr_wr_cyc
 
 }

@@ -46,7 +46,7 @@ class Axi4ManagerWr(addr_w: Int, data_w: Int, id_w: Int) extends Module {
   // defaults
   io.m.AW.bits.len := (NR_BEATS - 1).U(8.W)
   io.m.AW.bits.size := 4.U // 16 bytes
-  io.m.AW.bits.burst := 1.U // INCR
+  io.m.AW.bits.burst := AxiIfBurstType.BURST
   io.m.AW.bits.lock := 0.U
   io.m.AW.bits.cache := io.config_axi_cache
   io.m.AW.bits.prot := io.config_axi_prot
@@ -63,11 +63,9 @@ class Axi4ManagerWr(addr_w: Int, data_w: Int, id_w: Int) extends Module {
   io.m.AW.valid := awvalid_reg
 
   // tx in flight
-  val tx_in_flight = UpDownCounter(0 until 3)
-
-  when(io.m.B.valid) {
-    tx_in_flight.dec()
-  }
+  val tx_in_flight_inc = Wire(Bool())
+  val tx_in_flight_dec = Wire(Bool())
+  val tx_in_flight = UpDownCounter(0 to 4, tx_in_flight_inc, tx_in_flight_dec)
 
   // state machine
   object StateWrAddr extends ChiselEnum {
@@ -89,7 +87,6 @@ class Axi4ManagerWr(addr_w: Int, data_w: Int, id_w: Int) extends Module {
     }
     is(StateWrAddr.WrAddr) {
       when(io.m.AW.ready) {
-        tx_in_flight.inc()
         awaddr_reg := awaddr_reg + (NR_BEATS * data_w / 8).U
         awid_reg := awid_reg + 1.U
         rem_addrs := rem_addrs - 1.U
@@ -116,6 +113,9 @@ class Axi4ManagerWr(addr_w: Int, data_w: Int, id_w: Int) extends Module {
       }
     }
   }
+
+  tx_in_flight_inc := io.m.AW.ready && io.m.AW.valid
+  tx_in_flight_dec := io.m.B.valid && io.m.B.ready
 
   //==========================================================
 
@@ -185,7 +185,8 @@ class Axi4ManagerWr(addr_w: Int, data_w: Int, id_w: Int) extends Module {
 
   when (io.wr_cmd.valid) {
     wr_cyc_cntr_act := true.B
-  } .elsewhen (state_wr_addr === StateWrAddr.Done && state_wr_data === StateWrData.Done) {
+    wr_cyc_cntr._1 := 0.U
+  } .elsewhen (state_wr_addr === StateWrAddr.Done && state_wr_data === StateWrData.Done && tx_in_flight.is_empty()) {
     wr_cyc_cntr_act := false.B
   }
 

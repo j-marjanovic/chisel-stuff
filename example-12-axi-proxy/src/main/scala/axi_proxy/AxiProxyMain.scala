@@ -22,9 +22,7 @@ SOFTWARE.
 
 package axi_proxy
 
-import bfmtester.util
 import bfmtester.util.AxiLiteSubordinateGenerator
-import bfmtester.util.AxiLiteSubordinateGenerator.{Reg, AreaMap}
 import chisel3.stage.ChiselStage
 
 object AxiProxyMain extends App {
@@ -33,24 +31,10 @@ object AxiProxyMain extends App {
     Array[String]("--target-dir", "ip_cores/axi_proxy/hdl") ++ args
   )
 
-  def gen_python(area_map: AreaMap, out_filename : String) = {
-    val regs_sorted = area_map.els.filter(_.isInstanceOf[Reg])
-      .sortBy(_.asInstanceOf[Reg].addr)
-
-    val reg_addr_last = regs_sorted.last.asInstanceOf[AxiLiteSubordinateGenerator.Reg].addr
-
-    var reg_dict: Map[Int, Reg] = Map[Int, Reg]()
-    for (el <- area_map.els.filter(_.isInstanceOf[Reg])) {
-      val reg = el.asInstanceOf[Reg]
-      reg_dict += (reg.addr -> reg)
-    }
-
-    for (i <- 0 to reg_addr_last by 4) {
-      val s: String = reg_dict.get(i).map(_.name).getOrElse(f"rsvd0x${i}%x")
-      println(s"""("${s}", ctypes.c_uint32),""")
-    }
-  }
-
-  gen_python(AxiProxy.area_map, "test1.py")
-
+  new java.io.File("ip_cores/axi_proxy/drivers").mkdirs
+  AxiLiteSubordinateGenerator.gen_python_header(
+    AxiProxy.area_map,
+    "_AxiProxyMap",
+    "ip_cores/axi_proxy/drivers/_AxiProxyMap.py"
+  )
 }

@@ -227,6 +227,10 @@ proc create_root_design { parentCell } {
 
   # Create instance: system_ila_0, and set properties
   set system_ila_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:system_ila:1.1 system_ila_0 ]
+  set_property -dict [ list \
+   CONFIG.C_BRAM_CNT {12.5} \
+   CONFIG.C_NUM_MONITOR_SLOTS {3} \
+ ] $system_ila_0
 
   # Create instance: zynq_ultra_ps_e_0, and set properties
   set zynq_ultra_ps_e_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:zynq_ultra_ps_e:3.3 zynq_ultra_ps_e_0 ]
@@ -957,15 +961,17 @@ proc create_root_design { parentCell } {
  ] $zynq_ultra_ps_e_0
 
   # Create interface connections
-  connect_bd_intf_net -intf_net AxiProxy_0_MNGR [get_bd_intf_pins AxiProxy_ACP/MNGR] [get_bd_intf_pins zynq_ultra_ps_e_0/S_AXI_ACP_FPD]
-connect_bd_intf_net -intf_net [get_bd_intf_nets AxiProxy_0_MNGR] [get_bd_intf_pins AxiProxy_ACP/MNGR] [get_bd_intf_pins system_ila_0/SLOT_0_AXI]
-  connect_bd_intf_net -intf_net AxiProxy_1_MNGR [get_bd_intf_pins AxiProxy_HPC/MNGR] [get_bd_intf_pins zynq_ultra_ps_e_0/S_AXI_HPC0_FPD]
-  connect_bd_intf_net -intf_net AxiProxy_2_MNGR [get_bd_intf_pins AxiProxy_HP/MNGR] [get_bd_intf_pins zynq_ultra_ps_e_0/S_AXI_HP0_FPD]
+  connect_bd_intf_net -intf_net AxiProxy_ACP_MNGR [get_bd_intf_pins AxiProxy_ACP/MNGR] [get_bd_intf_pins zynq_ultra_ps_e_0/S_AXI_ACP_FPD]
+connect_bd_intf_net -intf_net [get_bd_intf_nets AxiProxy_ACP_MNGR] [get_bd_intf_pins AxiProxy_ACP/MNGR] [get_bd_intf_pins system_ila_0/SLOT_0_AXI]
+  connect_bd_intf_net -intf_net AxiProxy_HPC_MNGR [get_bd_intf_pins AxiProxy_HPC/MNGR] [get_bd_intf_pins zynq_ultra_ps_e_0/S_AXI_HPC0_FPD]
+connect_bd_intf_net -intf_net [get_bd_intf_nets AxiProxy_HPC_MNGR] [get_bd_intf_pins AxiProxy_HPC/MNGR] [get_bd_intf_pins system_ila_0/SLOT_1_AXI]
+  connect_bd_intf_net -intf_net AxiProxy_HP_MNGR [get_bd_intf_pins AxiProxy_HP/MNGR] [get_bd_intf_pins zynq_ultra_ps_e_0/S_AXI_HP0_FPD]
+connect_bd_intf_net -intf_net [get_bd_intf_nets AxiProxy_HP_MNGR] [get_bd_intf_pins AxiProxy_HP/MNGR] [get_bd_intf_pins system_ila_0/SLOT_2_AXI]
   connect_bd_intf_net -intf_net debug_bridge_0_m0_bscan [get_bd_intf_pins debug_bridge_0/m0_bscan] [get_bd_intf_pins debug_bridge_1/S_BSCAN]
   connect_bd_intf_net -intf_net ps8_0_axi_periph_M00_AXI [get_bd_intf_pins debug_bridge_0/S_AXI] [get_bd_intf_pins ps8_0_axi_periph/M00_AXI]
   connect_bd_intf_net -intf_net ps8_0_axi_periph_M01_AXI [get_bd_intf_pins AxiProxy_ACP/CTRL] [get_bd_intf_pins ps8_0_axi_periph/M01_AXI]
-  connect_bd_intf_net -intf_net ps8_0_axi_periph_M02_AXI [get_bd_intf_pins AxiProxy_HP/CTRL] [get_bd_intf_pins ps8_0_axi_periph/M02_AXI]
-  connect_bd_intf_net -intf_net ps8_0_axi_periph_M03_AXI [get_bd_intf_pins AxiProxy_HPC/CTRL] [get_bd_intf_pins ps8_0_axi_periph/M03_AXI]
+  connect_bd_intf_net -intf_net ps8_0_axi_periph_M02_AXI [get_bd_intf_pins AxiProxy_HPC/CTRL] [get_bd_intf_pins ps8_0_axi_periph/M02_AXI]
+  connect_bd_intf_net -intf_net ps8_0_axi_periph_M03_AXI [get_bd_intf_pins AxiProxy_HP/CTRL] [get_bd_intf_pins ps8_0_axi_periph/M03_AXI]
   connect_bd_intf_net -intf_net zynq_ultra_ps_e_0_M_AXI_HPM0_FPD [get_bd_intf_pins ps8_0_axi_periph/S00_AXI] [get_bd_intf_pins zynq_ultra_ps_e_0/M_AXI_HPM0_FPD]
 
   # Create port connections
@@ -982,6 +988,11 @@ connect_bd_intf_net -intf_net [get_bd_intf_nets AxiProxy_0_MNGR] [get_bd_intf_pi
   assign_bd_address -offset 0xA0030000 -range 0x00010000 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [get_bd_addr_segs AxiProxy_HPC/CTRL/regs] -force
   assign_bd_address -offset 0xA0020000 -range 0x00010000 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [get_bd_addr_segs AxiProxy_HP/CTRL/regs] -force
   assign_bd_address -offset 0xA0010000 -range 0x00010000 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [get_bd_addr_segs debug_bridge_0/S_AXI/Reg0] -force
+
+  # Exclude Address Segments
+  exclude_bd_addr_seg -offset 0xFF000000 -range 0x01000000 -target_address_space [get_bd_addr_spaces AxiProxy_ACP/MNGR] [get_bd_addr_segs zynq_ultra_ps_e_0/SAXIACP/ACP_LPS_OCM]
+  exclude_bd_addr_seg -offset 0xFF000000 -range 0x01000000 -target_address_space [get_bd_addr_spaces AxiProxy_HP/MNGR] [get_bd_addr_segs zynq_ultra_ps_e_0/SAXIGP2/HP0_LPS_OCM]
+  exclude_bd_addr_seg -offset 0xFF000000 -range 0x01000000 -target_address_space [get_bd_addr_spaces AxiProxy_HPC/MNGR] [get_bd_addr_segs zynq_ultra_ps_e_0/SAXIGP0/HPC0_LPS_OCM]
 
 
   # Restore current instance

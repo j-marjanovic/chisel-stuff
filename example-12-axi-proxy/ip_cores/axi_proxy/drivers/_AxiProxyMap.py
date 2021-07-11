@@ -1,0 +1,53 @@
+# auto-generated with AxiLiteSubordinateGenerator from chisel-bfm-tester
+
+import ctypes
+
+
+class _AxiProxyMap(ctypes.Structure):
+    _pack_ = 1
+    _fields_ = [
+        ("ID_REG", ctypes.c_uint32),
+        ("VERSION", ctypes.c_uint32),
+        ("rsvd0x8", ctypes.c_uint32),
+        ("SCRATCH", ctypes.c_uint32),
+        ("STATUS", ctypes.c_uint32),
+        ("CONTROL", ctypes.c_uint32),
+        ("rsvd0x18", ctypes.c_uint32),
+        ("rsvd0x1c", ctypes.c_uint32),
+        ("CONFIG_AXI", ctypes.c_uint32),
+        ("STATS", ctypes.c_uint32),
+        ("rsvd0x28", ctypes.c_uint32),
+        ("rsvd0x2c", ctypes.c_uint32),
+        ("rsvd0x30", ctypes.c_uint32),
+        ("rsvd0x34", ctypes.c_uint32),
+        ("rsvd0x38", ctypes.c_uint32),
+        ("rsvd0x3c", ctypes.c_uint32),
+        ("ADDR_LO", ctypes.c_uint32),
+        ("ADDR_HI", ctypes.c_uint32),
+        ("rsvd0x48", ctypes.c_uint32),
+        ("rsvd0x4c", ctypes.c_uint32),
+        ("rsvd0x50", ctypes.c_uint32),
+        ("rsvd0x54", ctypes.c_uint32),
+        ("rsvd0x58", ctypes.c_uint32),
+        ("rsvd0x5c", ctypes.c_uint32),
+        ("DATA_WR0", ctypes.c_uint32),
+        ("DATA_WR1", ctypes.c_uint32),
+        ("DATA_WR2", ctypes.c_uint32),
+        ("DATA_WR3", ctypes.c_uint32),
+        ("rsvd0x70", ctypes.c_uint32),
+        ("rsvd0x74", ctypes.c_uint32),
+        ("rsvd0x78", ctypes.c_uint32),
+        ("rsvd0x7c", ctypes.c_uint32),
+        ("rsvd0x80", ctypes.c_uint32),
+        ("rsvd0x84", ctypes.c_uint32),
+        ("rsvd0x88", ctypes.c_uint32),
+        ("rsvd0x8c", ctypes.c_uint32),
+        ("rsvd0x90", ctypes.c_uint32),
+        ("rsvd0x94", ctypes.c_uint32),
+        ("rsvd0x98", ctypes.c_uint32),
+        ("rsvd0x9c", ctypes.c_uint32),
+        ("DATA_RD0", ctypes.c_uint32),
+        ("DATA_RD1", ctypes.c_uint32),
+        ("DATA_RD2", ctypes.c_uint32),
+        ("DATA_RD3", ctypes.c_uint32),
+    ]

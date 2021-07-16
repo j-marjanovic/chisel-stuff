@@ -228,26 +228,8 @@ proc create_root_design { parentCell } {
   # Create instance: system_ila_0, and set properties
   set system_ila_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:system_ila:1.1 system_ila_0 ]
   set_property -dict [ list \
-   CONFIG.C_BRAM_CNT {36} \
-   CONFIG.C_MON_TYPE {INTERFACE} \
+   CONFIG.C_BRAM_CNT {6} \
    CONFIG.C_NUM_MONITOR_SLOTS {3} \
-   CONFIG.C_NUM_OF_PROBES {6} \
-   CONFIG.C_SLOT {2} \
-   CONFIG.C_SLOT_0_APC_EN {1} \
-   CONFIG.C_SLOT_0_APC_STS_EN {0} \
-   CONFIG.C_SLOT_0_MAX_RD_BURSTS {8} \
-   CONFIG.C_SLOT_0_MAX_WR_BURSTS {8} \
-   CONFIG.C_SLOT_0_TXN_CNTR_EN {0} \
-   CONFIG.C_SLOT_1_APC_EN {1} \
-   CONFIG.C_SLOT_1_APC_STS_EN {0} \
-   CONFIG.C_SLOT_1_MAX_RD_BURSTS {8} \
-   CONFIG.C_SLOT_1_MAX_WR_BURSTS {8} \
-   CONFIG.C_SLOT_1_TXN_CNTR_EN {0} \
-   CONFIG.C_SLOT_2_APC_EN {1} \
-   CONFIG.C_SLOT_2_APC_STS_EN {0} \
-   CONFIG.C_SLOT_2_MAX_RD_BURSTS {8} \
-   CONFIG.C_SLOT_2_MAX_WR_BURSTS {8} \
-   CONFIG.C_SLOT_2_TXN_CNTR_EN {0} \
  ] $system_ila_0
 
   # Create instance: zynq_ultra_ps_e_0, and set properties
@@ -1006,6 +988,11 @@ connect_bd_intf_net -intf_net [get_bd_intf_nets AxiTrafficGen_HP_MNGR] [get_bd_i
   assign_bd_address -offset 0xA0020000 -range 0x00010000 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [get_bd_addr_segs AxiTrafficGen_HPC/CTRL/REGS] -force
   assign_bd_address -offset 0xA0030000 -range 0x00010000 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [get_bd_addr_segs AxiTrafficGen_HP/CTRL/REGS] -force
   assign_bd_address -offset 0xA0010000 -range 0x00010000 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [get_bd_addr_segs debug_bridge_0/S_AXI/Reg0] -force
+
+  # Exclude Address Segments
+  exclude_bd_addr_seg -offset 0xFF000000 -range 0x01000000 -target_address_space [get_bd_addr_spaces AxiTrafficGen_ACP/MNGR] [get_bd_addr_segs zynq_ultra_ps_e_0/SAXIACP/ACP_LPS_OCM]
+  exclude_bd_addr_seg -offset 0xFF000000 -range 0x01000000 -target_address_space [get_bd_addr_spaces AxiTrafficGen_HP/MNGR] [get_bd_addr_segs zynq_ultra_ps_e_0/SAXIGP2/HP0_LPS_OCM]
+  exclude_bd_addr_seg -offset 0xFF000000 -range 0x01000000 -target_address_space [get_bd_addr_spaces AxiTrafficGen_HPC/MNGR] [get_bd_addr_segs zynq_ultra_ps_e_0/SAXIGP0/HPC0_LPS_OCM]
 
 
   # Restore current instance

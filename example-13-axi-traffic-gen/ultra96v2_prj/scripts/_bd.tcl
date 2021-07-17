@@ -228,8 +228,15 @@ proc create_root_design { parentCell } {
   # Create instance: system_ila_0, and set properties
   set system_ila_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:system_ila:1.1 system_ila_0 ]
   set_property -dict [ list \
-   CONFIG.C_BRAM_CNT {6} \
+   CONFIG.C_BRAM_CNT {36.5} \
    CONFIG.C_NUM_MONITOR_SLOTS {3} \
+   CONFIG.C_SLOT {2} \
+   CONFIG.C_SLOT_0_MAX_RD_BURSTS {8} \
+   CONFIG.C_SLOT_0_MAX_WR_BURSTS {8} \
+   CONFIG.C_SLOT_1_MAX_RD_BURSTS {8} \
+   CONFIG.C_SLOT_1_MAX_WR_BURSTS {8} \
+   CONFIG.C_SLOT_2_MAX_RD_BURSTS {8} \
+   CONFIG.C_SLOT_2_MAX_WR_BURSTS {8} \
  ] $system_ila_0
 
   # Create instance: zynq_ultra_ps_e_0, and set properties

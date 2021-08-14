@@ -20,32 +20,46 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
 
-package pcie_endpoint
+import chisel3._
 
-import chisel3.iotesters
-import chisel3.iotesters.ChiselFlatSpec
+package object pcie_endpoint {
 
-class PcieEndpointTest extends ChiselFlatSpec {
+  class Mrd32 extends Bundle {
 
-/*
-  it should "check the behavior of the DUT" in {
-    iotesters.Driver.execute(
-      Array(
-        "--backend-name",
-        "verilator",
-        "--fint-write-vcd",
-        "--test-seed",
-        "1234",
-        "--target-dir",
-        "test_run_dir/AxiProxyTester",
-        "--top-name",
-        "AxiProxyTester"
-      ),
-      () => new AxiProxyReg
-    ) { c =>
-      new AxiProxyTester(c)
-    } should be(true)
+    // byte 11 -8
+    val addr = UInt(30.W)
+    val ph = UInt(2.W)
+
+    // byte 7
+    val first_be = UInt(4.W)
+    val last_be = UInt(4.W)
+
+    // byte 6
+    val tag = UInt(8.W)
+
+    // byte 4, 5
+    val req_id = UInt(16.W)
+
+    // byte 0
+    val fmt = UInt(3.W)
+    val typ = UInt(5.W)
+
+    // byte 1
+    val r1 = Bool()
+    val tc = UInt(3.W)
+    val r2 = Bool()
+    val attr2 = Bool()
+    val r3 = Bool()
+    val th = Bool()
+
+    // byte 2 (min length9_8)
+    val td = Bool()
+    val ep = Bool()
+    val attr1_0 = UInt(2.W)
+    val at = UInt(2.W)
+
+    // byte 3
+    val length = UInt(10.W)
+
   }
-*/
-
 }

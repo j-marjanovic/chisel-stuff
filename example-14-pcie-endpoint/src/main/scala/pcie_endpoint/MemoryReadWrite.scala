@@ -23,17 +23,18 @@ SOFTWARE.
 package pcie_endpoint
 
 import chisel3._
-import chisel3.util._
 
-class PcieEndpoint extends Module {
+// processes MRd and MWr
+class MemoryReadWrite extends Module {
   val io = IO(new Bundle {
     val rx_st = new AvalonStreamRx
   })
 
-  val mod_mem_read_write = Module(new MemoryReadWrite)
-  //val mem_read_write_rx_st = RegNext(io.rx_st)
-  mod_mem_read_write.io.rx_st <> io.rx_st
-
   io.rx_st.ready := true.B
   io.rx_st.mask := false.B // we are always ready
+
+  when(io.rx_st.valid) {
+    val hdr = io.rx_st.data.asTypeOf(new Mrd32)
+    printf(p"hdr = $hdr\n")
+  }
 }

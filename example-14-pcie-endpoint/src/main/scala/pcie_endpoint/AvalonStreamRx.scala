@@ -23,17 +23,21 @@ SOFTWARE.
 package pcie_endpoint
 
 import chisel3._
-import chisel3.util._
 
-class PcieEndpoint extends Module {
-  val io = IO(new Bundle {
-    val rx_st = new AvalonStreamRx
-  })
+// directions as seen from the IP perspective
+class AvalonStreamRx extends Bundle {
+  val data = Input(UInt(256.W))
+  val sop = Input(Bool())
+  val eop = Input(Bool())
+  val empty = Input(UInt(2.W))
+  val ready = Output(Bool())
+  val valid = Input(Bool())
+  val err = Input(Bool())
 
-  val mod_mem_read_write = Module(new MemoryReadWrite)
-  //val mem_read_write_rx_st = RegNext(io.rx_st)
-  mod_mem_read_write.io.rx_st <> io.rx_st
-
-  io.rx_st.ready := true.B
-  io.rx_st.mask := false.B // we are always ready
+  // component specific
+  val mask = Output(Bool())
+  val bar = Input(UInt(8.W))
+  val be = Input(UInt(32.W))
+  val parity = Input(UInt(32.W))
+  // TODO: rxfc_cplbuf_ovf?
 }

@@ -22,18 +22,28 @@ SOFTWARE.
 
 package pcie_endpoint
 
-import chisel3._
-import chisel3.util._
+import chisel3.iotesters
+import chisel3.iotesters.ChiselFlatSpec
 
-class PcieEndpoint extends Module {
-  val io = IO(new Bundle {
-    val rx_st = new AvalonStreamRx
-  })
+class TestMain extends ChiselFlatSpec {
 
-  val mod_mem_read_write = Module(new MemoryReadWrite)
-  //val mem_read_write_rx_st = RegNext(io.rx_st)
-  mod_mem_read_write.io.rx_st <> io.rx_st
+  it should "handle MWr packets" in {
+    iotesters.Driver.execute(
+      Array(
+        "--backend-name",
+        "verilator",
+        "--fint-write-vcd",
+        "--test-seed",
+        "1234",
+        "--target-dir",
+        "test_run_dir/MWrBar1Test",
+        "--top-name",
+        "MWrBar1Test"
+      ),
+      () => new PcieEndpoint
+    ) { c =>
+      new MWrBar1Test(c)
+    } should be(true)
+  }
 
-  io.rx_st.ready := true.B
-  io.rx_st.mask := false.B // we are always ready
 }

@@ -23,18 +23,51 @@ SOFTWARE.
 package pcie_endpoint
 
 import chisel3._
+import chisel3.util._
 
 // processes MRd and MWr
 class MemoryReadWrite extends Module {
   val io = IO(new Bundle {
-    val rx_st = new AvalonStreamRx
+    val rx_st = new Interfaces.AvalonStreamRx
+
+    // BAR 0
+    val mem_cmd_bar0 = new Interfaces.MemoryCmd
+
+    // BAR 1
+    val mem_cmd_bar1 = new Interfaces.MemoryCmd
   })
 
   io.rx_st.ready := true.B
   io.rx_st.mask := false.B // we are always ready
 
+  val reg_mem_cmd_bar0 = Reg(Output(new Interfaces.MemoryCmd))
+  io.mem_cmd_bar0 := reg_mem_cmd_bar0
+
+  val reg_mem_cmd_bar1 = Reg(Output(new Interfaces.MemoryCmd))
+  io.mem_cmd_bar1 := reg_mem_cmd_bar1
+
+  reg_mem_cmd_bar0.valid := false.B
+  reg_mem_cmd_bar1.valid := false.B
+
   when(io.rx_st.valid) {
-    val hdr = io.rx_st.data.asTypeOf(new Mrd32)
-    printf(p"hdr = $hdr\n")
+    val rx_data_hdr = WireInit(io.rx_st.data.asTypeOf(new CommonHdr))
+    when(rx_data_hdr.fmt === Fmt.MRd32.asUInt()) {
+      val mrd32 = io.rx_st.data.asTypeOf(new MRd32)
+      printf(p"MemoryReadWrite: mrd32 = $mrd32\n")
+      reg_mem_cmd_bar0.valid := true.B
+      reg_mem_cmd_bar0.address := mrd32.addr << 2
+      reg_mem_cmd_bar0.byteenable := Cat(mrd32.last_be, mrd32.first_be)
+      reg_mem_cmd_bar0.read_write_b := true.B
+    }.elsewhen(rx_data_hdr.fmt === Fmt.MWr32.asUInt()) {
+        val mwr32 = io.rx_st.data.asTypeOf(new MWr32)
+        printf(p"MemoryReadWrite: mrd32 = $mwr32\n")
+        reg_mem_cmd_bar0.address := mwr32.addr << 2
+        reg_mem_cmd_bar0.byteenable := Cat(mwr32.last_be, mwr32.first_be)
+        reg_mem_cmd_bar0.read_write_b := false.B
+        reg_mem_cmd_bar0.writedata := Cat(mwr32.dw1, mwr32.dw0)
+      }
+      .otherwise {
+        printf(p"MemoryReadWrite: unrecognized hdr = $rx_data_hdr\n")
+      }
   }
 }

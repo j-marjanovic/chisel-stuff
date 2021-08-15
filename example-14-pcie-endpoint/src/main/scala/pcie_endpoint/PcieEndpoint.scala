@@ -27,12 +27,31 @@ import chisel3.util._
 
 class PcieEndpoint extends Module {
   val io = IO(new Bundle {
-    val rx_st = new AvalonStreamRx
+    val rx_st = new Interfaces.AvalonStreamRx
   })
 
   val mod_mem_read_write = Module(new MemoryReadWrite)
-  //val mem_read_write_rx_st = RegNext(io.rx_st)
-  mod_mem_read_write.io.rx_st <> io.rx_st
+  val reg_mem_rw = Reg(Output(new Interfaces.AvalonStreamRx))
+  mod_mem_read_write.io.rx_st.data := reg_mem_rw.data
+  mod_mem_read_write.io.rx_st.sop := reg_mem_rw.sop
+  mod_mem_read_write.io.rx_st.eop := reg_mem_rw.eop
+  mod_mem_read_write.io.rx_st.empty := reg_mem_rw.empty
+  mod_mem_read_write.io.rx_st.valid := reg_mem_rw.valid
+  mod_mem_read_write.io.rx_st.err := reg_mem_rw.err
+  mod_mem_read_write.io.rx_st.bar := reg_mem_rw.bar
+  mod_mem_read_write.io.rx_st.be := reg_mem_rw.be
+  mod_mem_read_write.io.rx_st.parity := reg_mem_rw.parity
+
+  when(io.rx_st.valid) {
+    val rx_data_hdr = WireInit(io.rx_st.data.asTypeOf(new CommonHdr))
+    when(rx_data_hdr.fmt === Fmt.MRd32.asUInt() || rx_data_hdr.fmt === Fmt.MWr32.asUInt()) {
+      reg_mem_rw := io.rx_st
+    }.otherwise {
+      reg_mem_rw.valid := false.B
+    }
+  }.otherwise {
+    reg_mem_rw.valid := false.B
+  }
 
   io.rx_st.ready := true.B
   io.rx_st.mask := false.B // we are always ready

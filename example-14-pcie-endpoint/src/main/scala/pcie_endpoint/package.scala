@@ -54,8 +54,8 @@ package object pcie_endpoint {
     val tag = UInt(8.W)
 
     // byte 7
-    val first_be = UInt(4.W)
     val last_be = UInt(4.W)
+    val first_be = UInt(4.W)
 
     // byte 0
     val fmt = UInt(3.W)
@@ -80,8 +80,8 @@ package object pcie_endpoint {
   }
 
   class MWr32 extends Bundle {
-    val dw1 = UInt(32.W)
     val dw0 = UInt(32.W)
+    val dw1 = UInt(32.W)
 
     // byte 11 -8
     val addr = UInt(30.W)
@@ -94,8 +94,8 @@ package object pcie_endpoint {
     val tag = UInt(8.W)
 
     // byte 7
-    val first_be = UInt(4.W)
     val last_be = UInt(4.W)
+    val first_be = UInt(4.W)
 
     // byte 0
     val fmt = UInt(3.W)

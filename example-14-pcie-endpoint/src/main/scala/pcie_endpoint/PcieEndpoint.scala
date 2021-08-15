@@ -28,6 +28,8 @@ import chisel3.util._
 class PcieEndpoint extends Module {
   val io = IO(new Bundle {
     val rx_st = new Interfaces.AvalonStreamRx
+
+    val avmm_bar0 = new Interfaces.AvalonMM
   })
 
   val mod_mem_read_write = Module(new MemoryReadWrite)
@@ -42,6 +44,13 @@ class PcieEndpoint extends Module {
   mod_mem_read_write.io.rx_st.be := reg_mem_rw.be
   mod_mem_read_write.io.rx_st.parity := reg_mem_rw.parity
 
+  val mod_avalon_agent_bar0 = Module(new AvalonAgent)
+  mod_avalon_agent_bar0.io.mem_cmd <> mod_mem_read_write.io.mem_cmd_bar0
+  mod_avalon_agent_bar0.io.avmm <> io.avmm_bar0
+
+  // TODO
+  mod_mem_read_write.io.mem_cmd_bar1.ready := true.B
+
   when(io.rx_st.valid) {
     val rx_data_hdr = WireInit(io.rx_st.data.asTypeOf(new CommonHdr))
     when(rx_data_hdr.fmt === Fmt.MRd32.asUInt() || rx_data_hdr.fmt === Fmt.MWr32.asUInt()) {
@@ -55,4 +64,5 @@ class PcieEndpoint extends Module {
 
   io.rx_st.ready := true.B
   io.rx_st.mask := false.B // we are always ready
+
 }

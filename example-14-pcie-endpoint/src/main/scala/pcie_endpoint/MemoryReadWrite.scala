@@ -40,11 +40,13 @@ class MemoryReadWrite extends Module {
   io.rx_st.ready := true.B
   io.rx_st.mask := false.B // we are always ready
 
-  val reg_mem_cmd_bar0 = Reg(Output(new Interfaces.MemoryCmd))
-  io.mem_cmd_bar0 := reg_mem_cmd_bar0
+  val reg_mem_cmd_bar0 = Reg(Valid(Output((new Interfaces.MemoryCmd).bits)))
+  io.mem_cmd_bar0.bits := reg_mem_cmd_bar0.bits
+  io.mem_cmd_bar0.valid := reg_mem_cmd_bar0.valid
 
-  val reg_mem_cmd_bar1 = Reg(Output(new Interfaces.MemoryCmd))
-  io.mem_cmd_bar1 := reg_mem_cmd_bar1
+  val reg_mem_cmd_bar1 = Reg(Valid(Output((new Interfaces.MemoryCmd).bits)))
+  io.mem_cmd_bar1.bits := reg_mem_cmd_bar1.bits
+  io.mem_cmd_bar1.valid := reg_mem_cmd_bar1.valid
 
   reg_mem_cmd_bar0.valid := false.B
   reg_mem_cmd_bar1.valid := false.B
@@ -55,16 +57,17 @@ class MemoryReadWrite extends Module {
       val mrd32 = io.rx_st.data.asTypeOf(new MRd32)
       printf(p"MemoryReadWrite: mrd32 = $mrd32\n")
       reg_mem_cmd_bar0.valid := true.B
-      reg_mem_cmd_bar0.address := mrd32.addr << 2
-      reg_mem_cmd_bar0.byteenable := Cat(mrd32.last_be, mrd32.first_be)
-      reg_mem_cmd_bar0.read_write_b := true.B
+      reg_mem_cmd_bar0.bits.address := mrd32.addr << 2
+      reg_mem_cmd_bar0.bits.byteenable := Cat(mrd32.last_be, mrd32.first_be)
+      reg_mem_cmd_bar0.bits.read_write_b := true.B
     }.elsewhen(rx_data_hdr.fmt === Fmt.MWr32.asUInt()) {
         val mwr32 = io.rx_st.data.asTypeOf(new MWr32)
-        printf(p"MemoryReadWrite: mrd32 = $mwr32\n")
-        reg_mem_cmd_bar0.address := mwr32.addr << 2
-        reg_mem_cmd_bar0.byteenable := Cat(mwr32.last_be, mwr32.first_be)
-        reg_mem_cmd_bar0.read_write_b := false.B
-        reg_mem_cmd_bar0.writedata := Cat(mwr32.dw1, mwr32.dw0)
+        printf(p"MemoryReadWrite: mwr32 = $mwr32\n")
+        reg_mem_cmd_bar0.valid := true.B
+        reg_mem_cmd_bar0.bits.address := mwr32.addr << 2
+        reg_mem_cmd_bar0.bits.byteenable := Cat(mwr32.last_be, mwr32.first_be)
+        reg_mem_cmd_bar0.bits.read_write_b := false.B
+        reg_mem_cmd_bar0.bits.writedata := Cat(mwr32.dw1, mwr32.dw0)
       }
       .otherwise {
         printf(p"MemoryReadWrite: unrecognized hdr = $rx_data_hdr\n")

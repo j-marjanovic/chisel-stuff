@@ -24,7 +24,42 @@ package pcie_endpoint
 
 import chisel3.iotesters.PeekPokeTester
 
+import scala.collection.mutable
+
 class MWrBar1Test(c: PcieEndpoint) extends PeekPokeTester(c) {
+
+  var deassert_waitreq = mutable.Queue[Long]()
+  val wr_data = mutable.Queue[BigInt]()
+  val wr_addr = mutable.Queue[BigInt]()
+
+  def step_one(): Unit = {
+    val read = peek(c.io.avmm_bar0.read) > 0
+    val write = peek(c.io.avmm_bar0.write) > 0
+    poke(c.io.avmm_bar0.waitrequest, 1)
+
+    if (write || read) {
+      deassert_waitreq.enqueue(t + 4)
+    }
+
+    if (deassert_waitreq.nonEmpty && deassert_waitreq.front == t) {
+      deassert_waitreq.dequeue()
+      poke(c.io.avmm_bar0.waitrequest, 0)
+      if (write) {
+        val data = peek(c.io.avmm_bar0.writedata)
+        val addr = peek(c.io.avmm_bar0.address)
+        println(f"${t} Avalon write, data = ${data}%08x, addr = ${addr}%08x")
+        wr_addr.enqueue(addr)
+        wr_data.enqueue(data)
+      }
+    }
+  }
+
+  override def step(n: Int): Unit = {
+    for (_ <- 0 until n) {
+      step_one()
+      super.step(1)
+    }
+  }
 
   private def poke_rx(
       data: BigInt,
@@ -77,6 +112,8 @@ class MWrBar1Test(c: PcieEndpoint) extends PeekPokeTester(c) {
   )
   step(50)
 
-  // TODO: check
-
+  expect(wr_addr.length == 1, "received one address in a write transaction")
+  expect(wr_data.length == 1, "received one datum in a write transaction")
+  expect(wr_data.head == 0x01020304, "recvd data")
+  expect(wr_addr.head == 0xd9000000L, "recvd addr")
 }

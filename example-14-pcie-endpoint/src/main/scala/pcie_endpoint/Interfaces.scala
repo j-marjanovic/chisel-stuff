@@ -1,6 +1,7 @@
 package pcie_endpoint
 
 import chisel3._
+import chisel3.util._
 
 object Interfaces {
 
@@ -31,22 +32,26 @@ object Interfaces {
     val response = Input(UInt(2.W))
     val write = Output(Bool())
     val writedata = Output(UInt(32.W))
+    val waitrequest = Input(Bool())
   }
 
-  class MemoryCmd extends Bundle {
-    val valid = Output(Bool())
-
+  class _MemoryCmd extends Bundle {
     // Memory transaction
-    val address = Output(UInt(32.W))
-    val byteenable = Output(UInt(8.W))
-    val read_write_b = Output(Bool())
-    val writedata = Output(UInt(64.W))
+    val address = UInt(32.W)
+    val byteenable = UInt(8.W)
+    val read_write_b = Bool()
+    val writedata = UInt(64.W)
 
     // PCIe-related thing
-    val pcie_req_id = Output(UInt(16.W))
-    val pcie_tag = Output(UInt(8.W))
+    val pcie_req_id = UInt(16.W)
+    val pcie_tag = UInt(8.W)
   }
 
+  class MemoryCmd extends DecoupledIO(new _MemoryCmd) {
+    override def cloneType: MemoryCmd.this.type = (new MemoryCmd).asInstanceOf[this.type]
+  }
+
+  //val MemoryCmd: DecoupledIO[_MemoryCmd] = chiselTypeOf(Decoupled(new _MemoryCmd))
   // TODO: cmd to generate completion for UR, ...
 
 }

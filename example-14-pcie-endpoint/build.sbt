@@ -7,7 +7,8 @@ lazy val root = (project in file("."))
     name := "pcie-endpoint",
     libraryDependencies ++= Seq(
       "edu.berkeley.cs" %% "chisel3" % "3.4.3",
-      "edu.berkeley.cs" %% "chisel-iotesters" % "1.5.+"
+      "edu.berkeley.cs" %% "chisel-iotesters" % "1.5.+",
+      "io.j-marjanovic" %% "chisel-bfmtester" % "0.4.+"
     ),
     scalacOptions ++= Seq(
       "-Xsource:2.11",

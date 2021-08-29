@@ -36,13 +36,56 @@ class TestMain extends ChiselFlatSpec {
         "--test-seed",
         "1234",
         "--target-dir",
-        "test_run_dir/MWrBar1Test",
+        "test_run_dir/MWrBar0Test",
         "--top-name",
-        "MWrBar1Test"
+        "MWrBar0Test"
       ),
       () => new PcieEndpoint
     ) { c =>
-      new MWrBar1Test(c)
+      new MWrBar0Test(c)
+    } should be(true)
+  }
+
+  it should "handle MRd packets" in {
+    iotesters.Driver.execute(
+      Array(
+        "--backend-name",
+        "verilator",
+        "--fint-write-vcd",
+        "--test-seed",
+        "1234",
+        "--target-dir",
+        "test_run_dir/MRdBar0Test",
+        "--top-name",
+        "MRdBar0Test"
+      ),
+      () => new PcieEndpoint
+    ) { c =>
+      new MRdBar0Test(
+        c,
+        BigInt("00000000000000D90F0018000100000000000000D90001000018000F00000001", 16),
+        BigInt("56F7C9CC639A671FE7C8C416000001000000000000180000040000044A000001", 16)
+        //                               10203040000000000180000040000044a000001
+      )
+    } should be(true)
+  }
+
+  it should "test the entire endpoint" in {
+    iotesters.Driver.execute(
+      Array(
+        "--backend-name",
+        "verilator",
+        "--fint-write-vcd",
+        "--test-seed",
+        "1234",
+        "--target-dir",
+        "test_run_dir/PcieEndpointTest",
+        "--top-name",
+        "PcieEndpointTest"
+      ),
+      () => new PcieEndpoint
+    ) { c =>
+      new PcieEndpointTest(c)
     } should be(true)
   }
 

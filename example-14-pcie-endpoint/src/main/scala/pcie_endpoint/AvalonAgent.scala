@@ -25,11 +25,13 @@ package pcie_endpoint
 import chisel3._
 import chisel3.experimental.ChiselEnum
 import chisel3.util._
+import bfmtester.AvalonMMIf
 
 class AvalonAgent extends Module {
   val io = IO(new Bundle {
     val mem_cmd = Flipped(new Interfaces.MemoryCmd)
-    val avmm = new Interfaces.AvalonMM
+    val mem_resp = new Interfaces.MemoryResp
+    val avmm = new AvalonMMIf(32, 32, 1)
   })
 
   val cmd_queue = Queue(io.mem_cmd, 4)
@@ -45,12 +47,22 @@ class AvalonAgent extends Module {
   io.avmm.write := reg_write
   io.avmm.writedata := reg_writedata
 
+  val resp_dw0 = Reg(UInt(32.W))
+  val resp_dw1 = Reg(UInt(32.W))
+  val resp_len = Reg(Bool())
+  val resp_valid = RegInit(false.B)
+  io.mem_resp.bits.dw0 := resp_dw0
+  io.mem_resp.bits.dw1 := resp_dw1
+  io.mem_resp.bits.len := resp_len
+  io.mem_resp.valid := resp_valid
+
   object State extends ChiselEnum {
-    val sIdle, sWrite, sRead = Value
+    val sIdle, sWrite, sRead, sRead2 = Value
   }
 
   val state = RegInit(State.sIdle)
   cmd_queue.ready := state === State.sIdle
+  resp_valid := false.B
 
   switch(state) {
     is(State.sIdle) {
@@ -58,9 +70,14 @@ class AvalonAgent extends Module {
         printf("AvalongAgent: received cmd\n")
         reg_address := cmd_queue.bits.address
         reg_byteenable := cmd_queue.bits.byteenable
-        reg_write := true.B
+        reg_write := !cmd_queue.bits.read_write_b
+        reg_read := cmd_queue.bits.read_write_b
         reg_writedata := cmd_queue.bits.writedata(31, 0)
-        state := State.sWrite
+        when(cmd_queue.bits.read_write_b) {
+          state := State.sRead
+        }.otherwise {
+          state := State.sWrite
+        }
       }
     }
     is(State.sWrite) {
@@ -69,8 +86,21 @@ class AvalonAgent extends Module {
         state := State.sIdle
       }
     }
+    is(State.sRead) {
+      when(io.avmm.readdatavalid) {
+        // TODO, store, check length
+        resp_len := 0.U
+        resp_dw0 := io.avmm.readdata
+        resp_valid := true.B
+
+        reg_read := false.B
+        state := State.sIdle
+      }
+    }
   }
 
   // io.mem_cmd.ready := true.B
+
+  io.avmm.burstcount := 1.U // just to make the BFM happy
 
 }

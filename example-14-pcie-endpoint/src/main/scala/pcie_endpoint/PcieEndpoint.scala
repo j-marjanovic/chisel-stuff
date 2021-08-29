@@ -22,15 +22,66 @@ SOFTWARE.
 
 package pcie_endpoint
 
+import bfmtester.AvalonMMIf
 import chisel3._
 import chisel3.util._
 
-class PcieEndpoint extends Module {
-  val io = IO(new Bundle {
-    val rx_st = new Interfaces.AvalonStreamRx
+class PcieEndpointWrapper extends RawModule { //MultiIOModule {
+  val coreclkout_hip = IO(Input(Clock()))
 
-    val avmm_bar0 = new Interfaces.AvalonMM
-  })
+  // hip_rst interface
+  val reset_status = IO(Input(Bool()))
+  val serdes_pll_locked = IO(Input(Bool()))
+  val pld_clk_inuse = IO(Input(Bool()))
+  val pld_core_ready = IO(Output(Bool()))
+  val testin_zero = IO(Input(Bool()))
+
+  val pld_clk_hip = IO(Output(Clock()))
+
+  val rx_st = IO(new Interfaces.AvalonStreamRx)
+  val tx_st = IO(new Interfaces.AvalonStreamTx)
+
+  // config_tl interface
+  val tl_cfg = IO(Input(new Interfaces.TLConfig))
+  val cpl_err = IO(Output(UInt(7.W)))
+  val cpl_pending = IO(Output(Bool()))
+  val hpg_ctrler = IO(Output(UInt(5.W)))
+
+  val avmm_bar0 = IO(new AvalonMMIf(32, 32, 1))
+
+  val reset_out = IO(Output(Bool()))
+
+  // logic
+
+  val pcie_endpoint = withClockAndReset(coreclkout_hip, reset_status) { Module(new PcieEndpoint) }
+
+  pcie_endpoint.rx_st <> rx_st
+  pcie_endpoint.tx_st <> tx_st
+  pcie_endpoint.tl_cfg <> tl_cfg
+  pcie_endpoint.avmm_bar0 <> avmm_bar0
+
+  // as in example design
+  pld_core_ready := serdes_pll_locked
+  pld_clk_hip := coreclkout_hip
+
+  // tie-offs
+  cpl_err := 0.U
+  cpl_pending := 0.U
+  hpg_ctrler := 0.U
+
+  withClock(coreclkout_hip) {
+    reset_out := RegNext(reset_status && serdes_pll_locked)
+  }
+}
+
+class PcieEndpoint extends MultiIOModule {
+  val rx_st = IO(new Interfaces.AvalonStreamRx)
+  val tx_st = IO(new Interfaces.AvalonStreamTx)
+  val tl_cfg = IO(Input(new Interfaces.TLConfig))
+  val avmm_bar0 = IO(new AvalonMMIf(32, 32, 1))
+
+  val mod_config = Module(new Configuration)
+  mod_config.io.cfg <> tl_cfg
 
   val mod_mem_read_write = Module(new MemoryReadWrite)
   val reg_mem_rw = Reg(Output(new Interfaces.AvalonStreamRx))
@@ -42,19 +93,23 @@ class PcieEndpoint extends Module {
   mod_mem_read_write.io.rx_st.err := reg_mem_rw.err
   mod_mem_read_write.io.rx_st.bar := reg_mem_rw.bar
   mod_mem_read_write.io.rx_st.be := reg_mem_rw.be
-  mod_mem_read_write.io.rx_st.parity := reg_mem_rw.parity
 
   val mod_avalon_agent_bar0 = Module(new AvalonAgent)
   mod_avalon_agent_bar0.io.mem_cmd <> mod_mem_read_write.io.mem_cmd_bar0
-  mod_avalon_agent_bar0.io.avmm <> io.avmm_bar0
+  mod_avalon_agent_bar0.io.avmm <> avmm_bar0
+
+  val mod_completion = Module(new Completion)
+  mod_completion.io.mem_resp <> mod_avalon_agent_bar0.io.mem_resp
+  mod_completion.io.tx_st <> tx_st
+  mod_completion.io.conf_internal := mod_config.io.conf_internal
 
   // TODO
   mod_mem_read_write.io.mem_cmd_bar1.ready := true.B
 
-  when(io.rx_st.valid) {
-    val rx_data_hdr = WireInit(io.rx_st.data.asTypeOf(new CommonHdr))
+  when(rx_st.valid) {
+    val rx_data_hdr = WireInit(rx_st.data.asTypeOf(new CommonHdr))
     when(rx_data_hdr.fmt === Fmt.MRd32.asUInt() || rx_data_hdr.fmt === Fmt.MWr32.asUInt()) {
-      reg_mem_rw := io.rx_st
+      reg_mem_rw := rx_st
     }.otherwise {
       reg_mem_rw.valid := false.B
     }
@@ -62,7 +117,7 @@ class PcieEndpoint extends Module {
     reg_mem_rw.valid := false.B
   }
 
-  io.rx_st.ready := true.B
-  io.rx_st.mask := false.B // we are always ready
+  rx_st.ready := true.B
+  rx_st.mask := false.B // we are always ready
 
 }

@@ -118,4 +118,53 @@ package object pcie_endpoint {
     // byte 3
     val length = UInt(10.W)
   }
+
+  class CplD extends Bundle {
+    val dw1 = UInt(32.W)
+
+    val dw0 = UInt(32.W)
+
+    val dw0_unalign = UInt(32.W)
+
+    // byte 8, 9
+    val req_id = UInt(16.W)
+
+    // byte 10
+    val tag = UInt(8.W)
+
+    // byte 11
+    val r = Bool()
+    val lo_addr = UInt(7.W)
+
+    // byte 4, 5
+    val compl_id = UInt(16.W)
+
+    // byte 6
+    val compl_status = UInt(3.W)
+    val bcm = Bool()
+
+    // byte 6, 7
+    val byte_count = UInt(12.W)
+
+    // byte 0
+    val fmt = UInt(3.W)
+    val typ = UInt(5.W)
+
+    // byte 1
+    val r1 = Bool()
+    val tc = UInt(3.W)
+    val r2 = Bool()
+    val attr2 = Bool()
+    val r3 = Bool()
+    val th = Bool()
+
+    // byte 2 (w/o length9_8)
+    val td = Bool()
+    val ep = Bool()
+    val attr1_0 = UInt(2.W)
+    val at = UInt(2.W)
+
+    // byte 3
+    val length = UInt(10.W)
+  }
 }

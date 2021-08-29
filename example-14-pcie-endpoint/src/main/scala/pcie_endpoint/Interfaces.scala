@@ -19,10 +19,20 @@ object Interfaces {
     val mask = Output(Bool())
     val bar = Input(UInt(8.W))
     val be = Input(UInt(32.W))
-    val parity = Input(UInt(32.W))
     // TODO: rxfc_cplbuf_ovf?
   }
 
+  class AvalonStreamTx extends Bundle {
+    val data = Output(UInt(256.W))
+    val sop = Output(Bool())
+    val eop = Output(Bool())
+    val ready = Input(Bool())
+    val valid = Output(Bool())
+    val empty = Output(UInt(2.W))
+    val err = Output(Bool())
+  }
+
+  // TODO: can this be removed
   class AvalonMM extends Bundle {
     val address = Output(UInt(32.W))
     val byteenable = Output(UInt(4.W))
@@ -51,7 +61,25 @@ object Interfaces {
     override def cloneType: MemoryCmd.this.type = (new MemoryCmd).asInstanceOf[this.type]
   }
 
-  //val MemoryCmd: DecoupledIO[_MemoryCmd] = chiselTypeOf(Decoupled(new _MemoryCmd))
+  class _MemoryResp extends Bundle {
+    val dw0 = UInt(32.W)
+    val dw1 = UInt(32.W)
+    val len = Bool()
+  }
+
+  class MemoryResp extends DecoupledIO(new _MemoryResp) {
+    override def cloneType: MemoryResp.this.type = (new MemoryResp).asInstanceOf[this.type]
+  }
+
   // TODO: cmd to generate completion for UR, ...
 
+  class TLConfig extends Bundle {
+    val ctl = Input(UInt(32.W))
+    val add = Input(UInt(4.W))
+    val sts = Input(UInt(53.W))
+  }
+
+  class ConfigIntern extends Bundle {
+    val busdev = UInt(12.W)
+  }
 }

@@ -26,7 +26,7 @@ import chisel3.stage.ChiselStage
 
 object Main extends App {
   new ChiselStage().emitSystemVerilog(
-    new PcieEndpoint,
+    new PcieEndpointWrapper,
     Array[String]("--target-dir", "ip_cores/pcie_endpoint/hdl") ++ args
   )
 }

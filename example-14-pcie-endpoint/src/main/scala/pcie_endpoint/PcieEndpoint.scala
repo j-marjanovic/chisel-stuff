@@ -100,11 +100,16 @@ class PcieEndpoint extends MultiIOModule {
 
   val mod_completion = Module(new Completion)
   mod_completion.io.mem_resp <> mod_avalon_agent_bar0.io.mem_resp
-  mod_completion.io.tx_st <> tx_st
   mod_completion.io.conf_internal := mod_config.io.conf_internal
 
-  // TODO
-  mod_mem_read_write.io.mem_cmd_bar1.ready := true.B
+  val mod_bus_master = Module(new BusMaster)
+  mod_bus_master.io.ctrl_cmd <> mod_mem_read_write.io.mem_cmd_bar2
+  mod_completion.io.bm_resp <> mod_bus_master.io.ctrl_resp
+
+  val mod_tx_arbiter = Module(new TxArbiter)
+  mod_tx_arbiter.io.cpld <> mod_completion.io.tx_st
+  mod_tx_arbiter.io.bm <> mod_bus_master.io.tx_st
+  mod_tx_arbiter.io.tx_st <> tx_st
 
   when(rx_st.valid) {
     val rx_data_hdr = WireInit(rx_st.data.asTypeOf(new CommonHdr))

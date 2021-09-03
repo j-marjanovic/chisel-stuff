@@ -32,19 +32,6 @@ object Interfaces {
     val err = Output(Bool())
   }
 
-  // TODO: can this be removed
-  class AvalonMM extends Bundle {
-    val address = Output(UInt(32.W))
-    val byteenable = Output(UInt(4.W))
-    val read = Output(Bool())
-    val readdata = Input(UInt(32.W))
-    val readdatavalid = Input(Bool())
-    val response = Input(UInt(2.W))
-    val write = Output(Bool())
-    val writedata = Output(UInt(32.W))
-    val waitrequest = Input(Bool())
-  }
-
   class _MemoryCmd extends Bundle {
     // Memory transaction
     val address = UInt(32.W)
@@ -65,6 +52,11 @@ object Interfaces {
     val dw0 = UInt(32.W)
     val dw1 = UInt(32.W)
     val len = Bool()
+
+    // PCIe-related thing
+    val pcie_req_id = UInt(16.W)
+    val pcie_tag = UInt(8.W)
+    val pcie_lo_addr = UInt(7.W)
   }
 
   class MemoryResp extends DecoupledIO(new _MemoryResp) {

@@ -26,8 +26,7 @@ import chisel3.iotesters
 import chisel3.iotesters.ChiselFlatSpec
 
 class TestMain extends ChiselFlatSpec {
-
-  it should "handle MWr packets" in {
+  it should "test the entire endpoint (with pre-prepared stimulus/response)" in {
     iotesters.Driver.execute(
       Array(
         "--backend-name",
@@ -36,41 +35,17 @@ class TestMain extends ChiselFlatSpec {
         "--test-seed",
         "1234",
         "--target-dir",
-        "test_run_dir/MWrBar0Test",
+        "test_run_dir/PcieEndpointSimpleTest",
         "--top-name",
-        "MWrBar0Test"
+        "PcieEndpointSimpleTest"
       ),
       () => new PcieEndpoint
     ) { c =>
-      new MWrBar0Test(c)
+      new PcieEndpointSimpleTest(c)
     } should be(true)
   }
 
-  it should "handle MRd packets" in {
-    iotesters.Driver.execute(
-      Array(
-        "--backend-name",
-        "verilator",
-        "--fint-write-vcd",
-        "--test-seed",
-        "1234",
-        "--target-dir",
-        "test_run_dir/MRdBar0Test",
-        "--top-name",
-        "MRdBar0Test"
-      ),
-      () => new PcieEndpoint
-    ) { c =>
-      new MRdBar0Test(
-        c,
-        BigInt("00000000000000D90F0018000100000000000000D90001000018000F00000001", 16),
-        BigInt("56F7C9CC639A671FE7C8C416000001000000000000180000040000044A000001", 16)
-        //                               10203040000000000180000040000044a000001
-      )
-    } should be(true)
-  }
-
-  it should "test the entire endpoint" in {
+  it should "test the entire endpoint with PCIe BFM" in {
     iotesters.Driver.execute(
       Array(
         "--backend-name",
@@ -86,6 +61,25 @@ class TestMain extends ChiselFlatSpec {
       () => new PcieEndpoint
     ) { c =>
       new PcieEndpointTest(c)
+    } should be(true)
+  }
+
+  it should "test the Bus Mastering part" in {
+    iotesters.Driver.execute(
+      Array(
+        "--backend-name",
+        "verilator",
+        "--fint-write-vcd",
+        "--test-seed",
+        "1234",
+        "--target-dir",
+        "test_run_dir/PcieEndpointTestBM",
+        "--top-name",
+        "PcieEndpointTestBM"
+      ),
+      () => new PcieEndpoint
+    ) { c =>
+      new PcieEndpointTestBM(c)
     } should be(true)
   }
 

@@ -56,6 +56,13 @@ class AvalonAgent extends Module {
   io.mem_resp.bits.len := resp_len
   io.mem_resp.valid := resp_valid
 
+  val reg_pcie_req_id = Reg(UInt(16.W))
+  val reg_pcie_tag = Reg(UInt(8.W))
+  val reg_pcie_lo_addr = Reg(UInt(7.W))
+  io.mem_resp.bits.pcie_req_id := reg_pcie_req_id
+  io.mem_resp.bits.pcie_tag := reg_pcie_tag
+  io.mem_resp.bits.pcie_lo_addr := reg_pcie_lo_addr
+
   object State extends ChiselEnum {
     val sIdle, sWrite, sRead, sRead2 = Value
   }
@@ -67,12 +74,15 @@ class AvalonAgent extends Module {
   switch(state) {
     is(State.sIdle) {
       when(cmd_queue.valid) {
-        printf("AvalongAgent: received cmd\n")
+        printf(p"AvalongAgent: received cmd = ${cmd_queue.bits}\n")
         reg_address := cmd_queue.bits.address
         reg_byteenable := cmd_queue.bits.byteenable
         reg_write := !cmd_queue.bits.read_write_b
         reg_read := cmd_queue.bits.read_write_b
         reg_writedata := cmd_queue.bits.writedata(31, 0)
+        reg_pcie_req_id := cmd_queue.bits.pcie_req_id
+        reg_pcie_tag := cmd_queue.bits.pcie_tag
+        reg_pcie_lo_addr := cmd_queue.bits.address(6, 0)
         when(cmd_queue.bits.read_write_b) {
           state := State.sRead
         }.otherwise {
@@ -98,8 +108,6 @@ class AvalonAgent extends Module {
       }
     }
   }
-
-  // io.mem_cmd.ready := true.B
 
   io.avmm.burstcount := 1.U // just to make the BFM happy
 

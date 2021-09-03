@@ -22,10 +22,15 @@ SOFTWARE.
 
 package pcie_endpoint
 
+import chisel3._
 import bfmtester._
 
-class MWrBar0Test(c: PcieEndpoint) extends BfmTester(c) {
+import scala.util.Random
+
+class PcieEndpointSimpleTest(c: PcieEndpoint) extends BfmTester(c) {
   val bfm_avalon_agent = BfmFactory.create_avalon_slave(c.avmm_bar0, "BAR0")
+  val bfm_avalon_st_tx = new AvalonStreamTxBfm(c.tx_st, bfm_peek, bfm_poke, println)
+  val bfm_tl_config = new TLConfigBFM(c.tl_cfg, bfm_peek, bfm_poke, println, rnd)
 
   private def poke_rx(
       data: BigInt,
@@ -47,12 +52,17 @@ class MWrBar0Test(c: PcieEndpoint) extends BfmTester(c) {
     poke(c.rx_st.be, be)
   }
 
+  //
+  step(200)
+
+  // write
+
   poke_rx(data = 0, sop = 0, eop = 0, empty = 0, valid = 0, err = 0, bar = 0, be = 0)
   step(1)
   poke_rx(data = 0, sop = 0, eop = 0, empty = 0, valid = 0, err = 0, bar = 0, be = 0)
   step(1)
   poke_rx(
-    data = BigInt("6C671E65A35F5FC2DAA83AE60102030400000000D90000000000030F40000001", 16),
+    data = BigInt("56F7C9CC639A671FE7C8C4160000010000000000D90001000000020F40000001", 16),
     sop = 1,
     eop = 1,
     empty = 1,
@@ -63,7 +73,7 @@ class MWrBar0Test(c: PcieEndpoint) extends BfmTester(c) {
   )
   step(1)
   poke_rx(
-    data = BigInt("6C671E65A35F5FC2DAA83AE60102030400000000D90000000000030F40000001", 16),
+    data = BigInt("56F7C9CC639A671FE7C8C4160000010000000000D90001000000020F40000001", 16),
     sop = 0,
     eop = 0,
     empty = 0,
@@ -74,7 +84,43 @@ class MWrBar0Test(c: PcieEndpoint) extends BfmTester(c) {
   )
   step(50)
 
-  expect(bfm_avalon_agent.mem_get_word(0xd9000000L, 4) == 0x01020304, "recvd data")
+  expect(bfm_avalon_agent.mem_get_word(0xd9000100L, 4) == 0x100, "recvd data")
+
+  // read
+  poke_rx(
+    data = BigInt("00000000000000D90F0018000100000000000000D90001000018000F00000001", 16),
+    sop = 1,
+    eop = 1,
+    empty = 2,
+    valid = 1,
+    err = 0,
+    bar = 1,
+    be = 0x000f0000
+  )
+  step(1)
+  poke_rx(
+    data = BigInt("00000000000000D90F0018000100000000000000D90001000018000F00000001", 16),
+    sop = 1,
+    eop = 1,
+    empty = 2,
+    valid = 0,
+    err = 0,
+    bar = 1,
+    be = 0x000f0000
+  )
+  step(50)
+
+  val len = bfm_avalon_st_tx.data.length
+  expect(len == 1, "one sample captured")
+  if (len > 0) {
+    expect(
+      bfm_avalon_st_tx.data.head == BigInt(
+        "000001000000000000180000040000044A000001",
+        16
+      ),
+      "reference data"
+    )
+  }
 
   bfm_avalon_agent.mem_stats()
 }

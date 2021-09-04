@@ -37,15 +37,16 @@ class AvalonAgent extends Module {
   val cmd_queue = Queue(io.mem_cmd, 4)
 
   val reg_address = Reg(UInt(32.W))
-  val reg_byteenable = Reg(UInt(4.W))
+  val reg_byteenable = Reg(UInt(8.W))
   val reg_read = Reg(Bool())
   val reg_write = Reg(Bool())
-  val reg_writedata = Reg(UInt(32.W))
+  val reg_writedata = Reg(UInt(64.W))
+  val reg_len = Reg(UInt(2.W))
   io.avmm.address := reg_address
-  io.avmm.byteenable := reg_byteenable
+  io.avmm.byteenable := reg_byteenable(3, 0)
   io.avmm.read := reg_read
   io.avmm.write := reg_write
-  io.avmm.writedata := reg_writedata
+  io.avmm.writedata := reg_writedata(31, 0)
 
   val resp_dw0 = Reg(UInt(32.W))
   val resp_dw1 = Reg(UInt(32.W))
@@ -79,7 +80,8 @@ class AvalonAgent extends Module {
         reg_byteenable := cmd_queue.bits.byteenable
         reg_write := !cmd_queue.bits.read_write_b
         reg_read := cmd_queue.bits.read_write_b
-        reg_writedata := cmd_queue.bits.writedata(31, 0)
+        reg_writedata := cmd_queue.bits.writedata
+        reg_len := cmd_queue.bits.len
         reg_pcie_req_id := cmd_queue.bits.pcie_req_id
         reg_pcie_tag := cmd_queue.bits.pcie_tag
         reg_pcie_lo_addr := cmd_queue.bits.address(6, 0)
@@ -92,19 +94,32 @@ class AvalonAgent extends Module {
     }
     is(State.sWrite) {
       when(!io.avmm.waitrequest) {
-        reg_write := false.B
-        state := State.sIdle
+        when(reg_len === 2.U) {
+          reg_len := 1.U
+          reg_byteenable := reg_byteenable(7, 4)
+          reg_writedata := reg_writedata(63, 32)
+          reg_address := reg_address + 4.U
+        }.otherwise {
+          reg_write := false.B
+          state := State.sIdle
+        }
       }
     }
     is(State.sRead) {
       when(io.avmm.readdatavalid) {
         // TODO, store, check length
-        resp_len := 0.U
-        resp_dw0 := io.avmm.readdata
-        resp_valid := true.B
+        when(reg_len === 2.U) {
+          reg_len := 1.U
+          reg_address := reg_address + 4.U
+          resp_dw1 := io.avmm.readdata
+        }.otherwise {
+          resp_len := 0.U // TODO
+          resp_dw0 := io.avmm.readdata
+          resp_valid := true.B
 
-        reg_read := false.B
-        state := State.sIdle
+          reg_read := false.B
+          state := State.sIdle
+        }
       }
     }
   }

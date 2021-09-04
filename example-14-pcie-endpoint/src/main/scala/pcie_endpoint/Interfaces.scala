@@ -38,6 +38,7 @@ object Interfaces {
     val byteenable = UInt(8.W)
     val read_write_b = Bool()
     val writedata = UInt(64.W)
+    val len = UInt(2.W)
 
     // PCIe-related thing
     val pcie_req_id = UInt(16.W)

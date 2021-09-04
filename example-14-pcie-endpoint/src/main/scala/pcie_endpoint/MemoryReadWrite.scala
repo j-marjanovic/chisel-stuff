@@ -61,6 +61,7 @@ class MemoryReadWrite extends Module {
         reg_mem_cmd_bar0.bits.address := mrd32.addr << 2
         reg_mem_cmd_bar0.bits.byteenable := Cat(mrd32.last_be, mrd32.first_be)
         reg_mem_cmd_bar0.bits.read_write_b := true.B
+        reg_mem_cmd_bar0.bits.len := mrd32.length
         reg_mem_cmd_bar0.bits.pcie_req_id := mrd32.req_id
         reg_mem_cmd_bar0.bits.pcie_tag := mrd32.tag
       }.elsewhen(io.rx_st.bar(2)) {
@@ -68,6 +69,7 @@ class MemoryReadWrite extends Module {
         reg_mem_cmd_bar2.bits.address := mrd32.addr << 2
         reg_mem_cmd_bar2.bits.byteenable := Cat(mrd32.last_be, mrd32.first_be)
         reg_mem_cmd_bar2.bits.read_write_b := true.B
+        reg_mem_cmd_bar2.bits.len := mrd32.length
         reg_mem_cmd_bar2.bits.pcie_req_id := mrd32.req_id
         reg_mem_cmd_bar2.bits.pcie_tag := mrd32.tag
       }
@@ -79,7 +81,12 @@ class MemoryReadWrite extends Module {
           reg_mem_cmd_bar0.bits.address := mwr32.addr << 2
           reg_mem_cmd_bar0.bits.byteenable := Cat(mwr32.last_be, mwr32.first_be)
           reg_mem_cmd_bar0.bits.read_write_b := false.B
-          reg_mem_cmd_bar0.bits.writedata := Cat(mwr32.dw1, mwr32.dw0)
+          reg_mem_cmd_bar0.bits.len := mwr32.length
+          when(mwr32.addr(0)) {
+            reg_mem_cmd_bar0.bits.writedata := Cat(mwr32.dw1, mwr32.dw1) // TODO
+          }.otherwise {
+            reg_mem_cmd_bar0.bits.writedata := Cat(mwr32.dw1, mwr32.dw0)
+          }
           reg_mem_cmd_bar0.bits.pcie_req_id := mwr32.req_id
           reg_mem_cmd_bar0.bits.pcie_tag := mwr32.tag
         }.elsewhen(io.rx_st.bar(2)) {
@@ -87,6 +94,7 @@ class MemoryReadWrite extends Module {
           reg_mem_cmd_bar2.bits.address := mwr32.addr << 2
           reg_mem_cmd_bar2.bits.byteenable := Cat(mwr32.last_be, mwr32.first_be)
           reg_mem_cmd_bar2.bits.read_write_b := false.B
+          reg_mem_cmd_bar2.bits.len := mwr32.length
           reg_mem_cmd_bar2.bits.writedata := Cat(mwr32.dw1, mwr32.dw0)
           reg_mem_cmd_bar2.bits.pcie_req_id := mwr32.req_id
           reg_mem_cmd_bar2.bits.pcie_tag := mwr32.tag

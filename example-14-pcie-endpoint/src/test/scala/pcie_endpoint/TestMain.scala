@@ -45,6 +45,25 @@ class TestMain extends ChiselFlatSpec {
     } should be(true)
   }
 
+  it should "test the entire endpoint (with pre-prepared stimulus/response - 64-bit)" in {
+    iotesters.Driver.execute(
+      Array(
+        "--backend-name",
+        "verilator",
+        "--fint-write-vcd",
+        "--test-seed",
+        "1234",
+        "--target-dir",
+        "test_run_dir/PcieEndpointSimple64Test",
+        "--top-name",
+        "PcieEndpointSimple64Test"
+      ),
+      () => new PcieEndpoint
+    ) { c =>
+      new PcieEndpointSimple64Test(c)
+    } should be(true)
+  }
+
   it should "test the entire endpoint with PCIe BFM" in {
     iotesters.Driver.execute(
       Array(

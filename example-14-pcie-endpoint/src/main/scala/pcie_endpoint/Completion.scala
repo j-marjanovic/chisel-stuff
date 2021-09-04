@@ -68,11 +68,17 @@ class Completion extends Module {
   when(cmd_queue.valid) {
     printf(p"Completion: ${cmd_queue.bits}\n")
     cpld.length := 1.U
-    cpld.compl_id := io.conf_internal.busdev << 8
     cpld.byte_count := 4.U
+    when(cmd_queue.bits.pcie_lo_addr(3, 0) === 4.U) {
+      cpld.dw0_unalign := cmd_queue.bits.dw0
+      cpld.dw0 := 0.U
+    }.otherwise {
+      cpld.dw0_unalign := 0.U
+      cpld.dw0 := cmd_queue.bits.dw0
+    }
     cpld.tag := cmd_queue.bits.pcie_tag
     cpld.req_id := cmd_queue.bits.pcie_req_id
-    cpld.dw0 := cmd_queue.bits.dw0
+    cpld.compl_id := io.conf_internal.busdev << 8
     cpld.lo_addr := cmd_queue.bits.pcie_lo_addr
     reg_data := cpld.asUInt()
     reg_valid := true.B

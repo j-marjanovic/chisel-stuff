@@ -42,6 +42,7 @@ class AvalonAgent extends Module {
   val reg_write = Reg(Bool())
   val reg_writedata = Reg(UInt(64.W))
   val reg_len = Reg(UInt(2.W))
+  val sel = Reg(UInt(2.W))
   io.avmm.address := reg_address
   io.avmm.byteenable := reg_byteenable(3, 0)
   io.avmm.read := reg_read
@@ -50,7 +51,7 @@ class AvalonAgent extends Module {
 
   val resp_dw0 = Reg(UInt(32.W))
   val resp_dw1 = Reg(UInt(32.W))
-  val resp_len = Reg(Bool())
+  val resp_len = Reg(UInt(2.W))
   val resp_valid = RegInit(false.B)
   io.mem_resp.bits.dw0 := resp_dw0
   io.mem_resp.bits.dw1 := resp_dw1
@@ -65,7 +66,7 @@ class AvalonAgent extends Module {
   io.mem_resp.bits.pcie_lo_addr := reg_pcie_lo_addr
 
   object State extends ChiselEnum {
-    val sIdle, sWrite, sRead, sRead2 = Value
+    val sIdle, sWrite, sRead, sReadWait = Value
   }
 
   val state = RegInit(State.sIdle)
@@ -82,6 +83,7 @@ class AvalonAgent extends Module {
         reg_read := cmd_queue.bits.read_write_b
         reg_writedata := cmd_queue.bits.writedata
         reg_len := cmd_queue.bits.len
+        sel := 0.U
         reg_pcie_req_id := cmd_queue.bits.pcie_req_id
         reg_pcie_tag := cmd_queue.bits.pcie_tag
         reg_pcie_lo_addr := cmd_queue.bits.address(6, 0)
@@ -106,19 +108,28 @@ class AvalonAgent extends Module {
       }
     }
     is(State.sRead) {
+      when(!io.avmm.waitrequest) {
+        state := State.sReadWait
+        reg_read := false.B
+      }
+    }
+    is(State.sReadWait) {
       when(io.avmm.readdatavalid) {
-        // TODO, store, check length
-        when(reg_len === 2.U) {
-          reg_len := 1.U
-          reg_address := reg_address + 4.U
+        sel := sel + 1.U
+        when(sel === 1.U) {
           resp_dw1 := io.avmm.readdata
         }.otherwise {
-          resp_len := 0.U // TODO
           resp_dw0 := io.avmm.readdata
-          resp_valid := true.B
+        }
 
-          reg_read := false.B
+        when(reg_len - 1.U === sel) {
+          resp_len := reg_len
+          resp_valid := true.B
           state := State.sIdle
+        }.otherwise {
+          reg_address := reg_address + 4.U
+          reg_read := true.B
+          state := State.sRead
         }
       }
     }

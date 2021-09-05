@@ -52,7 +52,7 @@ class Completion extends Module {
   cpld.dw0 := DontCare
   cpld.dw1 := DontCare
 
-  cpld.length := 0.U // TODO
+  cpld.length := 0.U
   cpld.compl_id := io.conf_internal.busdev << 8
   cpld.byte_count := 0.U
   cpld.compl_status := 0.U
@@ -66,16 +66,24 @@ class Completion extends Module {
   reg_err := false.B
 
   when(cmd_queue.valid) {
-    printf(p"Completion: ${cmd_queue.bits}\n")
-    cpld.length := 1.U
-    cpld.byte_count := 4.U
-    when(cmd_queue.bits.pcie_lo_addr(3, 0) === 4.U) {
+    printf(p"Completion from cmd_queue: ${cmd_queue.bits}\n")
+    cpld.length := cmd_queue.bits.len
+    cpld.byte_count := cmd_queue.bits.len * 4.U
+
+    when(cmd_queue.bits.pcie_lo_addr(2, 0) === 4.U) {
       cpld.dw0_unalign := cmd_queue.bits.dw0
-      cpld.dw0 := 0.U
+      cpld.dw0 := cmd_queue.bits.dw1
+      cpld.dw1 := 0.U
     }.otherwise {
       cpld.dw0_unalign := 0.U
       cpld.dw0 := cmd_queue.bits.dw0
+      cpld.dw1 := cmd_queue.bits.dw1
     }
+
+    when(cmd_queue.bits.pcie_lo_addr(2, 0) === 4.U && cmd_queue.bits.len === 1.U) {
+      reg_empty := 2.U
+    }
+
     cpld.tag := cmd_queue.bits.pcie_tag
     cpld.req_id := cmd_queue.bits.pcie_req_id
     cpld.compl_id := io.conf_internal.busdev << 8
@@ -85,14 +93,29 @@ class Completion extends Module {
     reg_sop := true.B
     reg_eop := true.B
   }.elsewhen(cmd2_queue.valid) {
-      printf(p"Completion: ${cmd2_queue.bits}\n")
-      cpld.length := 1.U
-      cpld.compl_id := io.conf_internal.busdev << 8
-      cpld.byte_count := 4.U
+      printf(p"Completion from cmd2_queue: ${cmd2_queue.bits}\n")
+      cpld.length := cmd2_queue.bits.len
+      cpld.byte_count := cmd2_queue.bits.len * 4.U
+
+      when(cmd2_queue.bits.pcie_lo_addr(2, 0) === 4.U) {
+        cpld.dw0_unalign := cmd2_queue.bits.dw0
+        cpld.dw0 := cmd2_queue.bits.dw1
+        cpld.dw1 := 0.U
+      }.otherwise {
+        cpld.dw0_unalign := 0.U
+        cpld.dw0 := cmd2_queue.bits.dw0
+        cpld.dw1 := cmd2_queue.bits.dw1
+      }
+
+      when(cmd2_queue.bits.pcie_lo_addr(2, 0) === 4.U && cmd2_queue.bits.len === 1.U) {
+        reg_empty := 2.U
+      }
+
       cpld.tag := cmd2_queue.bits.pcie_tag
       cpld.req_id := cmd2_queue.bits.pcie_req_id
-      cpld.dw0 := cmd2_queue.bits.dw0
+      cpld.compl_id := io.conf_internal.busdev << 8
       cpld.lo_addr := cmd2_queue.bits.pcie_lo_addr
+
       reg_data := cpld.asUInt()
       reg_valid := true.B
       reg_sop := true.B

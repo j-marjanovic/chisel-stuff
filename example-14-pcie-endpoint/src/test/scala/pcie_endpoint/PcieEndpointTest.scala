@@ -38,7 +38,7 @@ class PcieEndpointTest(c: PcieEndpoint) extends BfmTester(c) {
       Dw1 = 0,
       Dw0 = 0xaabbccddL,
       Dw0_unalign = 0,
-      Addr30_2 = 0xd9000204L >> 2,
+      Addr30_2 = 0xd9000220L >> 2,
       ProcHint = 0,
       ReqID = 0x12,
       Tag = 10,
@@ -64,7 +64,7 @@ class PcieEndpointTest(c: PcieEndpoint) extends BfmTester(c) {
 
   bfm_avalon_st_rx.transmit_mrd32(
     PciePackets.MRd32(
-      Addr30_2 = 0xd9000204L >> 2,
+      Addr30_2 = 0xd9000220L >> 2,
       ProcHint = 0,
       ReqID = 0x12,
       Tag = 11,
@@ -88,13 +88,13 @@ class PcieEndpointTest(c: PcieEndpoint) extends BfmTester(c) {
   )
 
   step(30)
-  val cpld_raw = bfm_avalon_st_tx.data.remove(0)
+  val cpld_raw = bfm_avalon_st_tx.recv_buffer.remove(0).data
   val cpld: PciePackets.CplD = PciePackets.to_cpld(cpld_raw)
   println(f"CplD = ${cpld_raw}%x, $cpld, ${cpld.Dw0}%x")
   expect(cpld.Dw0 == 0xaabbccddL, "dw0 in CplD")
   println(f"cpld.ComplID = ${cpld.ComplID}%x, cpld.ReqID = ${cpld.ReqID}%x")
   expect(cpld.ComplID == 4 << 8, "ComplID in CplD")
   expect(cpld.ReqID == 0x12, "ReqID in CplD")
-  expect(cpld.LoAddr == 4, "LoAddr in CplD")
+  expect(cpld.LoAddr == 0x20, "LoAddr in CplD")
 
 }

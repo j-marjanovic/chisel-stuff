@@ -83,7 +83,7 @@ class MemoryReadWrite extends Module {
           reg_mem_cmd_bar0.bits.read_write_b := false.B
           reg_mem_cmd_bar0.bits.len := mwr32.length
           when(mwr32.addr(0)) {
-            reg_mem_cmd_bar0.bits.writedata := Cat(mwr32.dw1, mwr32.dw1) // TODO
+            reg_mem_cmd_bar0.bits.writedata := Cat(mwr32.dw0, mwr32.dw0_unalign)
           }.otherwise {
             reg_mem_cmd_bar0.bits.writedata := Cat(mwr32.dw1, mwr32.dw0)
           }
@@ -95,7 +95,11 @@ class MemoryReadWrite extends Module {
           reg_mem_cmd_bar2.bits.byteenable := Cat(mwr32.last_be, mwr32.first_be)
           reg_mem_cmd_bar2.bits.read_write_b := false.B
           reg_mem_cmd_bar2.bits.len := mwr32.length
-          reg_mem_cmd_bar2.bits.writedata := Cat(mwr32.dw1, mwr32.dw0)
+          when(mwr32.addr(0)) {
+            reg_mem_cmd_bar2.bits.writedata := Cat(mwr32.dw0, mwr32.dw0_unalign)
+          }.otherwise {
+            reg_mem_cmd_bar2.bits.writedata := Cat(mwr32.dw1, mwr32.dw0)
+          }
           reg_mem_cmd_bar2.bits.pcie_req_id := mwr32.req_id
           reg_mem_cmd_bar2.bits.pcie_tag := mwr32.tag
         }

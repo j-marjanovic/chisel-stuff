@@ -40,7 +40,7 @@ class PcieEndpointTestBM(c: PcieEndpoint) extends BfmTester(c) {
         ReqID = 0x12,
         Tag = tag,
         LastBE = 0,
-        FirstBE = 0xf,
+        FirstBE = 0,
         Fmt = PciePackets.Fmt.ThreeDw.id,
         Type = 0,
         rsvd2 = false,
@@ -59,18 +59,73 @@ class PcieEndpointTestBM(c: PcieEndpoint) extends BfmTester(c) {
     )
     step(30)
 
-    val resp_valid = bfm_avalon_st_tx.data.nonEmpty
+    val resp_valid = bfm_avalon_st_tx.recv_buffer.nonEmpty
     expect(resp_valid, "received response")
 
     if (resp_valid) {
 
-      val cpld_raw = bfm_avalon_st_tx.data.remove(0)
+      val cpld_raw = bfm_avalon_st_tx.recv_buffer.remove(0).data
       val cpld: PciePackets.CplD = PciePackets.to_cpld(cpld_raw)
+      println(s"CplD = ${cpld}")
       expect(cpld.Tag == tag, "Tag in CplD")
 
       tag += 1
       if (tag > 31) tag = 1
-      cpld.Dw0
+
+      if ((addr & 0x7) == 4) {
+        cpld.Dw0_unalign
+      } else {
+        cpld.Dw0
+      }
+    } else {
+      -1
+    }
+  }
+
+  def read64(addr: Long, bar_idx: Int): BigInt = {
+    bfm_avalon_st_rx.transmit_mrd32(
+      PciePackets.MRd32(
+        Addr30_2 = (0xd9000000L | addr) >> 2,
+        ProcHint = 0,
+        ReqID = 0x12,
+        Tag = tag,
+        LastBE = 0,
+        FirstBE = 0,
+        Fmt = PciePackets.Fmt.ThreeDw.id,
+        Type = 0,
+        rsvd2 = false,
+        TrClass = 0,
+        rsvd1 = false,
+        Attr2 = 0,
+        rsvd0 = false,
+        TH = false,
+        TD = false,
+        EP = false,
+        Attr1_0 = 0,
+        AT = 0,
+        Length = 2
+      ),
+      1 << bar_idx
+    )
+    step(50)
+
+    val resp_valid = bfm_avalon_st_tx.recv_buffer.nonEmpty
+    expect(resp_valid, "received response")
+
+    if (resp_valid) {
+      val cpld_raw = bfm_avalon_st_tx.recv_buffer.remove(0).data
+      val cpld: PciePackets.CplD = PciePackets.to_cpld(cpld_raw)
+      println(s"CplD = ${cpld}")
+      expect(cpld.Tag == tag, "Tag in CplD")
+
+      tag += 1
+      if (tag > 31) tag = 1
+
+      if ((addr & 0x7) == 4) {
+        (BigInt(cpld.Dw0) << 32) | cpld.Dw0_unalign
+      } else {
+        (BigInt(cpld.Dw1) << 32) | cpld.Dw0
+      }
     } else {
       -1
     }
@@ -80,8 +135,8 @@ class PcieEndpointTestBM(c: PcieEndpoint) extends BfmTester(c) {
     bfm_avalon_st_rx.transmit_mwr32(
       PciePackets.MWr32(
         Dw1 = 0,
-        Dw0 = data,
-        Dw0_unalign = 0,
+        Dw0 = if ((addr & 0x7) == 4) 0 else data,
+        Dw0_unalign = if ((addr & 0x7) == 4) data else 0,
         Addr30_2 = (0xd9000000L | addr) >> 2,
         ProcHint = 0,
         ReqID = 0x12,
@@ -114,13 +169,25 @@ class PcieEndpointTestBM(c: PcieEndpoint) extends BfmTester(c) {
   expect(id_reg == 0xd3a01a2L, "ID reg")
 
   val version_reg = read32(4, 2)
-  expect(version_reg == 0x100, "version")
+  expect(version_reg == 0x102, "version")
 
   val dec_err = read32(0xc, 2)
   expect(dec_err == 0xbadcaffeL, "empty register")
 
   write32(0x10, 2, 2)
   write32(0x14, 2, 3)
-  val q = read32(0x18, 2)
-  expect(q == 5, "q = a + b")
+  write32(0x18, 2, 4)
+  val q1 = read32(0x20, 2)
+  expect(q1 == 5, "q = a + b")
+  val q2 = read32(0x24, 2)
+  expect(q2 == 8, "q = a * c")
+
+  val q2_q1 = read64(0x20, 2)
+  println(f"q2_q1 = ${q2_q1}%x")
+  expect(q2_q1 == 0x800000005L, "q2 and q1")
+
+  val decerr_q2 = read64(0x24, 2)
+  println(f"decerr_q2 = ${decerr_q2}%x")
+  expect(decerr_q2 == BigInt("badcaffe00000008", 16), "dec err and q2")
+
 }

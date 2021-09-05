@@ -80,8 +80,9 @@ package object pcie_endpoint {
   }
 
   class MWr32 extends Bundle {
-    val dw0 = UInt(32.W)
     val dw1 = UInt(32.W)
+    val dw0 = UInt(32.W)
+    val dw0_unalign = UInt(32.W)
 
     // byte 11 -8
     val addr = UInt(30.W)

@@ -53,6 +53,8 @@ class PcieEndpointSimple64Test(c: PcieEndpoint) extends BfmTester(c) {
   step(200)
 
   // write 0xaa to 0x10
+  println("=======================================================================")
+
   poke_rx(data = 0, sop = 0, eop = 0, empty = 0, valid = 0, err = 0, bar = 0, be = 0)
   step(1)
   poke_rx(
@@ -104,12 +106,12 @@ class PcieEndpointSimple64Test(c: PcieEndpoint) extends BfmTester(c) {
   )
   step(50)
 
-  var len = bfm_avalon_st_tx.data.length
-  expect(len == 1, "one sample captured")
+  var len = bfm_avalon_st_tx.recv_buffer.length
+  expect(len == 1, "one sample captured - read from 0x10")
   if (len > 0) {
-    val data = bfm_avalon_st_tx.data.remove(0)
+    val data = bfm_avalon_st_tx.recv_buffer.remove(0)
     expect(
-      data == BigInt(
+      data.data == BigInt(
         "000000AA0000000000180010040000044A000001",
         16
       ),
@@ -118,6 +120,8 @@ class PcieEndpointSimple64Test(c: PcieEndpoint) extends BfmTester(c) {
   }
 
   // write 0xbb to 0x14
+  println("=======================================================================")
+
   poke_rx(data = 0, sop = 0, eop = 0, empty = 0, valid = 0, err = 0, bar = 0, be = 0)
   step(1)
   poke_rx(
@@ -169,12 +173,12 @@ class PcieEndpointSimple64Test(c: PcieEndpoint) extends BfmTester(c) {
   )
   step(50)
 
-  len = bfm_avalon_st_tx.data.length
-  expect(len == 1, "one sample captured")
+  len = bfm_avalon_st_tx.recv_buffer.length
+  expect(len == 1, "one sample captured - read from 0x14")
   if (len > 0) {
-    val data = bfm_avalon_st_tx.data.remove(0)
+    val data = bfm_avalon_st_tx.recv_buffer.remove(0)
     expect(
-      data == BigInt(
+      data.data == BigInt(
         "000000BB00180014040000044A000001",
         // bb00180014040000044a000001
         16
@@ -184,6 +188,8 @@ class PcieEndpointSimple64Test(c: PcieEndpoint) extends BfmTester(c) {
   }
 
   // write 0xcc to 0x18
+  println("=======================================================================")
+
   poke_rx(data = 0, sop = 0, eop = 0, empty = 0, valid = 0, err = 0, bar = 0, be = 0)
   step(1)
   poke_rx(
@@ -235,12 +241,12 @@ class PcieEndpointSimple64Test(c: PcieEndpoint) extends BfmTester(c) {
   )
   step(50)
 
-  len = bfm_avalon_st_tx.data.length
-  expect(len == 1, "one sample captured")
+  len = bfm_avalon_st_tx.recv_buffer.length
+  expect(len == 1, "one sample captured - read from 0x18")
   if (len > 0) {
-    val data = bfm_avalon_st_tx.data.remove(0)
+    val data = bfm_avalon_st_tx.recv_buffer.remove(0)
     expect(
-      data == BigInt(
+      data.data == BigInt(
         "000000CC0000000000180018040000044A000001",
         16
       ),
@@ -248,7 +254,9 @@ class PcieEndpointSimple64Test(c: PcieEndpoint) extends BfmTester(c) {
     )
   }
 
-// read from 0x10 (two dwords), expect 0xbb000000aa
+  // read from 0x10 (two dwords), expect 0xbb000000aa
+  println("=======================================================================")
+
   poke_rx(data = 0, sop = 0, eop = 0, empty = 0, valid = 0, err = 0, bar = 0, be = 0)
   step(1)
   poke_rx(
@@ -274,20 +282,22 @@ class PcieEndpointSimple64Test(c: PcieEndpoint) extends BfmTester(c) {
   )
   step(50)
 
-  len = bfm_avalon_st_tx.data.length
+  len = bfm_avalon_st_tx.recv_buffer.length
   expect(len == 1, "one sample captured")
   if (len > 0) {
-    val data = bfm_avalon_st_tx.data.remove(0)
+    val data = bfm_avalon_st_tx.recv_buffer.remove(0)
     expect(
-      data == BigInt(
+      data.data == BigInt(
         "000000bb000000AA0000000000180010040000084A000002",
         16
       ),
-      "resp to read from 0x1c, expect 0xcc"
+      "resp to read from 0x10, expect 0xbb000000aa"
     )
   }
-  /*
-  // read from 0x14 (two dwords), expect 0xbb000000aa
+
+  // read from 0x14 (two dwords), expect 0xcc000000bb
+  println("=======================================================================")
+
   poke_rx(data = 0, sop = 0, eop = 0, empty = 0, valid = 0, err = 0, bar = 0, be = 0)
   step(1)
   poke_rx(
@@ -313,18 +323,20 @@ class PcieEndpointSimple64Test(c: PcieEndpoint) extends BfmTester(c) {
   )
   step(50)
 
-  len = bfm_avalon_st_tx.data.length
+  len = bfm_avalon_st_tx.recv_buffer.length
   expect(len == 1, "one sample captured")
   if (len > 0) {
-    val data = bfm_avalon_st_tx.data.remove(0)
+    val data = bfm_avalon_st_tx.recv_buffer.remove(0)
     expect(
-      data == BigInt(
+      data.data == BigInt(
         "cc000000BB00180014040000084A000002",
         16
       ),
-      "resp to read from 0x1c, expect 0xcc"
+      "resp to read from 0x14, expect 0xbb000000aa"
     )
   }
+
+  println("=======================================================================")
 
   // 0x10 d 0x2200000011
   poke_rx(data = 0, sop = 0, eop = 0, empty = 0, valid = 0, err = 0, bar = 0, be = 0)
@@ -378,18 +390,21 @@ class PcieEndpointSimple64Test(c: PcieEndpoint) extends BfmTester(c) {
   )
   step(50)
 
-  len = bfm_avalon_st_tx.data.length
+  len = bfm_avalon_st_tx.recv_buffer.length
   expect(len == 1, "one sample captured")
   if (len > 0) {
-    val data = bfm_avalon_st_tx.data.remove(0)
+    val data = bfm_avalon_st_tx.recv_buffer.remove(0)
     expect(
-      data == BigInt(
+      data.data == BigInt(
         "0000000000000022000000110000000000180010040000084A000002",
+        // 110000000000180010040000084a000002
         16
       ),
       "resp to read from 0x1c, expect 0xcc"
     )
   }
+
+  println("=======================================================================")
 
   //  0x14 d 0x5500000044
   poke_rx(data = 0, sop = 0, eop = 0, empty = 0, valid = 0, err = 0, bar = 0, be = 0)
@@ -443,18 +458,16 @@ class PcieEndpointSimple64Test(c: PcieEndpoint) extends BfmTester(c) {
   )
   step(50)
 
-  len = bfm_avalon_st_tx.data.length
+  len = bfm_avalon_st_tx.recv_buffer.length
   expect(len == 1, "one sample captured")
   if (len > 0) {
-    val data = bfm_avalon_st_tx.data.remove(0)
+    val data = bfm_avalon_st_tx.recv_buffer.remove(0)
     expect(
-      data == BigInt(
+      data.data == BigInt(
         "000000000550000004400180014040000084A000002",
         16
       ),
       "resp to read from 0x1c, expect 0xcc"
     )
   }
-
-   */
 }

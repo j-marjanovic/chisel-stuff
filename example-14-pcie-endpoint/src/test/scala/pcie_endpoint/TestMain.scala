@@ -26,7 +26,7 @@ import chisel3.iotesters
 import chisel3.iotesters.ChiselFlatSpec
 
 class TestMain extends ChiselFlatSpec {
-  it should "test the entire endpoint (with pre-prepared stimulus/response)" in {
+  it should "test the entire endpoint (with pre-prepared stimulus/response) - 32-bit" in {
     iotesters.Driver.execute(
       Array(
         "--backend-name",

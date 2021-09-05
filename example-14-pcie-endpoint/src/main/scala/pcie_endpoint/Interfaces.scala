@@ -52,7 +52,7 @@ object Interfaces {
   class _MemoryResp extends Bundle {
     val dw0 = UInt(32.W)
     val dw1 = UInt(32.W)
-    val len = Bool()
+    val len = UInt(2.W)
 
     // PCIe-related thing
     val pcie_req_id = UInt(16.W)

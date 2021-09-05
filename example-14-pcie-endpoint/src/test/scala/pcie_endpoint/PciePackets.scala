@@ -142,6 +142,7 @@ object PciePackets {
   }.as[MWr32]
 
   case class CplD(
+      Dw1: Long,
       Dw0: Long,
       Dw0_unalign: Long,
       ReqID: Int,
@@ -168,7 +169,8 @@ object PciePackets {
   )
 
   private implicit val cpld = {
-    ("Dw0" | ulong(32)) ::
+    ("Dw1" | ulong(32)) ::
+      ("Dw0" | ulong(32)) ::
       ("Dw0_unalign" | ulong(32)) ::
       ("ReqID" | uint(16)) ::
       ("Tag" | uint(8)) ::

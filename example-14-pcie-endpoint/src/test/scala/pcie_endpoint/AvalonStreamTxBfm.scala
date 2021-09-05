@@ -12,7 +12,9 @@ class AvalonStreamTxBfm(
     val println: String => Unit
 ) extends Bfm {
 
-  val data = ListBuffer[BigInt]()
+  class RecvData(val data: BigInt, val empty: BigInt) {}
+
+  val recv_buffer = ListBuffer[RecvData]()
 
   private def printWithBg(s: String): Unit = {
     // dark blue on light gray
@@ -23,9 +25,10 @@ class AvalonStreamTxBfm(
     poke(av_st_tx.ready, 1)
     val valid = peek(av_st_tx.valid)
     if (valid > 0) {
-      val data_beat = peek(av_st_tx.data)
-      data += data_beat
-      printWithBg(f"${t}%5d AvalonStreamTxBfm: data_beat = ${data_beat}%x")
+      val data = peek(av_st_tx.data)
+      val empty = peek(av_st_tx.empty)
+      recv_buffer += new RecvData(data, empty)
+      printWithBg(f"${t}%5d AvalonStreamTxBfm: data = ${data}%x, empty = ${empty}")
     }
   }
 

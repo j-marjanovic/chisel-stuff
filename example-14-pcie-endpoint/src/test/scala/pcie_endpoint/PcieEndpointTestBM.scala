@@ -162,6 +162,40 @@ class PcieEndpointTestBM(c: PcieEndpoint) extends BfmTester(c) {
     step(30)
   }
 
+  def write64(addr: Long, bar_idx: Int, data: BigInt): Unit = {
+    val word0 = (data & 0xffffffffL).toLong
+    val word1 = ((data >> 32) & 0xffffffffL).toLong
+
+    bfm_avalon_st_rx.transmit_mwr32(
+      PciePackets.MWr32(
+        Dw1 = word1,
+        Dw0 = if ((addr & 0x7) == 4) word1 else word0,
+        Dw0_unalign = if ((addr & 0x7) == 4) word0 else 0,
+        Addr30_2 = (0xd9000000L | addr) >> 2,
+        ProcHint = 0,
+        ReqID = 0x12,
+        Tag = tag,
+        LastBE = 0xf,
+        FirstBE = 0xf,
+        Fmt = PciePackets.Fmt.ThreeDwData.id,
+        Type = 0,
+        rsvd2 = false,
+        TrClass = 0,
+        rsvd1 = false,
+        Attr2 = 0,
+        rsvd0 = false,
+        TH = false,
+        TD = false,
+        EP = false,
+        Attr1_0 = 0,
+        AT = 0,
+        Length = 2
+      ),
+      1 << bar_idx
+    )
+    step(30)
+  }
+
   // wait for the configuration to be propagated into the DUT
   step(200)
 
@@ -182,7 +216,7 @@ class PcieEndpointTestBM(c: PcieEndpoint) extends BfmTester(c) {
   val q2 = read32(0x24, 2)
   expect(q2 == 8, "q = a * c")
 
-  val q2_q1 = read64(0x20, 2)
+  var q2_q1 = read64(0x20, 2)
   println(f"q2_q1 = ${q2_q1}%x")
   expect(q2_q1 == 0x800000005L, "q2 and q1")
 
@@ -190,4 +224,8 @@ class PcieEndpointTestBM(c: PcieEndpoint) extends BfmTester(c) {
   println(f"decerr_q2 = ${decerr_q2}%x")
   expect(decerr_q2 == BigInt("badcaffe00000008", 16), "dec err and q2")
 
+  write64(0x10, 2, BigInt("600000005", 16))
+  q2_q1 = read64(0x20, 2)
+  println(f"q2_q1 = ${q2_q1}%x")
+  expect(q2_q1 == 0x140000000bL, "q2 and q1")
 }

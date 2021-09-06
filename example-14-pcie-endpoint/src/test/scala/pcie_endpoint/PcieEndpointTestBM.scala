@@ -203,7 +203,7 @@ class PcieEndpointTestBM(c: PcieEndpoint) extends BfmTester(c) {
   expect(id_reg == 0xd3a01a2L, "ID reg")
 
   val version_reg = read32(4, 2)
-  expect(version_reg == 0x102, "version")
+  expect(version_reg >> 16 < 10, "version")
 
   val dec_err = read32(0xc, 2)
   expect(dec_err == 0xbadcaffeL, "empty register")

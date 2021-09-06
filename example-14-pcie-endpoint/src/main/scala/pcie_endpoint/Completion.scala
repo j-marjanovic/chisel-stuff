@@ -60,9 +60,6 @@ class Completion extends Module {
   cpld.tag := 0.U
   cpld.lo_addr := 0.U
 
-  reg_sop := false.B
-  reg_eop := false.B
-  reg_empty := 1.U
   reg_err := false.B
 
   when(cmd_queue.valid) {
@@ -80,6 +77,7 @@ class Completion extends Module {
       cpld.dw1 := cmd_queue.bits.dw1
     }
 
+    reg_empty := 1.U
     when(cmd_queue.bits.pcie_lo_addr(2, 0) === 4.U && cmd_queue.bits.len === 1.U) {
       reg_empty := 2.U
     }
@@ -107,6 +105,7 @@ class Completion extends Module {
         cpld.dw1 := cmd2_queue.bits.dw1
       }
 
+      reg_empty := 1.U
       when(cmd2_queue.bits.pcie_lo_addr(2, 0) === 4.U && cmd2_queue.bits.len === 1.U) {
         reg_empty := 2.U
       }
@@ -124,5 +123,7 @@ class Completion extends Module {
     .elsewhen(io.tx_st.ready) {
       reg_data := 0.U
       reg_valid := false.B
+      reg_sop := false.B
+      reg_eop := false.B
     }
 }

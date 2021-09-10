@@ -160,13 +160,13 @@ class PcieEndpointSimpleTest(c: PcieEndpoint) extends BfmTester(c) {
     expect(data.empty == 2, "empty for non-aligned read")
   }
 
-  // write 0x7B to address 0x14
+  // write 0x7B to address 0x24
   poke_rx(data = 0, sop = 0, eop = 0, empty = 0, valid = 0, err = 0, bar = 0, be = 0)
   step(1)
   poke_rx(data = 0, sop = 0, eop = 0, empty = 0, valid = 0, err = 0, bar = 0, be = 0)
   step(1)
   poke_rx(
-    data = BigInt("F4BF7D6F990324AFBDFE6AED0377F1E60000007BDF8C00140000010F40000001", 16),
+    data = BigInt("F4BF7D6F990324AFBDFE6AED0377F1E60000007BDF8C00240000010F40000001", 16),
     sop = 1,
     eop = 1,
     empty = 2,
@@ -177,7 +177,7 @@ class PcieEndpointSimpleTest(c: PcieEndpoint) extends BfmTester(c) {
   )
   step(1)
   poke_rx(
-    data = BigInt("F4BF7D6F990324AFBDFE6AED0377F1E60000007BDF8C00140000010F40000001", 16),
+    data = BigInt("F4BF7D6F990324AFBDFE6AED0377F1E60000007BDF8C00240000010F40000001", 16),
     sop = 0,
     eop = 0,
     empty = 0,
@@ -188,13 +188,13 @@ class PcieEndpointSimpleTest(c: PcieEndpoint) extends BfmTester(c) {
   )
   step(50)
 
-  // read from 0x14
+  // read from 0x24
   poke_rx(data = 0, sop = 0, eop = 0, empty = 0, valid = 0, err = 0, bar = 0, be = 0)
   step(1)
   poke_rx(data = 0, sop = 0, eop = 0, empty = 0, valid = 0, err = 0, bar = 0, be = 0)
   step(1)
   poke_rx(
-    data = BigInt("0000000008008CDF0F0018000100000000000000DF8C00140018000F00000001", 16),
+    data = BigInt("0000000008008CDF0F0018000100000000000000DF8C00240018000F00000001", 16),
     sop = 1,
     eop = 1,
     empty = 2,
@@ -205,7 +205,7 @@ class PcieEndpointSimpleTest(c: PcieEndpoint) extends BfmTester(c) {
   )
   step(1)
   poke_rx(
-    data = BigInt("0000000008008CDF0F0018000100000000000000DF8C00140018000F00000001", 16),
+    data = BigInt("0000000008008CDF0F0018000100000000000000DF8C00240018000F00000001", 16),
     sop = 0,
     eop = 0,
     empty = 0,

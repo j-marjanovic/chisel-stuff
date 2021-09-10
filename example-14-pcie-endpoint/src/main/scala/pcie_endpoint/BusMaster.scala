@@ -1,11 +1,37 @@
+/*
+Copyright (c) 2021 Jan Marjanovic
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+ */
+
 package pcie_endpoint
 
 import chisel3._
+import chisel3.experimental.ChiselEnum
 import chisel3.util._
+
 import scala.collection.mutable.Map
 
 class BusMaster extends Module {
   val io = IO(new Bundle {
+    val conf_internal = Input(new Interfaces.ConfigIntern)
+
     val ctrl_cmd = Flipped(new Interfaces.MemoryCmd)
     val ctrl_resp = new Interfaces.MemoryResp
 
@@ -15,35 +41,56 @@ class BusMaster extends Module {
   io.ctrl_cmd.ready := true.B
 
   val reg_id = 0xd3a01a2.U(32.W)
-  val reg_version = 0x00000200.U(32.W)
+  val reg_version = 0x00000300.U(32.W)
   val reg_scratch = Reg(UInt(32.W))
-  val reg_a = Reg(UInt(32.W))
-  val reg_b = Reg(UInt(32.W))
-  val reg_c = Reg(UInt(32.W))
-  val reg_q1 = Reg(UInt(32.W))
-  val reg_q2 = Reg(UInt(32.W))
+
+  val reg_start = Reg(Bool())
+
+  val reg_mwr32 = Reg(new MWr32)
+
+  reg_mwr32.fmt := 0x2.U
+  reg_mwr32.typ := 0.U
+  reg_mwr32.r1 := false.B
+  reg_mwr32.tc := 0.U
+  reg_mwr32.r2 := false.B
+  reg_mwr32.attr2 := false.B
+  reg_mwr32.r3 := false.B
+  reg_mwr32.th := false.B
+  reg_mwr32.td := false.B
+  reg_mwr32.ep := false.B
+  reg_mwr32.attr1_0 := 0.U
+  reg_mwr32.at := 0.U
+  reg_mwr32.first_be := 0xf.U
+  reg_mwr32.last_be := 0.U
+  reg_mwr32.tag := 0.U
+  reg_mwr32.req_id := io.conf_internal.busdev << 8.U
+  reg_mwr32.ph := 0.U
+
+  reg_start := false.B
 
   val reg_map = Map[Int, (UInt, Boolean)](
     0 -> (reg_id, false),
     4 -> (reg_version, false),
     8 -> (reg_scratch, true),
-    0x10 -> (reg_a, true),
-    0x14 -> (reg_b, true),
-    0x18 -> (reg_c, true),
-    0x20 -> (reg_q1, false),
-    0x24 -> (reg_q2, false)
+    0x10 -> (reg_mwr32.addr, true),
+    // rsvd for 64-bit
+    0x18 -> (reg_mwr32.dw0_unalign, true),
+    0x20 -> (reg_mwr32.dw0, true),
+    0x24 -> (reg_mwr32.dw1, true),
+    0x28 -> (reg_mwr32.first_be, true),
+    0x2c -> (reg_mwr32.last_be, true),
+    0x30 -> (reg_mwr32.length, true),
+    0x34 -> (reg_start, true)
   )
 
-  val reg_dummy = Reg(UInt(32.W))
   var reg_map_with_next = Map[Int, (UInt, UInt, Boolean, Boolean)]()
 
   for (el <- reg_map) {
-    val reg_next: (UInt, Boolean) = reg_map.getOrElse(el._1, Tuple2(reg_dummy, false))
+    val reg_dummy = Reg(UInt(32.W))
+    reg_dummy := 0xbadcaffeL.U
+    val reg_next: (UInt, Boolean) = reg_map.getOrElse(el._1 + 4, Tuple2(reg_dummy, false))
     reg_map_with_next += el._1 -> Tuple4(el._2._1, reg_next._1, el._2._2, reg_next._2)
   }
-
-  reg_q1 := reg_a + reg_b
-  reg_q2 := reg_a(15, 0) * reg_c(15, 0)
 
   io.ctrl_resp.valid := false.B
   io.ctrl_resp.bits := DontCare
@@ -91,8 +138,36 @@ class BusMaster extends Module {
     }
   }
 
-  // TODO:
+  object State extends ChiselEnum {
+    val sIdle, sTxHdr = Value
+  }
+
+  val state = RegInit(State.sIdle)
+
+  switch(state) {
+    is(State.sIdle) {
+      when(reg_start) {
+        state := State.sTxHdr
+      }
+    }
+    is(State.sTxHdr) {
+      when(io.tx_st.ready) {
+        state := State.sIdle
+      }
+    }
+  }
+
   io.tx_st := DontCare
-  io.tx_st.valid := false.B
+  io.tx_st.err := 0.U
+
+  when(state === State.sTxHdr) {
+    io.tx_st.valid := true.B
+    io.tx_st.sop := true.B
+    io.tx_st.eop := true.B
+    io.tx_st.empty := 1.U
+    io.tx_st.data := reg_mwr32.asUInt()
+  }.otherwise {
+    io.tx_st.valid := false.B
+  }
 
 }

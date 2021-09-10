@@ -208,24 +208,21 @@ class PcieEndpointTestBM(c: PcieEndpoint) extends BfmTester(c) {
   val dec_err = read32(0xc, 2)
   expect(dec_err == 0xbadcaffeL, "empty register")
 
-  write32(0x10, 2, 2)
-  write32(0x14, 2, 3)
-  write32(0x18, 2, 4)
-  val q1 = read32(0x20, 2)
-  expect(q1 == 5, "q = a + b")
-  val q2 = read32(0x24, 2)
-  expect(q2 == 8, "q = a * c")
+  write32(0x10, 2, (0xdf901000L >> 2))
+  step(50)
 
-  var q2_q1 = read64(0x20, 2)
-  println(f"q2_q1 = ${q2_q1}%x")
-  expect(q2_q1 == 0x800000005L, "q2 and q1")
+  write32(0x18, 2, 0xaabbccddL)
+  step(50)
 
-  val decerr_q2 = read64(0x24, 2)
-  println(f"decerr_q2 = ${decerr_q2}%x")
-  expect(decerr_q2 == BigInt("badcaffe00000008", 16), "dec err and q2")
+  write32(0x34, 2, 1)
+  step(50)
 
-  write64(0x10, 2, BigInt("600000005", 16))
-  q2_q1 = read64(0x20, 2)
-  println(f"q2_q1 = ${q2_q1}%x")
-  expect(q2_q1 == 0x140000000bL, "q2 and q1")
+  val len = bfm_avalon_st_tx.recv_buffer.length
+  expect(len == 1, "one sample captured - bus mastering write")
+  if (len > 0) {
+    val mwr_raw = bfm_avalon_st_tx.recv_buffer.remove(0)
+    val mwr = PciePackets.to_mwr32(mwr_raw.data)
+    println(f"MWr32 = ${mwr}")
+  }
+
 }

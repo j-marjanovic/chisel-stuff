@@ -1,3 +1,25 @@
+/*
+Copyright (c) 2021 Jan Marjanovic
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+ */
+
 package pcie_endpoint
 
 import scodec._
@@ -202,7 +224,10 @@ object PciePackets {
 
   def to_mwr32(raw: BigInt): MWr32 = {
     val size_bytes: Int = (mwr32.sizeBound.exact.get / 8).toInt
-    mwr32.decode(BitVector(raw.toByteArray.reverse.slice(0, size_bytes).reverse)).require.value
+    val bs: Array[Byte] = raw.toByteArray.reverse.slice(0, size_bytes).reverse
+    val ext: Array[Byte] = (for (_ <- 0 until size_bytes - bs.length) yield 0.toByte).toArray
+    val tot_bs: Array[Byte] = ext ++ bs
+    mwr32.decode(BitVector(tot_bs)).require.value
   }
 
   def to_mrd32(raw: BigInt): MRd32 = {

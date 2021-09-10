@@ -26,7 +26,7 @@ import bfmtester.AvalonMMIf
 import chisel3._
 import chisel3.util._
 
-class PcieEndpointWrapper extends RawModule { //MultiIOModule {
+class PcieEndpointWrapper extends RawModule {
   val coreclkout_hip = IO(Input(Clock()))
 
   // hip_rst interface
@@ -103,6 +103,7 @@ class PcieEndpoint extends MultiIOModule {
   mod_completion.io.conf_internal := mod_config.io.conf_internal
 
   val mod_bus_master = Module(new BusMaster)
+  mod_bus_master.io.conf_internal := mod_config.io.conf_internal
   mod_bus_master.io.ctrl_cmd <> mod_mem_read_write.io.mem_cmd_bar2
   mod_completion.io.bm_resp <> mod_bus_master.io.ctrl_resp
 

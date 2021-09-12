@@ -208,13 +208,19 @@ class PcieEndpointTestBM(c: PcieEndpoint) extends BfmTester(c) {
   val dec_err = read32(0xc, 2)
   expect(dec_err == 0xbadcaffeL, "empty register")
 
-  write32(0x10, 2, (0xdf901000L >> 2))
+  write32(0x20, 2, 0xdf901000L)
   step(50)
 
-  write32(0x18, 2, 0xaabbccddL)
+  write32(0x24, 2, 0)
   step(50)
 
-  write32(0x34, 2, 1)
+  write32(0x28, 2, 8)
+  step(50)
+
+  write32(0x2c, 2, 0xa)
+  step(50)
+
+  write32(0x14, 2, 1)
   step(50)
 
   val len = bfm_avalon_st_tx.recv_buffer.length

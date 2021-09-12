@@ -97,4 +97,11 @@ object Interfaces {
   class ConfigIntern extends Bundle {
     val busdev = UInt(12.W)
   }
+
+  class DmaDesc extends Bundle {
+    val addr32_0 = UInt(32.W)
+    val addr63_32 = UInt(32.W)
+    val len_bytes = UInt(32.W)
+    val seq_nr = UInt(8.W)
+  }
 }

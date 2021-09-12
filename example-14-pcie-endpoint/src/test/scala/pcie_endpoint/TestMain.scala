@@ -83,7 +83,7 @@ class TestMain extends ChiselFlatSpec {
     } should be(true)
   }
 
-  it should "test the Bus Mastering part" in {
+  it should "test the Bus Mastering part of the endpoint" in {
     iotesters.Driver.execute(
       Array(
         "--backend-name",
@@ -99,6 +99,25 @@ class TestMain extends ChiselFlatSpec {
       () => new PcieEndpoint
     ) { c =>
       new PcieEndpointTestBM(c)
+    } should be(true)
+  }
+
+  it should "test the Bus Mastering alone" in {
+    iotesters.Driver.execute(
+      Array(
+        "--backend-name",
+        "verilator",
+        "--fint-write-vcd",
+        "--test-seed",
+        "1234",
+        "--target-dir",
+        "test_run_dir/BusMasterTest",
+        "--top-name",
+        "BusMasterTest"
+      ),
+      () => new BusMaster
+    ) { c =>
+      new BusMasterTest(c)
     } should be(true)
   }
 

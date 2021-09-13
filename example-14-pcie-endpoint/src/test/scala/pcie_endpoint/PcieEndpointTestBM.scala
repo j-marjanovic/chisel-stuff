@@ -211,7 +211,7 @@ class PcieEndpointTestBM(c: PcieEndpoint) extends BfmTester(c) {
   write32(0x20, 2, 0xdf901000L)
   step(50)
 
-  write32(0x24, 2, 0)
+  write32(0x24, 2, 0x7)
   step(50)
 
   write32(0x28, 2, 8)

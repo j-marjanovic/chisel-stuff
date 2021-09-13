@@ -37,24 +37,24 @@ class BusMasterEngine extends Module {
   val MAX_PAYLOAD_SIZE_BYTES: Int = 128
   val MAX_PAYLOAD_SIZE_DWS: Int = MAX_PAYLOAD_SIZE_BYTES / 4
 
-  val reg_mwr32 = Reg(new MWr32)
-  reg_mwr32.fmt := 0x2.U
-  reg_mwr32.typ := 0.U
-  reg_mwr32.r1 := false.B
-  reg_mwr32.tc := 0.U
-  reg_mwr32.r2 := false.B
-  reg_mwr32.attr2 := false.B
-  reg_mwr32.r3 := false.B
-  reg_mwr32.th := false.B
-  reg_mwr32.td := false.B
-  reg_mwr32.ep := false.B
-  reg_mwr32.attr1_0 := 0.U
-  reg_mwr32.at := 0.U
-  reg_mwr32.tag := 0.U
-  reg_mwr32.req_id := io.conf_internal.busdev << 8.U
-  reg_mwr32.ph := 0.U
+  val reg_mwr64 = Reg(new MWr64NoPayload)
+  reg_mwr64.fmt := 0x3.U
+  reg_mwr64.typ := 0.U
+  reg_mwr64.r1 := false.B
+  reg_mwr64.tc := 0.U
+  reg_mwr64.r2 := false.B
+  reg_mwr64.attr2 := false.B
+  reg_mwr64.r3 := false.B
+  reg_mwr64.th := false.B
+  reg_mwr64.td := false.B
+  reg_mwr64.ep := false.B
+  reg_mwr64.attr1_0 := 0.U
+  reg_mwr64.at := 0.U
+  reg_mwr64.tag := 0.U
+  reg_mwr64.req_id := io.conf_internal.busdev << 8.U
+  reg_mwr64.ph := 0.U
 
-  reg_mwr32.first_be := 0xf.U
+  reg_mwr64.first_be := 0xf.U
 
   val desc_len_dws = WireInit(io.dma_desc.bits.len_bytes / 4.U)
   val len_all_dws = Reg(UInt(32.W))
@@ -78,13 +78,14 @@ class BusMasterEngine extends Module {
           MAX_PAYLOAD_SIZE_DWS.U,
           desc_len_dws
         )
-        reg_mwr32.addr := io.dma_desc.bits.addr32_0 >> 2.U
-        reg_mwr32.length := Mux(
+        reg_mwr64.addr31_2 := io.dma_desc.bits.addr32_0 >> 2.U
+        reg_mwr64.addr63_32 := io.dma_desc.bits.addr63_32
+        reg_mwr64.length := Mux(
           desc_len_dws > MAX_PAYLOAD_SIZE_DWS.U,
           MAX_PAYLOAD_SIZE_DWS.U,
           desc_len_dws
         )
-        reg_mwr32.last_be := Mux(desc_len_dws > 1.U, 0xf.U, 0.U)
+        reg_mwr64.last_be := Mux(desc_len_dws > 1.U, 0xf.U, 0.U)
       }.elsewhen(len_all_dws > 0.U && len_all_dws < 0xfffffff0L.U) {
         state := State.sTxHdr
         len_pkt_dws := Mux(
@@ -92,12 +93,12 @@ class BusMasterEngine extends Module {
           MAX_PAYLOAD_SIZE_DWS.U,
           len_all_dws
         )
-        reg_mwr32.length := Mux(
+        reg_mwr64.length := Mux(
           len_all_dws > MAX_PAYLOAD_SIZE_DWS.U,
           MAX_PAYLOAD_SIZE_DWS.U,
           len_all_dws
         )
-        reg_mwr32.last_be := Mux(len_all_dws > 1.U, 0xf.U, 0.U)
+        reg_mwr64.last_be := Mux(len_all_dws > 1.U, 0xf.U, 0.U)
       }
     }
     is(State.sTxHdr) {
@@ -116,7 +117,8 @@ class BusMasterEngine extends Module {
       when(io.tx_st.ready) {
         len_pkt_dws := len_pkt_dws - 8.U
         len_all_dws := len_all_dws - 8.U
-        reg_mwr32.addr := reg_mwr32.addr + 8.U
+        reg_mwr64.addr31_2 := reg_mwr64.addr31_2 + 8.U
+        // we do not handle 32-bit address overflow -> very unlikely
 
         when(len_pkt_dws <= 8.U) {
           state := State.sIdle
@@ -154,7 +156,7 @@ class BusMasterEngine extends Module {
     io.tx_st.sop := true.B
     io.tx_st.eop := !(len_pkt_dws > 4.U)
     when(len_pkt_dws === 1.U) {
-      io.tx_st.empty := 2.U
+      io.tx_st.empty := 1.U
     }.elsewhen(len_pkt_dws === 2.U) {
         io.tx_st.empty := 1.U
       }
@@ -163,7 +165,7 @@ class BusMasterEngine extends Module {
       }
     io.tx_st.data := Cat(
       out_data.asUInt()(127, 0),
-      reg_mwr32.asUInt()(127, 0)
+      reg_mwr64.asUInt()(127, 0)
     )
   }.elsewhen(state === State.sTxData) {
       io.tx_st.valid := true.B

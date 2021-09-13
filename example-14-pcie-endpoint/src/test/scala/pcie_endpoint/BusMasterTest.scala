@@ -53,6 +53,9 @@ class BusMasterTest(c: BusMaster) extends BfmTester(c) {
     tag += 1
   }
 
+  // use 64-bit addressing
+  write(0x24, 0x7)
+
   write(0x20, 0xcd001000L)
   write(0x28, 4)
   write(0x2c, 0x9)

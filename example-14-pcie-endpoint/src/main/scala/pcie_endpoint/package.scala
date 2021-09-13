@@ -120,6 +120,46 @@ package object pcie_endpoint {
     val length = UInt(10.W)
   }
 
+  class MWr64NoPayload extends Bundle {
+    // byte 11 -8
+    val addr31_2 = UInt(30.W)
+    val ph = UInt(2.W)
+
+    // byte 11 - 8
+    val addr63_32 = UInt(32.W)
+
+    // byte 4, 5
+    val req_id = UInt(16.W)
+
+    // byte 6
+    val tag = UInt(8.W)
+
+    // byte 7
+    val last_be = UInt(4.W)
+    val first_be = UInt(4.W)
+
+    // byte 0
+    val fmt = UInt(3.W)
+    val typ = UInt(5.W)
+
+    // byte 1
+    val r1 = Bool()
+    val tc = UInt(3.W)
+    val r2 = Bool()
+    val attr2 = Bool()
+    val r3 = Bool()
+    val th = Bool()
+
+    // byte 2 (w/o length9_8)
+    val td = Bool()
+    val ep = Bool()
+    val attr1_0 = UInt(2.W)
+    val at = UInt(2.W)
+
+    // byte 3
+    val length = UInt(10.W)
+  }
+
   class CplD extends Bundle {
     val dw1 = UInt(32.W)
 

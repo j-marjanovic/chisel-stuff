@@ -55,10 +55,24 @@ class PcieEndpointWrapper extends RawModule {
 
   val pcie_endpoint = withClockAndReset(coreclkout_hip, reset_status) { Module(new PcieEndpoint) }
 
+  val tx_ready_corr = withClockAndReset(coreclkout_hip, reset_status) {
+    Module(new ReadyCorrection)
+  }
+
   pcie_endpoint.rx_st <> rx_st
-  pcie_endpoint.tx_st <> tx_st
   pcie_endpoint.tl_cfg <> tl_cfg
   pcie_endpoint.avmm_bar0 <> avmm_bar0
+
+  // tx
+  tx_ready_corr.core_ready := tx_st.ready
+  tx_ready_corr.app_valid := pcie_endpoint.tx_st.valid
+  pcie_endpoint.tx_st.ready := tx_ready_corr.app_ready
+  tx_st.valid := tx_ready_corr.core_valid
+  tx_st.data := pcie_endpoint.tx_st.data
+  tx_st.sop := pcie_endpoint.tx_st.sop
+  tx_st.eop := pcie_endpoint.tx_st.eop
+  tx_st.empty := pcie_endpoint.tx_st.empty
+  tx_st.err := pcie_endpoint.tx_st.err
 
   // as in example design
   pld_core_ready := serdes_pll_locked

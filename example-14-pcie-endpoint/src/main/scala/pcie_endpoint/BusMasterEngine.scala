@@ -86,19 +86,6 @@ class BusMasterEngine extends Module {
           desc_len_dws
         )
         reg_mwr64.last_be := Mux(desc_len_dws > 1.U, 0xf.U, 0.U)
-      }.elsewhen(len_all_dws > 0.U && len_all_dws < 0xfffffff0L.U) {
-        state := State.sTxHdr
-        len_pkt_dws := Mux(
-          len_all_dws > MAX_PAYLOAD_SIZE_DWS.U,
-          MAX_PAYLOAD_SIZE_DWS.U,
-          len_all_dws
-        )
-        reg_mwr64.length := Mux(
-          len_all_dws > MAX_PAYLOAD_SIZE_DWS.U,
-          MAX_PAYLOAD_SIZE_DWS.U,
-          len_all_dws
-        )
-        reg_mwr64.last_be := Mux(len_all_dws > 1.U, 0xf.U, 0.U)
       }
     }
     is(State.sTxHdr) {
@@ -115,13 +102,28 @@ class BusMasterEngine extends Module {
     }
     is(State.sTxData) {
       when(io.tx_st.ready) {
-        len_pkt_dws := len_pkt_dws - 8.U
-        len_all_dws := len_all_dws - 8.U
+        len_pkt_dws := len_pkt_dws - Mux(len_pkt_dws > 8.U, 8.U, len_pkt_dws)
+        len_all_dws := len_all_dws - Mux(len_pkt_dws > 8.U, 8.U, len_pkt_dws)
         reg_mwr64.addr31_2 := reg_mwr64.addr31_2 + 8.U
         // we do not handle 32-bit address overflow -> very unlikely
 
         when(len_pkt_dws <= 8.U) {
-          state := State.sIdle
+          when(len_all_dws > 8.U) {
+            state := State.sTxHdr
+            len_pkt_dws := Mux(
+              len_all_dws > MAX_PAYLOAD_SIZE_DWS.U,
+              MAX_PAYLOAD_SIZE_DWS.U,
+              len_all_dws
+            )
+            reg_mwr64.length := Mux(
+              len_all_dws > MAX_PAYLOAD_SIZE_DWS.U,
+              MAX_PAYLOAD_SIZE_DWS.U,
+              len_all_dws
+            )
+            reg_mwr64.last_be := Mux(len_all_dws > 1.U, 0xf.U, 0.U)
+          }.otherwise {
+            state := State.sIdle
+          }
         }
       }
     }
@@ -132,13 +134,14 @@ class BusMasterEngine extends Module {
 
   val out_data = RegInit(VecInit.tabulate(256 / 16)((idx: Int) => idx.U(16.W)))
   val data_advance = WireInit((state === State.sTxData || state === State.sTxHdr) && io.tx_st.ready)
+  val data_pause = WireInit((state === State.sTxData) && len_pkt_dws === 4.U)
   val data_init = WireInit(state === State.sIdle)
 
   when(data_init) {
     for (idx <- 0 until 256 / 16) {
       out_data(idx) := idx.U
     }
-  }.elsewhen(data_advance) {
+  }.elsewhen(data_advance && !data_pause) {
     for (idx <- 0 until 256 / 16) {
       out_data(idx) := out_data(idx) + (256 / 16).U
     }

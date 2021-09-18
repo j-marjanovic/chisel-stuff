@@ -97,4 +97,10 @@ class BusMasterTest(c: BusMaster) extends BfmTester(c) {
   write(0x2c, 0xf)
   write(0x14, 1)
   step(100)
+
+  write(0x20, 0xcd001000L)
+  write(0x28, 0x4000)
+  write(0x2c, 0x1)
+  write(0x14, 1)
+  step(100)
 }

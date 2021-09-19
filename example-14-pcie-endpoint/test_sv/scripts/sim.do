@@ -1,4 +1,10 @@
 
+.main clear
+
+if {[file exists work]} {
+  vdel -lib work -all
+}
+
 # BFMs
 set INTEL_QUARUTS_PATH /opt/intelFPGA/20.1
 

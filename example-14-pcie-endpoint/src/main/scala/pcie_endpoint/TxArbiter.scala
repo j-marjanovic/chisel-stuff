@@ -50,12 +50,12 @@ class TxArbiter extends Module {
       }
     }
     is(State.sCpld) {
-      when(io.cpld.valid && io.cpld.eop) {
+      when(io.cpld.valid && io.cpld.eop && io.tx_st.ready) {
         state := State.sIdle
       }
     }
     is(State.sBm) {
-      when(io.bm.valid && io.bm.eop) {
+      when(io.bm.valid && io.bm.eop && io.tx_st.ready) {
         state := State.sIdle
       }
     }

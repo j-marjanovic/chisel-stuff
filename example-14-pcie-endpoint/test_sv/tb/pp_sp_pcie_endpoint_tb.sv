@@ -41,7 +41,7 @@ module pp_sp_pcie_endpoint_tb;
     // $display("val = %d", val);
   end
 
-  task read_bar2(input bit [31:0] addr, output logic [31:0] data);
+  task read_bar2(input bit [31:0] addr, output logic [31:0] data, input bit ignore_resp = 0);
     automatic t_mwr_mrd mrd;
     automatic bit [255:0] resp_data;
     automatic bit [1:0] resp_empty;
@@ -52,8 +52,6 @@ module pp_sp_pcie_endpoint_tb;
     addr = addr >> 2;
     mrd = '{Fmt: FMT_THREEDW, Type:0, Length: 1, FirstBE: 'hf, ReqID: 'h18, Addr30_2: addr, default: 0};
 
-    th.st_sink_tx.set_ready(1);
-
     th.st_source_rx.set_transaction_data(mrd);
     th.st_source_rx.set_transaction_empty('h2);
     th.st_source_rx.set_transaction_sop('h1);
@@ -62,26 +60,30 @@ module pp_sp_pcie_endpoint_tb;
     th.st_source_rx.set_transaction_channel('h4);
     th.st_source_rx.push_transaction();
 
-    @th.st_sink_tx.signal_transaction_received;
-    th.st_sink_tx.pop_transaction();
-    resp_data  = th.st_sink_tx.get_transaction_data();
-    resp_empty = th.st_sink_tx.get_transaction_empty();
-    resp_sop   = th.st_sink_tx.get_transaction_sop();
-    resp_eop   = th.st_sink_tx.get_transaction_eop();
-    resp_pkt   = resp_data;
+    if (!ignore_resp) begin
+      @th.st_sink_tx.signal_transaction_received;
+      th.st_sink_tx.pop_transaction();
+      resp_data  = th.st_sink_tx.get_transaction_data();
+      resp_empty = th.st_sink_tx.get_transaction_empty();
+      resp_sop   = th.st_sink_tx.get_transaction_sop();
+      resp_eop   = th.st_sink_tx.get_transaction_eop();
+      resp_pkt   = resp_data;
 
-    $display("%5t Packet received:", $time);
-    $display("        data  = %x", resp_data);
-    $display("        empty = %x", resp_empty);
-    $display("        sop   = %x", resp_sop);
-    $display("        eop   = %x", resp_eop);
-    $displayh("        pkt   = %p", resp_pkt);
+      $display("%5t Packet received:", $time);
+      $display("        data  = %x", resp_data);
+      $display("        empty = %x", resp_empty);
+      $display("        sop   = %x", resp_sop);
+      $display("        eop   = %x", resp_eop);
+      $displayh("        pkt   = %p", resp_pkt);
 
-    // address was alredy shifted before, now it is a DW address
-    if (addr[0]) begin
-      data = resp_pkt.Dw0_unalign;
+      // address was alredy shifted before, now it is a DW address
+      if (addr[0]) begin
+        data = resp_pkt.Dw0_unalign;
+      end else begin
+        data = resp_pkt.Dw0;
+      end
     end else begin
-      data = resp_pkt.Dw0;
+      data = '1;
     end
   endtask
 
@@ -98,8 +100,6 @@ module pp_sp_pcie_endpoint_tb;
     end else begin
       mwr.Dw0 = data;
     end
-
-    // th.st_sink_tx.set_ready(1);
 
     th.st_source_rx.set_transaction_data(mwr);
     th.st_source_rx.set_transaction_empty('h2);
@@ -118,20 +118,31 @@ module pp_sp_pcie_endpoint_tb;
     byte unsigned payload[];
   } DataPacket;
 
-  task _get_single_packet(output DataPacket pkt);
+  DataPacket pkts[$];
+
+  task get_single_packet;
+    const int MAX_PKT_LEN = 32;
+    automatic DataPacket pkt;
     automatic bit [255:0] resp_data;
-    automatic bit [  1:0] resp_empty;
+    automatic bit [1:0] resp_empty;
     automatic bit resp_sop, resp_eop;
     automatic t_mwr_mrd resp_pkt;
     byte unsigned payload[];
 
-    for (int i = 0; i < 100; i++) begin
-      th.st_sink_tx.pop_transaction();
+    for (int i = 0; i < MAX_PKT_LEN; i++) begin
+      while (th.st_sink_tx.get_transaction_queue_size() == 0) begin
+        #(10ns);
+      end
+      if (i != 0) begin
+        th.st_sink_tx.pop_transaction();
+      end
       resp_data  = th.st_sink_tx.get_transaction_data();
       resp_empty = th.st_sink_tx.get_transaction_empty();
       resp_sop   = th.st_sink_tx.get_transaction_sop();
       resp_eop   = th.st_sink_tx.get_transaction_eop();
       resp_pkt   = resp_data;
+
+      $display(" get single packet, resp_data = %x %x %x", resp_data, resp_sop, resp_eop);
 
       if (i == 0) begin
         automatic bit [0:15][7:0] beat_bytes;
@@ -154,10 +165,11 @@ module pp_sp_pcie_endpoint_tb;
 
       if (resp_eop) begin
         pkt.payload = payload;
+        pkts.push_back(pkt);
         break;
       end
 
-      assert (i < 99)
+      assert (i < MAX_PKT_LEN - 1)
       else $display("%5t ERROR: EOP not received", $time);
     end
   endtask
@@ -176,13 +188,69 @@ module pp_sp_pcie_endpoint_tb;
 
   task check_data();
     automatic bit [15:0] start_value = 0;
-    DataPacket pkt;
-    while (th.st_sink_tx.get_transaction_queue_size() > 0) begin
-      _get_single_packet(pkt);
+
+    while (pkts.size() > 0) begin
+      automatic DataPacket pkt = pkts.pop_front();
       _check_payload(pkt, start_value);
     end
     $display("%5t start value at the end = %x", $time, start_value);
     $display("%5t OK: data check completed without errors", $time);
+  endtask
+
+  //============================================================================
+  // data handler
+
+  bit handler_stop = 0;
+
+  task send_read_status;
+    logic [31:0] read_data;
+
+    while (!handler_stop) begin
+      read_bar2('h10, read_data, 1);
+      #(1000ns);
+    end
+  endtask
+
+  task recv_read_status;
+    automatic bit [255:0] resp_data;
+    automatic bit [  1:0] resp_empty;
+    automatic bit resp_sop, resp_eop;
+    automatic t_mwr_mrd resp_pkt;
+    byte unsigned payload[];
+
+    resp_data  = th.st_sink_tx.get_transaction_data();
+    resp_empty = th.st_sink_tx.get_transaction_empty();
+    resp_sop   = th.st_sink_tx.get_transaction_sop();
+    resp_eop   = th.st_sink_tx.get_transaction_eop();
+    resp_pkt   = resp_data;
+
+    $display("  completion, %x", resp_pkt.Dw0);
+    if (!resp_pkt.Dw0[0]) begin
+      handler_stop = 1;
+    end
+  endtask
+
+  task handle_recv_data;
+    automatic t_mwr_mrd recv_pkt;
+
+    while (!handler_stop) begin
+      while (th.st_sink_tx.get_transaction_queue_size() > 0) begin
+        th.st_sink_tx.pop_transaction();
+        recv_pkt = th.st_sink_tx.get_transaction_data();
+        $display("data = %x, %x, %x", recv_pkt, recv_pkt.Fmt, recv_pkt.Type);
+        if ((recv_pkt.Fmt == FMT_THREEDWDATA) && (recv_pkt.Type == 'hA)) begin
+          $display("  completion");
+          recv_read_status();
+        end else if ((recv_pkt.Fmt == FMT_FOURDWDATA) && (recv_pkt.Type == 0)) begin
+          $display("  mwr");
+          get_single_packet();
+        end else begin
+          assert (0)
+          else $display("%5t unsupported packet header (%x)", $time, recv_pkt);
+        end
+      end
+      #(100ns);
+    end
   endtask
 
   //============================================================================
@@ -191,6 +259,7 @@ module pp_sp_pcie_endpoint_tb;
   initial begin : proc_main
     logic [31:0] read_data;
     @(negedge th.reset_status);
+    th.st_sink_tx.set_ready(1);
     #(100ns);
 
     read_bar2('h0, read_data);
@@ -199,19 +268,33 @@ module pp_sp_pcie_endpoint_tb;
     read_bar2('h4, read_data);
     assert ((read_data >> 16) < 10);  // version less than 10.x.x
 
+    $display("==============================================================");
     write_bar2('h20, 32'h3000_0000);
     write_bar2('h24, 32'h0000_0007);
     write_bar2('h28, 32'h0000_4000);
     write_bar2('h14, 32'h1);
-    #(10000ns);
+
+    handler_stop = 0;
+    fork
+      handle_recv_data();
+      send_read_status();
+    join
+
     check_data();
 
+    $display("==============================================================");
     ready_backpressure = 70;
     write_bar2('h20, 32'h3000_0000);
     write_bar2('h24, 32'h0000_0007);
     write_bar2('h28, 32'h0000_4000);
     write_bar2('h14, 32'h1);
-    #(15000ns);
+
+    handler_stop = 0;
+    fork
+      handle_recv_data();
+      send_read_status();
+    join
+
     check_data();
 
     $finish();

@@ -33,6 +33,8 @@ class BusMasterRegs extends Module {
     val ctrl_resp = new Interfaces.MemoryResp
 
     val dma_desc = Valid(new Interfaces.DmaDesc)
+
+    val fsm_busy = Input(Bool())
   })
 
   io.ctrl_cmd.ready := true.B
@@ -40,6 +42,9 @@ class BusMasterRegs extends Module {
   val reg_id = 0xd3a01a2.U(32.W)
   val reg_version = 0x00000601.U(32.W)
   val reg_scratch = Reg(UInt(32.W))
+
+  val reg_status = Wire(UInt(32.W))
+  reg_status := Cat(0.U(31.W), io.fsm_busy)
 
   val reg_dma_desc_valid = RegNext(false.B)
   io.dma_desc.valid := reg_dma_desc_valid
@@ -51,6 +56,7 @@ class BusMasterRegs extends Module {
     0 -> (reg_id, false),
     4 -> (reg_version, false),
     8 -> (reg_scratch, true),
+    0x10 -> (reg_status, false),
     0x14 -> (reg_dma_desc_valid, true),
     0x20 -> (reg_dma_desc.addr32_0, true),
     0x24 -> (reg_dma_desc.addr63_32, true),

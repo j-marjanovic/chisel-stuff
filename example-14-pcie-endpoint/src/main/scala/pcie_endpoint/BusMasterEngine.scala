@@ -31,6 +31,8 @@ class BusMasterEngine extends Module {
     val conf_internal = Input(new Interfaces.ConfigIntern)
     val dma_desc = Flipped(Valid(new Interfaces.DmaDesc))
 
+    val fsm_busy = Output(Bool())
+
     val tx_st = new Interfaces.AvalonStreamTx
   })
 
@@ -67,6 +69,7 @@ class BusMasterEngine extends Module {
   }
 
   val state = RegInit(State.sIdle)
+  io.fsm_busy := state =/= State.sIdle
 
   switch(state) {
     is(State.sIdle) {

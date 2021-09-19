@@ -47,4 +47,6 @@ class BusMaster extends Module {
   mod_engine.io.conf_internal := io.conf_internal
   mod_engine.io.dma_desc := mod_regs.io.dma_desc
 
+  mod_regs.io.fsm_busy := mod_engine.io.fsm_busy
+
 }

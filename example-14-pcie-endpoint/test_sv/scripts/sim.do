@@ -51,6 +51,11 @@ add wave -radix hex \
   sim:/pp_sp_pcie_endpoint_tb/th/tx_st_empty \
   sim:/pp_sp_pcie_endpoint_tb/th/tx_st_err
 
+add wave -divider "Internal - TX arb"
+add wave \
+  sim:/pp_sp_pcie_endpoint_tb/th/DUT/pcie_endpoint/mod_tx_arbiter/state \
+  sim:/pp_sp_pcie_endpoint_tb/th/DUT/pcie_endpoint/mod_tx_arbiter/io_bm_hint
+
 add wave -divider "Internal - engine"
 add wave \
   sim:/pp_sp_pcie_endpoint_tb/th/DUT/pcie_endpoint/mod_bus_master/mod_engine/state

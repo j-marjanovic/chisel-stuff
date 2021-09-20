@@ -124,6 +124,7 @@ class PcieEndpoint extends MultiIOModule {
   val mod_tx_arbiter = Module(new TxArbiter)
   mod_tx_arbiter.io.cpld <> mod_completion.io.tx_st
   mod_tx_arbiter.io.bm <> mod_bus_master.io.tx_st
+  mod_tx_arbiter.io.bm_hint := mod_bus_master.io.arb_hint
   mod_tx_arbiter.io.tx_st <> tx_st
 
   when(rx_st.valid) {

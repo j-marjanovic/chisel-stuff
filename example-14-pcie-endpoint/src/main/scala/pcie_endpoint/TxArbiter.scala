@@ -32,7 +32,7 @@ class TxArbiter extends Module {
 
     val cpld = Flipped(new Interfaces.AvalonStreamTx)
     val bm = Flipped(new Interfaces.AvalonStreamTx)
-
+    val bm_hint = Input(Bool())
   })
 
   object State extends ChiselEnum {
@@ -56,7 +56,14 @@ class TxArbiter extends Module {
     }
     is(State.sBm) {
       when(io.bm.valid && io.bm.eop && io.tx_st.ready) {
-        state := State.sIdle
+        when(io.cpld.valid) {
+          state := State.sCpld
+        }.elsewhen(io.bm_hint) {
+            state := State.sBm
+          }
+          .otherwise {
+            state := State.sIdle
+          }
       }
     }
   }

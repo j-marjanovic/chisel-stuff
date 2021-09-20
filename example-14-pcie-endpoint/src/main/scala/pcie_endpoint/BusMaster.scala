@@ -35,6 +35,7 @@ class BusMaster extends Module {
     val ctrl_cmd = Flipped(new Interfaces.MemoryCmd)
     val ctrl_resp = new Interfaces.MemoryResp
 
+    val arb_hint = Output(Bool())
     val tx_st = new Interfaces.AvalonStreamTx
   })
 
@@ -43,6 +44,7 @@ class BusMaster extends Module {
   mod_regs.io.ctrl_resp <> io.ctrl_resp
 
   val mod_engine = Module(new BusMasterEngine)
+  io.arb_hint := mod_engine.io.arb_hint
   mod_engine.io.tx_st <> io.tx_st
   mod_engine.io.conf_internal := io.conf_internal
   mod_engine.io.dma_desc := mod_regs.io.dma_desc

@@ -33,6 +33,7 @@ class BusMasterEngine extends Module {
 
     val fsm_busy = Output(Bool())
 
+    val arb_hint = Output(Bool())
     val tx_st = new Interfaces.AvalonStreamTx
   })
 
@@ -131,6 +132,8 @@ class BusMasterEngine extends Module {
       }
     }
   }
+
+  io.arb_hint := state =/= State.sIdle && len_all_dws > 8.U
 
   //==========================================================================
   // output data

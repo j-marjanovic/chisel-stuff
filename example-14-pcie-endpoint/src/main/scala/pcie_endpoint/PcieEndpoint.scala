@@ -41,6 +41,8 @@ class PcieEndpointWrapper extends RawModule {
   val rx_st = IO(new Interfaces.AvalonStreamRx)
   val tx_st = IO(new Interfaces.AvalonStreamTx)
 
+  val app_int = IO(new Interfaces.AppInt)
+
   // config_tl interface
   val tl_cfg = IO(Input(new Interfaces.TLConfig))
   val cpl_err = IO(Output(UInt(7.W)))
@@ -62,6 +64,7 @@ class PcieEndpointWrapper extends RawModule {
   pcie_endpoint.rx_st <> rx_st
   pcie_endpoint.tl_cfg <> tl_cfg
   pcie_endpoint.avmm_bar0 <> avmm_bar0
+  pcie_endpoint.app_int <> app_int
 
   // tx
   tx_ready_corr.core_ready := tx_st.ready
@@ -93,6 +96,7 @@ class PcieEndpoint extends MultiIOModule {
   val tx_st = IO(new Interfaces.AvalonStreamTx)
   val tl_cfg = IO(Input(new Interfaces.TLConfig))
   val avmm_bar0 = IO(new AvalonMMIf(32, 32, 1))
+  val app_int = IO(new Interfaces.AppInt)
 
   val mod_config = Module(new Configuration)
   mod_config.io.cfg <> tl_cfg
@@ -126,6 +130,11 @@ class PcieEndpoint extends MultiIOModule {
   mod_tx_arbiter.io.bm <> mod_bus_master.io.tx_st
   mod_tx_arbiter.io.bm_hint := mod_bus_master.io.arb_hint
   mod_tx_arbiter.io.tx_st <> tx_st
+
+  val mod_int_ctrl = Module(new InterruptCtrl)
+  mod_int_ctrl.io.app_int <> app_int
+  mod_int_ctrl.io.conf_internal <> mod_config.io.conf_internal
+  mod_int_ctrl.io.trigger <> mod_bus_master.io.debug_trigger
 
   when(rx_st.valid) {
     val rx_data_hdr = WireInit(rx_st.data.asTypeOf(new CommonHdr))

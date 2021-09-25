@@ -23,36 +23,31 @@ SOFTWARE.
 package pcie_endpoint
 
 import chisel3._
-import chisel3.experimental.ChiselEnum
-import chisel3.util._
 
-import scala.collection.mutable.Map
-
-class BusMaster extends Module {
+class InterruptCtrl extends Module {
   val io = IO(new Bundle {
+    val app_int = new Interfaces.AppInt
+
     val conf_internal = Input(new Interfaces.ConfigIntern)
 
-    val ctrl_cmd = Flipped(new Interfaces.MemoryCmd)
-    val ctrl_resp = new Interfaces.MemoryResp
-
-    val arb_hint = Output(Bool())
-    val tx_st = new Interfaces.AvalonStreamTx
-
-    // debug
-    val debug_trigger = Output(Bool())
+    val trigger = Input(Bool())
   })
 
-  val mod_regs = Module(new BusMasterRegs)
-  mod_regs.io.ctrl_cmd <> io.ctrl_cmd
-  mod_regs.io.ctrl_resp <> io.ctrl_resp
-  io.debug_trigger := mod_regs.io.debug_trigger
+  val msi_en = WireInit(io.conf_internal.msicsr(0))
+  val reg_en = RegInit(false.B)
 
-  val mod_engine = Module(new BusMasterEngine)
-  io.arb_hint := mod_engine.io.arb_hint
-  mod_engine.io.tx_st <> io.tx_st
-  mod_engine.io.conf_internal := io.conf_internal
-  mod_engine.io.dma_desc := mod_regs.io.dma_desc
+  val trigger_edge = WireInit(io.trigger && !RegNext(io.trigger))
 
-  mod_regs.io.fsm_busy := mod_engine.io.fsm_busy
+  when(trigger_edge) {
+    reg_en := true.B
+  }.elsewhen((msi_en && io.app_int.msi_ack) || (!msi_en && io.app_int.ack)) {
+    reg_en := false.B
+  }
+
+  io.app_int.sts := reg_en
+  io.app_int.msi_req := msi_en && reg_en
+
+  io.app_int.msi_num := 0.U
+  io.app_int.msi_tc := 0.U
 
 }

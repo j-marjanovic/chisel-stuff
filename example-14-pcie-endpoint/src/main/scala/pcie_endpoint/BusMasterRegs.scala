@@ -35,12 +35,14 @@ class BusMasterRegs extends Module {
     val dma_desc = Valid(new Interfaces.DmaDesc)
 
     val fsm_busy = Input(Bool())
+
+    val debug_trigger = Output(Bool())
   })
 
   io.ctrl_cmd.ready := true.B
 
   val reg_id = 0xd3a01a2.U(32.W)
-  val reg_version = 0x00000601.U(32.W)
+  val reg_version = 0x00000603.U(32.W)
   val reg_scratch = Reg(UInt(32.W))
 
   val reg_status = Wire(UInt(32.W))
@@ -52,6 +54,16 @@ class BusMasterRegs extends Module {
   val reg_dma_desc = Reg(Output(new Interfaces.DmaDesc))
   io.dma_desc.bits := reg_dma_desc
 
+  val reg_test_irq_req = RegInit(false.B)
+  io.debug_trigger := reg_test_irq_req
+
+  val reg_test_irq_clr = RegInit(false.B)
+
+  reg_test_irq_clr := false.B
+  when(reg_test_irq_clr) {
+    reg_test_irq_req := false.B
+  }
+
   val reg_map = Map[Int, (UInt, Boolean)](
     0 -> (reg_id, false),
     4 -> (reg_version, false),
@@ -61,7 +73,9 @@ class BusMasterRegs extends Module {
     0x20 -> (reg_dma_desc.addr32_0, true),
     0x24 -> (reg_dma_desc.addr63_32, true),
     0x28 -> (reg_dma_desc.len_bytes, true),
-    0x2c -> (reg_dma_desc.seq_nr, true)
+    0x2c -> (reg_dma_desc.seq_nr, true),
+    0x60 -> (reg_test_irq_req, true),
+    0x64 -> (reg_test_irq_clr, true)
   )
 
   // we need this to handle

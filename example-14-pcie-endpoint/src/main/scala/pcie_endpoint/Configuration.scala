@@ -39,14 +39,19 @@ class Configuration extends Module {
   val cfgctl_addr_change2 = RegNext(cfgctl_addr_change)
   val cfgctl_addr_strobe = RegNext(cfgctl_addr_change2)
 
+  val reg_msicsr = RegInit(UInt(16.W), 0.U)
   val reg_busdev = RegInit(UInt(12.W), 0.U)
+
   when(cfgctl_addr_strobe) {
-    when(io.cfg.add === 0xf.U) {
+    when(io.cfg.add === 0xd.U) {
+      reg_msicsr := io.cfg.ctl(15, 0)
+    }.elsewhen(io.cfg.add === 0xf.U) {
       printf(p"Configuration: busdev = ${io.cfg.ctl}\n")
       reg_busdev := io.cfg.ctl(11, 0)
     }
   }
 
   io.conf_internal.busdev := reg_busdev
+  io.conf_internal.msicsr := reg_msicsr
 
 }

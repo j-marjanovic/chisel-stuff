@@ -86,6 +86,15 @@ object Interfaces {
     override def cloneType: MemoryResp.this.type = (new MemoryResp).asInstanceOf[this.type]
   }
 
+  class AppInt extends Bundle {
+    val msi_req = Output(Bool())
+    val msi_ack = Input(Bool())
+    val msi_tc = Output(UInt(3.W))
+    val msi_num = Output(UInt(5.W))
+    val sts = Output(Bool())
+    val ack = Input(Bool())
+  }
+
   // TODO: cmd to generate completion for UR, ...
 
   class TLConfig extends Bundle {
@@ -96,6 +105,7 @@ object Interfaces {
 
   class ConfigIntern extends Bundle {
     val busdev = UInt(12.W)
+    val msicsr = UInt(16.W)
   }
 
   class DmaDesc extends Bundle {

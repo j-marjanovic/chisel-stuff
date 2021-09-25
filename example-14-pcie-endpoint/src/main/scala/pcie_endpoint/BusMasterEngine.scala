@@ -37,7 +37,7 @@ class BusMasterEngine extends Module {
     val tx_st = new Interfaces.AvalonStreamTx
   })
 
-  val MAX_PAYLOAD_SIZE_BYTES: Int = 128
+  val MAX_PAYLOAD_SIZE_BYTES: Int = 256
   val MAX_PAYLOAD_SIZE_DWS: Int = MAX_PAYLOAD_SIZE_BYTES / 4
 
   val reg_mwr64 = Reg(new MWr64NoPayload)

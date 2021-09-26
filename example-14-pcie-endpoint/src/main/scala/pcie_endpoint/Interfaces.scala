@@ -104,7 +104,7 @@ object Interfaces {
   }
 
   class ConfigIntern extends Bundle {
-    val busdev = UInt(12.W)
+    val busdev = UInt(13.W)
     val msicsr = UInt(16.W)
   }
 
@@ -112,6 +112,10 @@ object Interfaces {
     val addr32_0 = UInt(32.W)
     val addr63_32 = UInt(32.W)
     val len_bytes = UInt(32.W)
-    val seq_nr = UInt(8.W)
+    val control = new Bundle {
+      val write_read_n = Bool()
+      val reserved = UInt(23.W)
+      val seq_nr = UInt(8.W)
+    }
   }
 }

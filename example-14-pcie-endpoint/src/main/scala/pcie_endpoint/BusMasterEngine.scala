@@ -41,7 +41,7 @@ class BusMasterEngine extends Module {
   val MAX_PAYLOAD_SIZE_DWS: Int = MAX_PAYLOAD_SIZE_BYTES / 4
 
   val reg_mwr64 = Reg(new MWr64NoPayload)
-  reg_mwr64.fmt := 0x3.U
+  reg_mwr64.fmt := 0x3.U // TODO: consts, Table 2-3: Fmt[2:0] and Type[4:0] Field Encodings
   reg_mwr64.typ := 0.U
   reg_mwr64.r1 := false.B
   reg_mwr64.tc := 0.U
@@ -54,10 +54,28 @@ class BusMasterEngine extends Module {
   reg_mwr64.attr1_0 := 0.U
   reg_mwr64.at := 0.U
   reg_mwr64.tag := 0.U
-  reg_mwr64.req_id := io.conf_internal.busdev << 8.U
+  reg_mwr64.req_id := io.conf_internal.busdev << 3.U
   reg_mwr64.ph := 0.U
-
   reg_mwr64.first_be := 0xf.U
+
+  val reg_mrd64 = Reg(new MWr64NoPayload)
+  reg_mrd64.fmt := 0x1.U // TODO: consts
+  reg_mrd64.typ := 0.U
+  reg_mrd64.r1 := false.B
+  reg_mrd64.tc := 0.U
+  reg_mrd64.r2 := false.B
+  reg_mrd64.attr2 := false.B
+  reg_mrd64.r3 := false.B
+  reg_mrd64.th := false.B
+  reg_mrd64.td := false.B
+  reg_mrd64.ep := false.B
+  reg_mrd64.attr1_0 := 0.U
+  reg_mrd64.at := 0.U
+  reg_mrd64.tag := 0.U
+  reg_mrd64.req_id := io.conf_internal.busdev << 3.U
+  reg_mrd64.ph := 0.U
+  reg_mrd64.first_be := 0xf.U
+  reg_mrd64.last_be := 0x0.U // TODO: check
 
   val desc_len_dws = WireInit(io.dma_desc.bits.len_bytes / 4.U)
   val len_all_dws = Reg(UInt(32.W))
@@ -66,7 +84,7 @@ class BusMasterEngine extends Module {
   //==========================================================================
   // FSM
   object State extends ChiselEnum {
-    val sIdle, sTxHdr, sTxData = Value
+    val sIdle, sTxWrHdr, sTxWrData, sTxRdHdr = Value
   }
 
   val state = RegInit(State.sIdle)
@@ -75,27 +93,35 @@ class BusMasterEngine extends Module {
   switch(state) {
     is(State.sIdle) {
       when(io.dma_desc.valid) {
-        state := State.sTxHdr
-        len_all_dws := desc_len_dws
-        len_pkt_dws := Mux(
-          desc_len_dws > MAX_PAYLOAD_SIZE_DWS.U,
-          MAX_PAYLOAD_SIZE_DWS.U,
-          desc_len_dws
-        )
-        reg_mwr64.addr31_2 := io.dma_desc.bits.addr32_0 >> 2.U
-        reg_mwr64.addr63_32 := io.dma_desc.bits.addr63_32
-        reg_mwr64.length := Mux(
-          desc_len_dws > MAX_PAYLOAD_SIZE_DWS.U,
-          MAX_PAYLOAD_SIZE_DWS.U,
-          desc_len_dws
-        )
-        reg_mwr64.last_be := Mux(desc_len_dws > 1.U, 0xf.U, 0.U)
+        when(!io.dma_desc.bits.control.write_read_n) {
+          state := State.sTxRdHdr
+          reg_mrd64.addr31_2 := io.dma_desc.bits.addr32_0 >> 2.U
+          reg_mrd64.addr63_32 := io.dma_desc.bits.addr63_32
+          reg_mrd64.length := 1.U // TODO
+          // reg_mrd64.last_be := Mux(desc_len_dws > 1.U, 0xf.U, 0.U)
+        }.otherwise {
+          state := State.sTxWrHdr
+          len_all_dws := desc_len_dws
+          len_pkt_dws := Mux(
+            desc_len_dws > MAX_PAYLOAD_SIZE_DWS.U,
+            MAX_PAYLOAD_SIZE_DWS.U,
+            desc_len_dws
+          )
+          reg_mwr64.addr31_2 := io.dma_desc.bits.addr32_0 >> 2.U
+          reg_mwr64.addr63_32 := io.dma_desc.bits.addr63_32
+          reg_mwr64.length := Mux(
+            desc_len_dws > MAX_PAYLOAD_SIZE_DWS.U,
+            MAX_PAYLOAD_SIZE_DWS.U,
+            desc_len_dws
+          )
+          reg_mwr64.last_be := Mux(desc_len_dws > 1.U, 0xf.U, 0.U)
+        }
       }
     }
-    is(State.sTxHdr) {
+    is(State.sTxWrHdr) {
       when(io.tx_st.ready) {
         when(len_pkt_dws > 4.U) {
-          state := State.sTxData
+          state := State.sTxWrData
         }.otherwise {
           state := State.sIdle
         }
@@ -104,7 +130,7 @@ class BusMasterEngine extends Module {
         // address not incremented here
       }
     }
-    is(State.sTxData) {
+    is(State.sTxWrData) {
       when(io.tx_st.ready) {
         len_pkt_dws := len_pkt_dws - Mux(len_pkt_dws > 8.U, 8.U, len_pkt_dws)
         len_all_dws := len_all_dws - Mux(len_pkt_dws > 8.U, 8.U, len_pkt_dws)
@@ -113,7 +139,7 @@ class BusMasterEngine extends Module {
 
         when(len_pkt_dws <= 8.U) {
           when(len_all_dws > 8.U) {
-            state := State.sTxHdr
+            state := State.sTxWrHdr
             len_pkt_dws := Mux(
               len_all_dws > MAX_PAYLOAD_SIZE_DWS.U,
               MAX_PAYLOAD_SIZE_DWS.U,
@@ -131,6 +157,11 @@ class BusMasterEngine extends Module {
         }
       }
     }
+    is(State.sTxRdHdr) {
+      when(io.tx_st.ready) {
+        state := State.sIdle
+      }
+    }
   }
 
   io.arb_hint := state =/= State.sIdle && len_all_dws > 8.U
@@ -139,8 +170,10 @@ class BusMasterEngine extends Module {
   // output data
 
   val out_data = RegInit(VecInit.tabulate(256 / 16)((idx: Int) => idx.U(16.W)))
-  val data_advance = WireInit((state === State.sTxData || state === State.sTxHdr) && io.tx_st.ready)
-  val data_pause = WireInit((state === State.sTxData) && len_pkt_dws === 4.U)
+  val data_advance = WireInit(
+    (state === State.sTxWrData || state === State.sTxWrHdr) && io.tx_st.ready
+  )
+  val data_pause = WireInit((state === State.sTxWrData) && len_pkt_dws === 4.U)
   val data_init = WireInit(state === State.sIdle)
 
   when(data_init) {
@@ -160,7 +193,7 @@ class BusMasterEngine extends Module {
   io.tx_st := DontCare
   io.tx_st.err := 0.U
 
-  when(state === State.sTxHdr) {
+  when(state === State.sTxWrHdr) {
     io.tx_st.valid := true.B
     io.tx_st.sop := true.B
     io.tx_st.eop := !(len_pkt_dws > 4.U)
@@ -176,7 +209,7 @@ class BusMasterEngine extends Module {
       out_data.asUInt()(127, 0),
       reg_mwr64.asUInt()(127, 0)
     )
-  }.elsewhen(state === State.sTxData) {
+  }.elsewhen(state === State.sTxWrData) {
       io.tx_st.valid := true.B
       io.tx_st.sop := false.B
       io.tx_st.eop := len_pkt_dws <= 8.U
@@ -189,6 +222,16 @@ class BusMasterEngine extends Module {
           io.tx_st.empty := 1.U
         }
       io.tx_st.data := Cat(out_data.asUInt()(127, 0), out_data_prev.asUInt()(255, 128))
+    }
+    .elsewhen(state === State.sTxRdHdr) {
+      io.tx_st.valid := true.B
+      io.tx_st.sop := true.B
+      io.tx_st.eop := true.B
+      io.tx_st.empty := 2.U
+      io.tx_st.data := Cat(
+        out_data.asUInt()(127, 0), // for optimization
+        reg_mrd64.asUInt()(127, 0)
+      )
     }
     .otherwise {
       io.tx_st.valid := false.B

@@ -247,6 +247,7 @@ module pp_sp_pcie_endpoint_tb;
         end else begin
           assert (0)
           else $display("%5t unsupported packet header (%x)", $time, recv_pkt);
+          $finish();
         end
       end
       #(100ns);
@@ -272,6 +273,7 @@ module pp_sp_pcie_endpoint_tb;
     write_bar2('h20, 32'h3000_0000);
     write_bar2('h24, 32'h0000_0007);
     write_bar2('h28, 32'h0000_4000);
+    write_bar2('h2c, 32'h8000_0001);
     write_bar2('h14, 32'h1);
 
     handler_stop = 0;
@@ -287,6 +289,7 @@ module pp_sp_pcie_endpoint_tb;
     write_bar2('h20, 32'h3000_0000);
     write_bar2('h24, 32'h0000_0007);
     write_bar2('h28, 32'h0000_4000);
+    write_bar2('h2c, 32'h8000_0002);
     write_bar2('h14, 32'h1);
 
     handler_stop = 0;

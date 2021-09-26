@@ -214,21 +214,56 @@ class PcieEndpointTestBM(c: PcieEndpoint) extends BfmTester(c) {
   write32(0x24, 2, 0x7)
   step(50)
 
-  write32(0x28, 2, 8)
+  write32(0x28, 2, 64)
   step(50)
 
-  write32(0x2c, 2, 0xa)
+  write32(0x2c, 2, 0x8000000aL)
   step(50)
 
   write32(0x14, 2, 1)
   step(50)
 
-  val len = bfm_avalon_st_tx.recv_buffer.length
-  expect(len == 1, "one sample captured - bus mastering write")
+  var len = bfm_avalon_st_tx.recv_buffer.length
+  expect(len == 3, "three sample captured - bus mastering write")
   if (len > 0) {
     val mwr_raw = bfm_avalon_st_tx.recv_buffer.remove(0)
     val mwr = PciePackets.to_mwr32(mwr_raw.data)
     println(f"MWr32 = ${mwr}")
+
+    bfm_avalon_st_tx.recv_buffer.remove(0)
+    bfm_avalon_st_tx.recv_buffer.remove(0)
+  }
+
+  expect(
+    bfm_avalon_st_tx.recv_buffer.isEmpty,
+    "the receive buffer is empty after the previous transaction"
+  )
+
+  // memory read
+  write32(0x20, 2, 0xabcd1000L)
+  step(50)
+
+  write32(0x24, 2, 0x7)
+  step(50)
+
+  write32(0x28, 2, 4)
+  step(50)
+
+  write32(0x2c, 2, 0xb)
+  step(50)
+
+  write32(0x14, 2, 1)
+  step(50)
+
+  len = bfm_avalon_st_tx.recv_buffer.length
+  expect(len == 1, "one sample captured - bus mastering read")
+  if (len > 0) {
+    val mrd_raw = bfm_avalon_st_tx.recv_buffer.remove(0)
+    val mrd = PciePackets.to_mrd64(mrd_raw.data)
+    println(f"MRd64 = ${mrd}")
+    expect(mrd.Addr63_32 == 7, "MRd - addr 64")
+    expect((mrd.Addr30_2.toLong << 2) == 0xabcd1000L, "MRd - addr 32")
+    expect(mrd.Length == 1, "MRd - length")
   }
 
 }

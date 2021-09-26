@@ -68,7 +68,6 @@ object PciePackets {
   }.as[CommonHdr]
 
   case class MRd32(
-      // Figure 2-5: Fields Present in All TLP Headers
       Addr30_2: Int,
       ProcHint: Int,
       ReqID: Int,
@@ -112,8 +111,53 @@ object PciePackets {
       ("Length" | uint(10))
   }.as[MRd32]
 
+  case class MRd64(
+      Addr30_2: Int,
+      ProcHint: Int,
+      Addr63_32: Long,
+      ReqID: Int,
+      Tag: Int,
+      LastBE: Int,
+      FirstBE: Int,
+      Fmt: Int,
+      Type: Int,
+      rsvd2: Boolean,
+      TrClass: Int,
+      rsvd1: Boolean,
+      Attr2: Int,
+      rsvd0: Boolean,
+      TH: Boolean,
+      TD: Boolean,
+      EP: Boolean,
+      Attr1_0: Int,
+      AT: Int,
+      Length: Int
+  )
+
+  private implicit val mrd64 = {
+    ("Addr30_2" | uint(30)) ::
+      ("ProcHint" | uint(2)) ::
+      ("Addr63_32" | ulong(32)) ::
+      ("ReqID" | uint(16)) ::
+      ("Tag" | uint(8)) ::
+      ("LastBE" | uint(4)) ::
+      ("FirstBE" | uint(4)) ::
+      ("Fmt" | uint(3)) ::
+      ("Type" | uint(5)) ::
+      ("rsvd1" | bool) ::
+      ("TrClass" | uint(3)) ::
+      ("rsvd1" | bool) ::
+      ("Attr2" | uint(1)) ::
+      ("rsvd0" | bool) ::
+      ("TH" | bool) ::
+      ("TD" | bool) ::
+      ("EP" | bool) ::
+      ("Attr1_0" | uint(2)) ::
+      ("AddrType" | uint(2)) ::
+      ("Length" | uint(10))
+  }.as[MRd64]
+
   case class MWr32(
-      // Figure 2-5: Fields Present in All TLP Headers
       Dw1: Long,
       Dw0: Long,
       Dw0_unalign: Long,
@@ -233,6 +277,11 @@ object PciePackets {
   def to_mrd32(raw: BigInt): MRd32 = {
     val size_bytes: Int = (mrd32.sizeBound.exact.get / 8).toInt
     mrd32.decode(BitVector(raw.toByteArray.reverse.slice(0, size_bytes).reverse)).require.value
+  }
+
+  def to_mrd64(raw: BigInt): MRd64 = {
+    val size_bytes: Int = (mrd64.sizeBound.exact.get / 8).toInt
+    mrd64.decode(BitVector(raw.toByteArray.reverse.slice(0, size_bytes).reverse)).require.value
   }
 
   def to_cpld(raw: BigInt): CplD = {

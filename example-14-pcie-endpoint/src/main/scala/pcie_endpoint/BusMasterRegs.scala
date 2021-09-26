@@ -52,7 +52,9 @@ class BusMasterRegs extends Module {
   io.dma_desc.valid := reg_dma_desc_valid
 
   val reg_dma_desc = Reg(Output(new Interfaces.DmaDesc))
+  val reg_dma_desc_control = Reg(UInt(32.W))
   io.dma_desc.bits := reg_dma_desc
+  io.dma_desc.bits.control := reg_dma_desc_control.asTypeOf(reg_dma_desc.control)
 
   val reg_test_irq_req = RegInit(false.B)
   io.debug_trigger := reg_test_irq_req
@@ -73,7 +75,7 @@ class BusMasterRegs extends Module {
     0x20 -> (reg_dma_desc.addr32_0, true),
     0x24 -> (reg_dma_desc.addr63_32, true),
     0x28 -> (reg_dma_desc.len_bytes, true),
-    0x2c -> (reg_dma_desc.seq_nr, true),
+    0x2c -> (reg_dma_desc_control, true),
     0x60 -> (reg_test_irq_req, true),
     0x64 -> (reg_test_irq_clr, true)
   )

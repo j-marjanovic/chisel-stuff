@@ -62,6 +62,12 @@ add wave \
 add wave \
   sim:/pp_sp_pcie_endpoint_tb/th/DUT/pcie_endpoint/mod_bus_master/mod_engine/io_tx_st_ready
 
+add wave -divider "Internal - regs "
+add wave \
+  sim:/pp_sp_pcie_endpoint_tb/th/DUT/pcie_endpoint/mod_bus_master/mod_regs/reg_dma_desc_valid \
+  sim:/pp_sp_pcie_endpoint_tb/th/DUT/pcie_endpoint/mod_bus_master/mod_regs/reg_dma_desc__addr32_0 \
+  sim:/pp_sp_pcie_endpoint_tb/th/DUT/pcie_endpoint/mod_bus_master/mod_regs/reg_dma_desc_control
+
 add wave -divider "Internal - Ready corr"
 add wave \
   sim:/pp_sp_pcie_endpoint_tb/th/DUT/tx_ready_corr/app_ready \

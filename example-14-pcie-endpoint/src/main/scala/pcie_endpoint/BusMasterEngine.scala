@@ -41,7 +41,7 @@ class BusMasterEngine extends Module {
   val MAX_PAYLOAD_SIZE_DWS: Int = MAX_PAYLOAD_SIZE_BYTES / 4
 
   val reg_mwr64 = Reg(new MWr64NoPayload)
-  reg_mwr64.fmt := 0x3.U // TODO: consts, Table 2-3: Fmt[2:0] and Type[4:0] Field Encodings
+  reg_mwr64.fmt := Fmt.MWr64.asUInt()
   reg_mwr64.typ := 0.U
   reg_mwr64.r1 := false.B
   reg_mwr64.tc := 0.U
@@ -59,7 +59,7 @@ class BusMasterEngine extends Module {
   reg_mwr64.first_be := 0xf.U
 
   val reg_mrd64 = Reg(new MWr64NoPayload)
-  reg_mrd64.fmt := 0x1.U // TODO: consts
+  reg_mrd64.fmt := Fmt.MRd64.asUInt()
   reg_mrd64.typ := 0.U
   reg_mrd64.r1 := false.B
   reg_mrd64.tc := 0.U
@@ -75,7 +75,6 @@ class BusMasterEngine extends Module {
   reg_mrd64.req_id := io.conf_internal.busdev << 3.U
   reg_mrd64.ph := 0.U
   reg_mrd64.first_be := 0xf.U
-  reg_mrd64.last_be := 0x0.U // TODO: check
 
   val desc_len_dws = WireInit(io.dma_desc.bits.len_bytes / 4.U)
   val len_all_dws = Reg(UInt(32.W))
@@ -97,8 +96,8 @@ class BusMasterEngine extends Module {
           state := State.sTxRdHdr
           reg_mrd64.addr31_2 := io.dma_desc.bits.addr32_0 >> 2.U
           reg_mrd64.addr63_32 := io.dma_desc.bits.addr63_32
-          reg_mrd64.length := 1.U // TODO
-          // reg_mrd64.last_be := Mux(desc_len_dws > 1.U, 0xf.U, 0.U)
+          reg_mrd64.length := desc_len_dws
+          reg_mrd64.last_be := Mux(desc_len_dws > 1.U, 0xf.U, 0.U)
         }.otherwise {
           state := State.sTxWrHdr
           len_all_dws := desc_len_dws

@@ -25,7 +25,7 @@ package pcie_endpoint
 import chisel3._
 import chisel3.util._
 
-class Completion extends Module {
+class CompletionGen extends Module {
   val io = IO(new Bundle {
     val mem_resp = Flipped(new Interfaces.MemoryResp)
     val bm_resp = Flipped(new Interfaces.MemoryResp)

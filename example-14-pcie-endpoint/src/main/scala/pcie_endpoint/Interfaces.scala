@@ -54,6 +54,12 @@ object Interfaces {
     val err = Output(Bool())
   }
 
+  class AvalonStreamDataOut extends Bundle {
+    val data = Output(UInt(256.W))
+    val valid = Output(Bool())
+    val empty = Output(UInt(8.W))
+  }
+
   class _MemoryCmd extends Bundle {
     // Memory transaction
     val address = UInt(32.W)

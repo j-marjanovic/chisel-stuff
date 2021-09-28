@@ -32,6 +32,11 @@ package object pcie_endpoint {
     val MWr64 = Value(3.U)
   }
 
+  object Typ extends ChiselEnum {
+    val MRdMWr = Value(0.U)
+    val Cpl = Value(0xa.U)
+  }
+
   class CommonHdr extends Bundle {
     // byte 0
     val fmt = UInt(3.W)

@@ -102,6 +102,25 @@ class TestMain extends ChiselFlatSpec {
     } should be(true)
   }
 
+  it should "test the Completion handling of the endpoint" in {
+    iotesters.Driver.execute(
+      Array(
+        "--backend-name",
+        "verilator",
+        "--fint-write-vcd",
+        "--test-seed",
+        "1234",
+        "--target-dir",
+        "test_run_dir/PcieEndpointComplTest",
+        "--top-name",
+        "PcieEndpointComplTest"
+      ),
+      () => new PcieEndpoint
+    ) { c =>
+      new PcieEndpointComplTest(c)
+    } should be(true)
+  }
+
   it should "test the Bus Mastering alone" in {
     iotesters.Driver.execute(
       Array(

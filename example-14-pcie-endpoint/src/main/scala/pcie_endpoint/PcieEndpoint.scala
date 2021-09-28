@@ -43,6 +43,8 @@ class PcieEndpointWrapper extends RawModule {
 
   val app_int = IO(new Interfaces.AppInt)
 
+  val data_out = IO(new Interfaces.AvalonStreamDataOut)
+
   // config_tl interface
   val tl_cfg = IO(Input(new Interfaces.TLConfig))
   val cpl_err = IO(Output(UInt(7.W)))
@@ -65,6 +67,7 @@ class PcieEndpointWrapper extends RawModule {
   pcie_endpoint.tl_cfg <> tl_cfg
   pcie_endpoint.avmm_bar0 <> avmm_bar0
   pcie_endpoint.app_int <> app_int
+  pcie_endpoint.data_out <> data_out
 
   // tx
   tx_ready_corr.core_ready := tx_st.ready
@@ -97,11 +100,12 @@ class PcieEndpoint extends MultiIOModule {
   val tl_cfg = IO(Input(new Interfaces.TLConfig))
   val avmm_bar0 = IO(new AvalonMMIf(32, 32, 1))
   val app_int = IO(new Interfaces.AppInt)
+  val data_out = IO(new Interfaces.AvalonStreamDataOut)
 
   val mod_config = Module(new Configuration)
   mod_config.io.cfg <> tl_cfg
 
-  val mod_mem_read_write = Module(new MemoryReadWrite)
+  val mod_mem_read_write = Module(new MemoryReadWriteCompl)
   val reg_mem_rw = Reg(Output(new Interfaces.AvalonStreamRx))
   mod_mem_read_write.io.rx_st.data := reg_mem_rw.data
   mod_mem_read_write.io.rx_st.sop := reg_mem_rw.sop
@@ -116,17 +120,23 @@ class PcieEndpoint extends MultiIOModule {
   mod_avalon_agent_bar0.io.mem_cmd <> mod_mem_read_write.io.mem_cmd_bar0
   mod_avalon_agent_bar0.io.avmm <> avmm_bar0
 
-  val mod_completion = Module(new Completion)
-  mod_completion.io.mem_resp <> mod_avalon_agent_bar0.io.mem_resp
-  mod_completion.io.conf_internal := mod_config.io.conf_internal
+  val mod_compl_gen = Module(new CompletionGen)
+  mod_compl_gen.io.mem_resp <> mod_avalon_agent_bar0.io.mem_resp
+  mod_compl_gen.io.conf_internal := mod_config.io.conf_internal
+
+  val mod_compl_recv = Module(new CompletionRecv)
+  mod_compl_recv.io.data := mod_mem_read_write.io.cpld.data
+  mod_compl_recv.io.valid := mod_mem_read_write.io.cpld.valid
+  mod_compl_recv.io.sop := mod_mem_read_write.io.cpld.sop
+  data_out := mod_compl_recv.io.data_out
 
   val mod_bus_master = Module(new BusMaster)
   mod_bus_master.io.conf_internal := mod_config.io.conf_internal
   mod_bus_master.io.ctrl_cmd <> mod_mem_read_write.io.mem_cmd_bar2
-  mod_completion.io.bm_resp <> mod_bus_master.io.ctrl_resp
+  mod_compl_gen.io.bm_resp <> mod_bus_master.io.ctrl_resp
 
   val mod_tx_arbiter = Module(new TxArbiter)
-  mod_tx_arbiter.io.cpld <> mod_completion.io.tx_st
+  mod_tx_arbiter.io.cpld <> mod_compl_gen.io.tx_st
   mod_tx_arbiter.io.bm <> mod_bus_master.io.tx_st
   mod_tx_arbiter.io.bm_hint := mod_bus_master.io.arb_hint
   mod_tx_arbiter.io.tx_st <> tx_st

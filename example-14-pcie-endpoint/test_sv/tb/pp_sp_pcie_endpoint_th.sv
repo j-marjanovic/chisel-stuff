@@ -68,6 +68,19 @@ module pp_sp_pcie_endpoint_th;
   wire                                   cpl_pending;
   wire                           [  4:0] hpg_ctrler;
 
+  // interrupt
+  wire                                   app_int_msi_req;
+  wire                                   app_int_msi_ack = 1'b0;
+  wire                           [  2:0] app_int_msi_tc;
+  wire                           [  4:0] app_int_msi_num;
+  wire                                   app_int_sts;
+  wire                                   app_int_ack = 1'b0;
+
+  // Avalon ST data out
+  wire                           [255:0] data_out_data;
+  wire                                   data_out_valid;
+  wire                           [  7:0] data_out_empty;
+
   // Avalon MM
   wire                           [ 31:0] avmm_bar0_address;
   wire                           [  3:0] avmm_bar0_byteenable;
@@ -90,7 +103,6 @@ module pp_sp_pcie_endpoint_th;
       .dummy_src(),
       .dummy_snk()
   );
-
 
   altera_avalon_st_source_bfm #(
       .ST_SYMBOL_W     (8),
@@ -149,6 +161,37 @@ module pp_sp_pcie_endpoint_th;
       .sink_ready(tx_st_ready)
   );
 
+  altera_avalon_st_sink_bfm #(
+      .ST_SYMBOL_W     (8),
+      .ST_NUMSYMBOLS   (256 / 8),
+      .ST_CHANNEL_W    (1),
+      .ST_ERROR_W      (1),
+      .ST_EMPTY_W      (8),
+      .ST_READY_LATENCY(0),
+      .ST_MAX_CHANNELS (1),
+      .USE_PACKET      (0),
+      .USE_CHANNEL     (0),
+      .USE_ERROR       (0),
+      .USE_READY       (0),
+      .USE_VALID       (1),
+      .USE_EMPTY       (1),
+      .ST_BEATSPERCYCLE(1)
+  ) st_sink_data (
+      .clk(coreclkout_hip),
+      .reset(reset_status),
+      .sink_data(data_out_data),
+      .sink_channel(),
+      .sink_valid(data_out_valid),
+      .sink_startofpacket(),
+      .sink_endofpacket(),
+      .sink_error(),
+      .sink_empty(data_out_empty),
+      .sink_ready()
+  );
+
+  //============================================================================
+  // DUT
+
   PcieEndpointWrapper DUT (
       .coreclkout_hip,
       .reset_status,
@@ -180,6 +223,15 @@ module pp_sp_pcie_endpoint_th;
       .cpl_err,
       .cpl_pending,
       .hpg_ctrler,
+      .app_int_msi_req,
+      .app_int_msi_ack,
+      .app_int_msi_tc,
+      .app_int_msi_num,
+      .app_int_sts,
+      .app_int_ack,
+      .data_out_data,
+      .data_out_valid,
+      .data_out_empty,
       .avmm_bar0_address,
       .avmm_bar0_byteenable,
       .avmm_bar0_read,

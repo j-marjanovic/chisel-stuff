@@ -20,38 +20,37 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
 
-package pcie_endpoint
+`timescale 1ps / 1ps
 
-import chisel3._
-import chisel3.util._
+module pp_sp_pcie_endpoint_tb_cpld2;
 
-class CompletionRecv extends Module {
-  val io = IO(new Bundle {
-    val data = Input(UInt(256.W))
-    val valid = Input(Bool())
-    val sop = Input(Bool())
-    val eop = Input(Bool())
+  //============================================================================
+  // test harness
 
-    val mrd_in_flight_dec = Output(Bool())
+  pp_sp_pcie_endpoint_th th ();
 
-    val data_out = new Interfaces.AvalonStreamDataOut
-  })
+  //============================================================================
+  // tasks
 
-  val data_prev = RegEnable(io.data, io.valid)
 
-  val reg_length_dw = RegInit(0.U(10.W))
+  //============================================================================
+  // main
 
-  when(io.valid) {
-    when(io.sop) {
-      reg_length_dw := io.data(9, 0)
-    }.otherwise {
-      reg_length_dw := reg_length_dw - (256 / 32).U
-    }
-  }
+  initial begin : proc_main
+    automatic bit [255:0] resp_data;
+    automatic bit [  7:0] resp_empty;
 
-  io.mrd_in_flight_dec := io.valid && io.eop
+    @(negedge th.reset_status);
+    th.st_sink_tx.set_ready(1);
+    #(100ns);
 
-  io.data_out.data := Cat(io.data(127, 0), data_prev(255, 128))
-  io.data_out.valid := RegNext(io.valid)
-  io.data_out.empty := Mux(reg_length_dw > (256 / 32).U, 0.U, (256 / 8).U - reg_length_dw * 4.U)
-}
+    `include "cpld_stim.h"
+
+
+    #(100ns);
+
+
+    $finish();
+  end
+
+endmodule

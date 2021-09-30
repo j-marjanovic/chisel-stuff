@@ -77,9 +77,9 @@ module pp_sp_pcie_endpoint_th;
   wire                                   app_int_ack = 1'b0;
 
   // Avalon ST data out
-  wire                           [255:0] data_out_data;
-  wire                                   data_out_valid;
-  wire                           [  7:0] data_out_empty;
+  wire                           [255:0] dma_out_data;
+  wire                                   dma_out_valid;
+  wire                           [  7:0] dma_out_empty;
 
   // Avalon MM
   wire                           [ 31:0] avmm_bar0_address;
@@ -179,13 +179,13 @@ module pp_sp_pcie_endpoint_th;
   ) st_sink_data (
       .clk(coreclkout_hip),
       .reset(reset_status),
-      .sink_data(data_out_data),
+      .sink_data(dma_out_data),
       .sink_channel(),
-      .sink_valid(data_out_valid),
+      .sink_valid(dma_out_valid),
       .sink_startofpacket(),
       .sink_endofpacket(),
       .sink_error(),
-      .sink_empty(data_out_empty),
+      .sink_empty(dma_out_empty),
       .sink_ready()
   );
 
@@ -229,9 +229,9 @@ module pp_sp_pcie_endpoint_th;
       .app_int_msi_num,
       .app_int_sts,
       .app_int_ack,
-      .data_out_data,
-      .data_out_valid,
-      .data_out_empty,
+      .dma_out_data,
+      .dma_out_valid,
+      .dma_out_empty,
       .avmm_bar0_address,
       .avmm_bar0_byteenable,
       .avmm_bar0_read,

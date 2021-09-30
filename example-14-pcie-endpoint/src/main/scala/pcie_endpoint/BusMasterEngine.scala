@@ -33,6 +33,8 @@ class BusMasterEngine extends Module {
 
     val fsm_busy = Output(Bool())
 
+    val mrd_in_flight_dec = Input(Bool())
+
     val arb_hint = Output(Bool())
     val tx_st = new Interfaces.AvalonStreamTx
   })
@@ -71,7 +73,6 @@ class BusMasterEngine extends Module {
   reg_mrd64.ep := false.B
   reg_mrd64.attr1_0 := 0.U
   reg_mrd64.at := 0.U
-  reg_mrd64.tag := 0.U
   reg_mrd64.req_id := io.conf_internal.busdev << 3.U
   reg_mrd64.ph := 0.U
   reg_mrd64.first_be := 0xf.U
@@ -83,7 +84,7 @@ class BusMasterEngine extends Module {
   //==========================================================================
   // FSM
   object State extends ChiselEnum {
-    val sIdle, sTxWrHdr, sTxWrData, sTxRdHdr = Value
+    val sIdle, sTxWrHdr, sTxWrData, sTxRdHdr, sTxRdWait = Value
   }
 
   val state = RegInit(State.sIdle)
@@ -94,9 +95,19 @@ class BusMasterEngine extends Module {
       when(io.dma_desc.valid) {
         when(!io.dma_desc.bits.control.write_read_n) {
           state := State.sTxRdHdr
+          len_all_dws := desc_len_dws
+          len_pkt_dws := Mux(
+            desc_len_dws > MAX_PAYLOAD_SIZE_DWS.U,
+            MAX_PAYLOAD_SIZE_DWS.U,
+            desc_len_dws
+          )
           reg_mrd64.addr31_2 := io.dma_desc.bits.addr32_0 >> 2.U
           reg_mrd64.addr63_32 := io.dma_desc.bits.addr63_32
-          reg_mrd64.length := desc_len_dws
+          reg_mrd64.length := Mux(
+            desc_len_dws > MAX_PAYLOAD_SIZE_DWS.U,
+            MAX_PAYLOAD_SIZE_DWS.U,
+            desc_len_dws
+          )
           reg_mrd64.last_be := Mux(desc_len_dws > 1.U, 0xf.U, 0.U)
         }.otherwise {
           state := State.sTxWrHdr
@@ -158,12 +169,30 @@ class BusMasterEngine extends Module {
     }
     is(State.sTxRdHdr) {
       when(io.tx_st.ready) {
-        state := State.sIdle
+        when(true.B) { // TODO: check the number of packets in flight
+          when(len_all_dws > MAX_PAYLOAD_SIZE_DWS.U) {
+            len_all_dws := len_all_dws - Mux(
+              len_pkt_dws > MAX_PAYLOAD_SIZE_DWS.U,
+              MAX_PAYLOAD_SIZE_DWS.U,
+              len_pkt_dws
+            )
+            reg_mrd64.addr31_2 := reg_mrd64.addr31_2 + MAX_PAYLOAD_SIZE_DWS.U
+            reg_mrd64.length := Mux(
+              len_all_dws > MAX_PAYLOAD_SIZE_DWS.U,
+              MAX_PAYLOAD_SIZE_DWS.U,
+              len_all_dws
+            )
+            reg_mrd64.tag := (reg_mrd64.tag + 1.U) & 0x1f.U
+          }.otherwise {
+            state := State.sIdle
+          }
+        }
       }
     }
   }
 
-  io.arb_hint := state =/= State.sIdle && len_all_dws > 8.U
+  // give a hint to the TX arbitration when doing long write bursts
+  io.arb_hint := !(state === State.sIdle || state === State.sTxRdHdr) && len_all_dws > 8.U
 
   //==========================================================================
   // output data

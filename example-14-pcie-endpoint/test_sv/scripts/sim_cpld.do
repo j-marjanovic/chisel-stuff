@@ -53,9 +53,9 @@ add wave -radix hex \
 
 add wave -divider "Data Out"
 add wave -radix hex \
-  sim:/pp_sp_pcie_endpoint_tb_cpld/th/data_out_data \
-  sim:/pp_sp_pcie_endpoint_tb_cpld/th/data_out_valid \
-  sim:/pp_sp_pcie_endpoint_tb_cpld/th/data_out_empty
+  sim:/pp_sp_pcie_endpoint_tb_cpld/th/dma_out_data \
+  sim:/pp_sp_pcie_endpoint_tb_cpld/th/dma_out_valid \
+  sim:/pp_sp_pcie_endpoint_tb_cpld/th/dma_out_empty
 
 add wave -divider "Internal - TX arb"
 add wave \

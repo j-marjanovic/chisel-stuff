@@ -209,19 +209,19 @@ class PcieEndpointTestBM(c: PcieEndpoint) extends BfmTester(c) {
   expect(dec_err == 0xbadcaffeL, "empty register")
 
   write32(0x20, 2, 0xdf901000L)
-  step(50)
+  step(20)
 
   write32(0x24, 2, 0x7)
-  step(50)
+  step(20)
 
   write32(0x28, 2, 64)
-  step(50)
+  step(20)
 
   write32(0x2c, 2, 0x8000000aL)
-  step(50)
+  step(20)
 
   write32(0x14, 2, 1)
-  step(50)
+  step(20)
 
   var len = bfm_avalon_st_tx.recv_buffer.length
   expect(len == 3, "three sample captured - bus mastering write")
@@ -241,19 +241,19 @@ class PcieEndpointTestBM(c: PcieEndpoint) extends BfmTester(c) {
 
   // memory read
   write32(0x20, 2, 0xabcd1000L)
-  step(50)
+  step(20)
 
   write32(0x24, 2, 0x7)
-  step(50)
+  step(20)
 
   write32(0x28, 2, 4)
-  step(50)
+  step(20)
 
   write32(0x2c, 2, 0xb)
-  step(50)
+  step(20)
 
   write32(0x14, 2, 1)
-  step(50)
+  step(20)
 
   len = bfm_avalon_st_tx.recv_buffer.length
   expect(len == 1, "one sample captured - bus mastering read")
@@ -264,6 +264,50 @@ class PcieEndpointTestBM(c: PcieEndpoint) extends BfmTester(c) {
     expect(mrd.Addr63_32 == 7, "MRd - addr 64")
     expect((mrd.Addr30_2.toLong << 2) == 0xabcd1000L, "MRd - addr 32")
     expect(mrd.Length == 1, "MRd - length")
+  }
+
+  // memory read, longer
+  write32(0x20, 2, 0xabcd1000L)
+  step(20)
+
+  write32(0x24, 2, 0x7)
+  step(20)
+
+  write32(0x28, 2, 128)
+  step(20)
+
+  write32(0x2c, 2, 0xb)
+  step(20)
+
+  write32(0x14, 2, 1)
+  step(20)
+
+  len = bfm_avalon_st_tx.recv_buffer.length
+  expect(len == 1, "1 sample captured (128 bytes) - bus mastering read")
+  bfm_avalon_st_tx.recv_buffer.remove(0)
+
+  step(50)
+
+  // memory read, longer
+  write32(0x20, 2, 0xabcd1000L)
+  step(20)
+
+  write32(0x24, 2, 0x7)
+  step(20)
+
+  write32(0x28, 2, 1024)
+  step(20)
+
+  write32(0x2c, 2, 0xb)
+  step(20)
+
+  write32(0x14, 2, 1)
+  step(20)
+
+  len = bfm_avalon_st_tx.recv_buffer.length
+  expect(len == 4, "4 samples captured (1024 bytes) - bus mastering read")
+  for (_ <- 0 until 4) {
+    bfm_avalon_st_tx.recv_buffer.remove(0)
   }
 
 }

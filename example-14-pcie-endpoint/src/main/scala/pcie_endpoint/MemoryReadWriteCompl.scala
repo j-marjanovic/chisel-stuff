@@ -66,7 +66,7 @@ class MemoryReadWriteCompl extends Module {
   io.cpld.data := reg_cpld_data
   io.cpld.valid := reg_is_cpld_single || reg_is_cpld
 
-  when(io.rx_st.valid) {
+  when(io.rx_st.valid && io.rx_st.sop) {
     val rx_data_hdr = WireInit(io.rx_st.data.asTypeOf(new CommonHdr))
     printf(p"MemoryReadWriteCompl: rx_data_hdr = $rx_data_hdr\n")
     when(rx_data_hdr.fmt === Fmt.MRd32.asUInt() && rx_data_hdr.typ === Typ.MRdMWr.asUInt()) {

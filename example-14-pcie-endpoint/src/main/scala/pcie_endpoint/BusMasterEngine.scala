@@ -33,7 +33,7 @@ class BusMasterEngine extends Module {
 
     val fsm_busy = Output(Bool())
 
-    val mrd_in_flight_dec = Input(Bool())
+    val mrd_in_flight_dec = Flipped(Valid(UInt(10.W)))
 
     val arb_hint = Output(Bool())
     val tx_st = new Interfaces.AvalonStreamTx
@@ -80,6 +80,11 @@ class BusMasterEngine extends Module {
   val desc_len_dws = WireInit(io.dma_desc.bits.len_bytes / 4.U)
   val len_all_dws = Reg(UInt(32.W))
   val len_pkt_dws = Reg(UInt(32.W))
+
+  val MRD_PKTS_MAX = 24 // we have 5 bits for tags (32 packets)
+  val MRD_DWS_MAX = MAX_PAYLOAD_SIZE_DWS * MRD_PKTS_MAX
+  val mrd_dws_in_flight = RegInit(0.U(util.log2Ceil(MRD_DWS_MAX + 1).W))
+  val mrd_in_flight_inc = Wire(Bool())
 
   //==========================================================================
   // FSM
@@ -169,30 +174,50 @@ class BusMasterEngine extends Module {
     }
     is(State.sTxRdHdr) {
       when(io.tx_st.ready) {
-        when(true.B) { // TODO: check the number of packets in flight
-          when(len_all_dws > MAX_PAYLOAD_SIZE_DWS.U) {
-            len_all_dws := len_all_dws - Mux(
-              len_pkt_dws > MAX_PAYLOAD_SIZE_DWS.U,
-              MAX_PAYLOAD_SIZE_DWS.U,
-              len_pkt_dws
-            )
-            reg_mrd64.addr31_2 := reg_mrd64.addr31_2 + MAX_PAYLOAD_SIZE_DWS.U
-            reg_mrd64.length := Mux(
-              len_all_dws > MAX_PAYLOAD_SIZE_DWS.U,
-              MAX_PAYLOAD_SIZE_DWS.U,
-              len_all_dws
-            )
-            reg_mrd64.tag := (reg_mrd64.tag + 1.U) & 0x1f.U
+        len_all_dws := len_all_dws - Mux(
+          len_pkt_dws > MAX_PAYLOAD_SIZE_DWS.U,
+          MAX_PAYLOAD_SIZE_DWS.U,
+          len_pkt_dws
+        )
+        reg_mrd64.addr31_2 := reg_mrd64.addr31_2 + MAX_PAYLOAD_SIZE_DWS.U
+        reg_mrd64.length := Mux(
+          len_all_dws > MAX_PAYLOAD_SIZE_DWS.U,
+          MAX_PAYLOAD_SIZE_DWS.U,
+          len_all_dws
+        )
+        reg_mrd64.tag := (reg_mrd64.tag + 1.U) & 0x1f.U
+
+        when(len_all_dws > MAX_PAYLOAD_SIZE_DWS.U) {
+          when(mrd_dws_in_flight < MRD_DWS_MAX.U - MAX_PAYLOAD_SIZE_DWS.U) {
+            // stay in this state and continue sending packets
           }.otherwise {
-            state := State.sIdle
+            state := State.sTxRdWait
           }
+        }.otherwise {
+          state := State.sIdle
         }
+      }
+    }
+    is(State.sTxRdWait) {
+      when(mrd_dws_in_flight < MRD_DWS_MAX.U) {
+        state := State.sTxRdHdr
       }
     }
   }
 
   // give a hint to the TX arbitration when doing long write bursts
   io.arb_hint := !(state === State.sIdle || state === State.sTxRdHdr) && len_all_dws > 8.U
+  mrd_in_flight_inc := state === State.sTxRdHdr && io.tx_st.ready
+
+  //==========================================================================
+  when(io.mrd_in_flight_dec.valid && mrd_in_flight_inc) {
+    mrd_dws_in_flight := mrd_dws_in_flight + MAX_PAYLOAD_SIZE_DWS.U - io.mrd_in_flight_dec.bits
+  }.elsewhen(io.mrd_in_flight_dec.valid) {
+      mrd_dws_in_flight := mrd_dws_in_flight - io.mrd_in_flight_dec.bits
+    }
+    .elsewhen(mrd_in_flight_inc) {
+      mrd_dws_in_flight := mrd_dws_in_flight + MAX_PAYLOAD_SIZE_DWS.U
+    }
 
   //==========================================================================
   // output data
@@ -221,23 +246,28 @@ class BusMasterEngine extends Module {
   io.tx_st := DontCare
   io.tx_st.err := 0.U
 
-  when(state === State.sTxWrHdr) {
-    io.tx_st.valid := true.B
-    io.tx_st.sop := true.B
-    io.tx_st.eop := !(len_pkt_dws > 4.U)
-    when(len_pkt_dws === 1.U) {
-      io.tx_st.empty := 1.U
-    }.elsewhen(len_pkt_dws === 2.U) {
+  switch(state) {
+    is(State.sIdle) {
+      io.tx_st.valid := false.B
+    }
+    is(State.sTxWrHdr) {
+      io.tx_st.valid := true.B
+      io.tx_st.sop := true.B
+      io.tx_st.eop := !(len_pkt_dws > 4.U)
+      when(len_pkt_dws === 1.U) {
         io.tx_st.empty := 1.U
-      }
-      .otherwise {
-        io.tx_st.empty := 0.U
-      }
-    io.tx_st.data := Cat(
-      out_data.asUInt()(127, 0),
-      reg_mwr64.asUInt()(127, 0)
-    )
-  }.elsewhen(state === State.sTxWrData) {
+      }.elsewhen(len_pkt_dws === 2.U) {
+          io.tx_st.empty := 1.U
+        }
+        .otherwise {
+          io.tx_st.empty := 0.U
+        }
+      io.tx_st.data := Cat(
+        out_data.asUInt()(127, 0),
+        reg_mwr64.asUInt()(127, 0)
+      )
+    }
+    is(State.sTxWrData) {
       io.tx_st.valid := true.B
       io.tx_st.sop := false.B
       io.tx_st.eop := len_pkt_dws <= 8.U
@@ -251,7 +281,7 @@ class BusMasterEngine extends Module {
         }
       io.tx_st.data := Cat(out_data.asUInt()(127, 0), out_data_prev.asUInt()(255, 128))
     }
-    .elsewhen(state === State.sTxRdHdr) {
+    is(State.sTxRdHdr) {
       io.tx_st.valid := true.B
       io.tx_st.sop := true.B
       io.tx_st.eop := true.B
@@ -261,8 +291,9 @@ class BusMasterEngine extends Module {
         reg_mrd64.asUInt()(127, 0)
       )
     }
-    .otherwise {
+    is(State.sTxRdWait) {
       io.tx_st.valid := false.B
     }
+  }
 
 }

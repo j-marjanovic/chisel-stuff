@@ -41,7 +41,6 @@ class MemoryReadWriteCompl extends Module {
       val data = Output(UInt(256.W))
       val valid = Output(Bool())
       val sop = Output(Bool())
-      val eop = Output(Bool())
     }
   })
 
@@ -139,6 +138,5 @@ class MemoryReadWriteCompl extends Module {
   }
 
   io.cpld.sop := RegNext(io.rx_st.sop)
-  io.cpld.eop := RegNext(io.rx_st.eop)
 
 }

@@ -105,8 +105,12 @@ class PcieEndpoint extends MultiIOModule {
   val mod_config = Module(new Configuration)
   mod_config.io.cfg <> tl_cfg
 
-  val mod_mem_read_write = Module(new MemoryReadWriteCompl)
   val reg_mem_rw = Reg(Output(new Interfaces.AvalonStreamRx))
+  reg_mem_rw := rx_st
+  rx_st.ready := true.B
+  rx_st.mask := false.B // we are always ready
+
+  val mod_mem_read_write = Module(new MemoryReadWriteCompl)
   mod_mem_read_write.io.rx_st.data := reg_mem_rw.data
   mod_mem_read_write.io.rx_st.sop := reg_mem_rw.sop
   mod_mem_read_write.io.rx_st.eop := reg_mem_rw.eop
@@ -128,7 +132,6 @@ class PcieEndpoint extends MultiIOModule {
   mod_compl_recv.io.data := mod_mem_read_write.io.cpld.data
   mod_compl_recv.io.valid := mod_mem_read_write.io.cpld.valid
   mod_compl_recv.io.sop := mod_mem_read_write.io.cpld.sop
-  mod_compl_recv.io.eop := mod_mem_read_write.io.cpld.eop
   dma_out := mod_compl_recv.io.data_out
 
   val mod_bus_master = Module(new BusMaster)
@@ -147,19 +150,5 @@ class PcieEndpoint extends MultiIOModule {
   mod_int_ctrl.io.app_int <> app_int
   mod_int_ctrl.io.conf_internal <> mod_config.io.conf_internal
   mod_int_ctrl.io.trigger <> mod_bus_master.io.debug_trigger
-
-  when(rx_st.valid) {
-    val rx_data_hdr = WireInit(rx_st.data.asTypeOf(new CommonHdr))
-    when(rx_data_hdr.fmt === Fmt.MRd32.asUInt() || rx_data_hdr.fmt === Fmt.MWr32.asUInt()) {
-      reg_mem_rw := rx_st
-    }.otherwise {
-      reg_mem_rw.valid := false.B
-    }
-  }.otherwise {
-    reg_mem_rw.valid := false.B
-  }
-
-  rx_st.ready := true.B
-  rx_st.mask := false.B // we are always ready
 
 }

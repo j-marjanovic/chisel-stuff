@@ -35,7 +35,7 @@ class BusMaster extends Module {
     val ctrl_cmd = Flipped(new Interfaces.MemoryCmd)
     val ctrl_resp = new Interfaces.MemoryResp
 
-    val mrd_in_flight_dec = Input(Bool())
+    val mrd_in_flight_dec = Flipped(Valid(UInt(10.W)))
 
     val arb_hint = Output(Bool())
     val tx_st = new Interfaces.AvalonStreamTx

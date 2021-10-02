@@ -30,9 +30,8 @@ class CompletionRecv extends Module {
     val data = Input(UInt(256.W))
     val valid = Input(Bool())
     val sop = Input(Bool())
-    val eop = Input(Bool())
 
-    val mrd_in_flight_dec = Output(Bool())
+    val mrd_in_flight_dec = Valid(UInt(10.W))
 
     val data_out = new Interfaces.AvalonStreamDataOut
   })
@@ -49,7 +48,8 @@ class CompletionRecv extends Module {
     }
   }
 
-  io.mrd_in_flight_dec := io.valid && io.eop
+  io.mrd_in_flight_dec.valid := io.valid && io.sop
+  io.mrd_in_flight_dec.bits := io.data(9, 0)
 
   io.data_out.data := Cat(io.data(127, 0), data_prev(255, 128))
   io.data_out.valid := RegNext(io.valid)

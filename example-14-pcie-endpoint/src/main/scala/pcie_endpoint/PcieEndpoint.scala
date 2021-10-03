@@ -44,6 +44,7 @@ class PcieEndpointWrapper extends RawModule {
   val app_int = IO(new Interfaces.AppInt)
 
   val dma_out = IO(new Interfaces.AvalonStreamDataOut)
+  val dma_in = IO(new Interfaces.AvalonStreamDataIn)
 
   // config_tl interface
   val tl_cfg = IO(Input(new Interfaces.TLConfig))
@@ -68,6 +69,7 @@ class PcieEndpointWrapper extends RawModule {
   pcie_endpoint.avmm_bar0 <> avmm_bar0
   pcie_endpoint.app_int <> app_int
   pcie_endpoint.dma_out <> dma_out
+  pcie_endpoint.dma_in <> dma_in
 
   // tx
   tx_ready_corr.core_ready := tx_st.ready
@@ -101,6 +103,7 @@ class PcieEndpoint extends MultiIOModule {
   val avmm_bar0 = IO(new AvalonMMIf(32, 32, 1))
   val app_int = IO(new Interfaces.AppInt)
   val dma_out = IO(new Interfaces.AvalonStreamDataOut)
+  val dma_in = IO(new Interfaces.AvalonStreamDataIn)
 
   val mod_config = Module(new Configuration)
   mod_config.io.cfg <> tl_cfg
@@ -139,6 +142,7 @@ class PcieEndpoint extends MultiIOModule {
   mod_bus_master.io.ctrl_cmd <> mod_mem_read_write.io.mem_cmd_bar2
   mod_compl_gen.io.bm_resp <> mod_bus_master.io.ctrl_resp
   mod_bus_master.io.mrd_in_flight_dec := mod_compl_recv.io.mrd_in_flight_dec
+  mod_bus_master.io.dma_in <> dma_in
 
   val mod_tx_arbiter = Module(new TxArbiter)
   mod_tx_arbiter.io.cpld <> mod_compl_gen.io.tx_st

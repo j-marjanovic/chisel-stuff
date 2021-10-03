@@ -54,6 +54,12 @@ object Interfaces {
     val err = Output(Bool())
   }
 
+  class AvalonStreamDataIn extends Bundle {
+    val data = Input(UInt(256.W))
+    val valid = Input(Bool())
+    val ready = Output(Bool())
+  }
+
   class AvalonStreamDataOut extends Bundle {
     val data = Output(UInt(256.W))
     val valid = Output(Bool())

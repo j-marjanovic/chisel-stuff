@@ -28,6 +28,7 @@ class PcieEndpointTestBM(c: PcieEndpoint) extends BfmTester(c) {
   val bfm_avalon_agent = BfmFactory.create_avalon_slave(c.avmm_bar0, "BAR0")
   val bfm_avalon_st_tx = new AvalonStreamTxBfm(c.tx_st, bfm_peek, bfm_poke, println)
   val bfm_avalon_st_rx = new AvalonStreamRxBfm(c.rx_st, bfm_peek, bfm_poke, println)
+  val bfm_avalon_st_data_in = new AvalonStreamDataInBfm(c.dma_in, bfm_peek, bfm_poke, println)
   val bfm_tl_config = new TLConfigBFM(c.tl_cfg, bfm_peek, bfm_poke, println, rnd)
 
   var tag = 1
@@ -208,6 +209,8 @@ class PcieEndpointTestBM(c: PcieEndpoint) extends BfmTester(c) {
   val dec_err = read32(0xc, 2)
   expect(dec_err == 0xbadcaffeL, "empty register")
 
+  //==========================================================================
+  // short write
   write32(0x20, 2, 0xdf901000L)
   step(20)
 
@@ -220,8 +223,18 @@ class PcieEndpointTestBM(c: PcieEndpoint) extends BfmTester(c) {
   write32(0x2c, 2, 0x8000000aL)
   step(20)
 
+  bfm_avalon_st_data_in.transmit_data(
+    BigInt("000f000e000d000c000b000a0009000800070006000500040003000200010000", 16)
+  )
+  bfm_avalon_st_data_in.transmit_data(
+    BigInt("001f001e001d001c001b001a0019001800170016001500140013001200110010", 16)
+  )
+  bfm_avalon_st_data_in.transmit_data(
+    BigInt("002f002e002d002c002b002a0029002800270026002500240023002200210020", 16)
+  )
+
   write32(0x14, 2, 1)
-  step(20)
+  step(50)
 
   var len = bfm_avalon_st_tx.recv_buffer.length
   expect(len == 3, "three sample captured - bus mastering write")
@@ -239,7 +252,8 @@ class PcieEndpointTestBM(c: PcieEndpoint) extends BfmTester(c) {
     "the receive buffer is empty after the previous transaction"
   )
 
-  // memory read
+  //==========================================================================
+  // short read
   write32(0x20, 2, 0xabcd1000L)
   step(20)
 
@@ -266,6 +280,7 @@ class PcieEndpointTestBM(c: PcieEndpoint) extends BfmTester(c) {
     expect(mrd.Length == 1, "MRd - length")
   }
 
+  //==========================================================================
   // memory read, longer
   write32(0x20, 2, 0xabcd1000L)
   step(20)
@@ -284,11 +299,14 @@ class PcieEndpointTestBM(c: PcieEndpoint) extends BfmTester(c) {
 
   len = bfm_avalon_st_tx.recv_buffer.length
   expect(len == 1, "1 sample captured (128 bytes) - bus mastering read")
-  bfm_avalon_st_tx.recv_buffer.remove(0)
+  if (len > 0) {
+    bfm_avalon_st_tx.recv_buffer.remove(0)
+  }
 
   step(50)
 
-  // memory read, longer
+  //==========================================================================
+  // memory read, even longer
   write32(0x20, 2, 0xabcd1000L)
   step(20)
 
@@ -306,8 +324,10 @@ class PcieEndpointTestBM(c: PcieEndpoint) extends BfmTester(c) {
 
   len = bfm_avalon_st_tx.recv_buffer.length
   expect(len == 4, "4 samples captured (1024 bytes) - bus mastering read")
-  for (_ <- 0 until 4) {
-    bfm_avalon_st_tx.recv_buffer.remove(0)
+  if (len > 0) {
+    for (_ <- 0 until 4) {
+      bfm_avalon_st_tx.recv_buffer.remove(0)
+    }
   }
 
 }

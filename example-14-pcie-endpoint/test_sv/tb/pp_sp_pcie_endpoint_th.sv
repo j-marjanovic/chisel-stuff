@@ -81,6 +81,11 @@ module pp_sp_pcie_endpoint_th;
   wire                                   dma_out_valid;
   wire                           [  7:0] dma_out_empty;
 
+  // Avalon ST data in
+  wire                           [255:0] dma_in_data;
+  wire                                   dma_in_valid;
+  wire                                   dma_in_ready;
+
   // Avalon MM
   wire                           [ 31:0] avmm_bar0_address;
   wire                           [  3:0] avmm_bar0_byteenable;
@@ -189,6 +194,34 @@ module pp_sp_pcie_endpoint_th;
       .sink_ready()
   );
 
+  altera_avalon_st_source_bfm #(
+      .ST_SYMBOL_W     (8),
+      .ST_NUMSYMBOLS   (256 / 8),
+      .ST_CHANNEL_W    (1),
+      .ST_ERROR_W      (1),
+      .ST_EMPTY_W      (1),
+      .ST_READY_LATENCY(0),
+      .ST_MAX_CHANNELS (1),
+      .USE_PACKET      (0),
+      .USE_CHANNEL     (0),
+      .USE_ERROR       (0),
+      .USE_READY       (1),
+      .USE_VALID       (1),
+      .USE_EMPTY       (0),
+      .ST_BEATSPERCYCLE(1)
+  ) st_source_data (
+      .clk(coreclkout_hip),
+      .reset(reset_status),
+      .src_data(dma_in_data),
+      .src_channel(),
+      .src_valid(dma_in_valid),
+      .src_startofpacket(),
+      .src_endofpacket(),
+      .src_error(),
+      .src_empty(),
+      .src_ready(dma_in_ready)
+  );
+
   //============================================================================
   // DUT
 
@@ -232,6 +265,9 @@ module pp_sp_pcie_endpoint_th;
       .dma_out_data,
       .dma_out_valid,
       .dma_out_empty,
+      .dma_in_data,
+      .dma_in_valid,
+      .dma_in_ready,
       .avmm_bar0_address,
       .avmm_bar0_byteenable,
       .avmm_bar0_read,

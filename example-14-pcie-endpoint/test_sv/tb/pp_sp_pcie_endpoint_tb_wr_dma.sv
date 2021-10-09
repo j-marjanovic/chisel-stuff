@@ -22,7 +22,7 @@ SOFTWARE.
 
 `timescale 1ps / 1ps
 
-module pp_sp_pcie_endpoint_tb;
+module pp_sp_pcie_endpoint_tb_wr_dma;
 
   //============================================================================
   // test harness
@@ -254,6 +254,22 @@ module pp_sp_pcie_endpoint_tb;
     end
   endtask
 
+  task prepare_dma_data;
+    const int N = 16;
+    bit [255:0] tmp;
+    for (int j = 0; j < N; j++) begin
+      tmp[j*16 +: 16] = j;
+    end
+
+    for (int i = 0; i < 'h4000 / 32; i++) begin
+      th.st_source_data.set_transaction_data(tmp);
+      th.st_source_data.push_transaction();
+      for (int j = 0; j < N; j++) begin
+        tmp[j*16 +: 16] += N;
+      end
+    end
+  endtask
+
   //============================================================================
   // main
 
@@ -269,7 +285,9 @@ module pp_sp_pcie_endpoint_tb;
     read_bar2('h4, read_data);
     assert ((read_data >> 16) < 10);  // version less than 10.x.x
 
+
     $display("==============================================================");
+    prepare_dma_data();
     write_bar2('h20, 32'h3000_0000);
     write_bar2('h24, 32'h0000_0007);
     write_bar2('h28, 32'h0000_4000);
@@ -284,8 +302,10 @@ module pp_sp_pcie_endpoint_tb;
 
     check_data();
 
+
     $display("==============================================================");
     ready_backpressure = 70;
+    prepare_dma_data();
     write_bar2('h20, 32'h3000_0000);
     write_bar2('h24, 32'h0000_0007);
     write_bar2('h28, 32'h0000_4000);

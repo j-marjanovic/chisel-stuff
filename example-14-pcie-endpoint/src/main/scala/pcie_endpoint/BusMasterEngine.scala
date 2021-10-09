@@ -148,7 +148,7 @@ class BusMasterEngine extends Module {
       }
     }
     is(State.sTxWrData) {
-      when(io.tx_st.ready && dma_in_valid) {
+      when((io.tx_st.ready && dma_in_valid) || (io.tx_st.ready && (len_pkt_dws <= 4.U))) {
         len_pkt_dws := len_pkt_dws - Mux(len_pkt_dws > 8.U, 8.U, len_pkt_dws)
         len_all_dws := len_all_dws - Mux(len_pkt_dws > 8.U, 8.U, len_pkt_dws)
         reg_mwr64.addr31_2 := reg_mwr64.addr31_2 + 8.U
@@ -232,7 +232,7 @@ class BusMasterEngine extends Module {
   mod_skid_buf.out.ready := tx_enable && io.tx_st.ready
   dma_in_valid := mod_skid_buf.out.valid
   val out_data = WireInit(mod_skid_buf.out.bits)
-  val out_data_prev = RegEnable(out_data.asUInt(), mod_skid_buf.out.valid)
+  val out_data_prev = RegEnable(out_data.asUInt(), mod_skid_buf.out.valid && io.tx_st.ready)
 
   io.dma_in.ready := mod_skid_buf.inp.ready
   mod_skid_buf.inp.valid := io.dma_in.valid
@@ -272,9 +272,11 @@ class BusMasterEngine extends Module {
         io.tx_st.empty := 0.U
       }.elsewhen(len_pkt_dws >= 4.U) {
           io.tx_st.empty := 2.U
+          io.tx_st.valid := true.B
         }
         .elsewhen(len_pkt_dws >= 2.U) {
           io.tx_st.empty := 1.U
+          io.tx_st.valid := true.B
         }
       io.tx_st.data := Cat(out_data.asUInt()(127, 0), out_data_prev.asUInt()(255, 128))
     }

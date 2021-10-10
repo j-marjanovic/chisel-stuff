@@ -37,6 +37,8 @@ class BusMasterEngine extends Module {
     val tx_st = new Interfaces.AvalonStreamTx
 
     val dma_in = new Interfaces.AvalonStreamDataIn
+
+    val irq_fire = Output(Bool())
   })
 
   val MAX_PAYLOAD_SIZE_BYTES: Int = 256
@@ -87,6 +89,10 @@ class BusMasterEngine extends Module {
   val mrd_in_flight_inc = Wire(Bool())
 
   val dma_in_valid = Wire(Bool())
+
+  val reg_irq_fire = RegInit(false.B)
+  io.irq_fire := reg_irq_fire
+  reg_irq_fire := false.B
 
   //==========================================================================
   // FSM
@@ -141,6 +147,7 @@ class BusMasterEngine extends Module {
           state := State.sTxWrData
         }.otherwise {
           state := State.sIdle
+          reg_irq_fire := true.B
         }
         len_pkt_dws := len_pkt_dws - 4.U
         len_all_dws := len_all_dws - 4.U
@@ -170,6 +177,7 @@ class BusMasterEngine extends Module {
             reg_mwr64.last_be := Mux(len_all_dws > 1.U, 0xf.U, 0.U)
           }.otherwise {
             state := State.sIdle
+            reg_irq_fire := true.B
           }
         }
       }
@@ -197,6 +205,7 @@ class BusMasterEngine extends Module {
           }
         }.otherwise {
           state := State.sIdle
+          reg_irq_fire := true.B
         }
       }
     }

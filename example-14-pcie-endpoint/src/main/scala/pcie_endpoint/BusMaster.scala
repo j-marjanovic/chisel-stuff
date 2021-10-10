@@ -42,14 +42,12 @@ class BusMaster extends Module {
 
     val dma_in = new Interfaces.AvalonStreamDataIn
 
-    // debug
-    val debug_trigger = Output(Bool())
+    val irq_fire = Output(Bool())
   })
 
   val mod_regs = Module(new BusMasterRegs)
   mod_regs.io.ctrl_cmd <> io.ctrl_cmd
   mod_regs.io.ctrl_resp <> io.ctrl_resp
-  io.debug_trigger := mod_regs.io.debug_trigger
 
   val mod_engine = Module(new BusMasterEngine)
   io.arb_hint := mod_engine.io.arb_hint
@@ -58,6 +56,7 @@ class BusMaster extends Module {
   mod_engine.io.conf_internal := io.conf_internal
   mod_engine.io.dma_desc := mod_regs.io.dma_desc
   mod_engine.io.dma_in <> io.dma_in
+  io.irq_fire := mod_engine.io.irq_fire
 
   mod_regs.io.fsm_busy := mod_engine.io.fsm_busy
 

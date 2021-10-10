@@ -153,6 +153,6 @@ class PcieEndpoint extends MultiIOModule {
   val mod_int_ctrl = Module(new InterruptCtrl)
   mod_int_ctrl.io.app_int <> app_int
   mod_int_ctrl.io.conf_internal <> mod_config.io.conf_internal
-  mod_int_ctrl.io.trigger <> mod_bus_master.io.debug_trigger
+  mod_int_ctrl.io.trigger <> mod_bus_master.io.irq_fire
 
 }

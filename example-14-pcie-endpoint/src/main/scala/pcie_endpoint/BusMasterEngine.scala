@@ -57,7 +57,6 @@ class BusMasterEngine extends Module {
   reg_mwr64.ep := false.B
   reg_mwr64.attr1_0 := 0.U
   reg_mwr64.at := 0.U
-  reg_mwr64.tag := 0.U
   reg_mwr64.req_id := io.conf_internal.busdev << 3.U
   reg_mwr64.ph := 0.U
   reg_mwr64.first_be := 0xf.U
@@ -149,6 +148,7 @@ class BusMasterEngine extends Module {
           state := State.sIdle
           reg_irq_fire := true.B
         }
+        reg_mwr64.tag := (reg_mwr64.tag + 1.U) & 0x1f.U
         len_pkt_dws := len_pkt_dws - 4.U
         len_all_dws := len_all_dws - 4.U
         // address not incremented here

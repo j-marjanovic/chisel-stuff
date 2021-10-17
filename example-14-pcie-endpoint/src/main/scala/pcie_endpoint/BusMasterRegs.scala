@@ -40,7 +40,7 @@ class BusMasterRegs extends Module {
   io.ctrl_cmd.ready := true.B
 
   val reg_id = 0xd3a01a2.U(32.W)
-  val reg_version = 0x0000060c.U(32.W)
+  val reg_version = 0x0000060d.U(32.W)
   val reg_scratch = Reg(UInt(32.W))
 
   val reg_status = Wire(UInt(32.W))

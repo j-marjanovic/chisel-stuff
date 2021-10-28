@@ -15,7 +15,7 @@ vlog $INTEL_QUARUTS_PATH/ip/altera/sopc_builder_ip/verification/altera_avalon_st
 vlog $INTEL_QUARUTS_PATH/ip/altera/sopc_builder_ip/verification/altera_avalon_st_sink_bfm/altera_avalon_st_sink_bfm.sv
 
 # DUT
-vlog ../../ip_cores/pcie_endpoint/hdl/PcieEndpointWrapper.sv
+vlog ../../ip_cores/pcie_endpoint/hdl/PcieEndpointWrapper256.sv
 
 # TB
 vlog ../tb/PciePackets.sv

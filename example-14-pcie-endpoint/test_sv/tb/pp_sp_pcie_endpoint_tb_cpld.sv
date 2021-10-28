@@ -193,16 +193,16 @@ module pp_sp_pcie_endpoint_tb_cpld;
     th.st_source_rx.push_transaction();
     th.st_source_rx.set_transaction_data(
         'h400000040800F9000200004A00000000001F001E001D001C001B001A00190018);
-    th.st_source_rx.set_transaction_empty('h2);
+    th.st_source_rx.set_transaction_empty('h0);
     th.st_source_rx.set_transaction_sop('h0);
-    th.st_source_rx.set_transaction_eop('h1);
+    th.st_source_rx.set_transaction_eop('h0);
     th.st_source_rx.set_transaction_error('h0);
     th.st_source_rx.set_transaction_channel('h0);
     th.st_source_rx.push_transaction();
     th.st_source_rx.set_transaction_data(
         'hB47F985F000000000023002200210020000000000400004000F900084A000002);
     th.st_source_rx.set_transaction_empty('h1);
-    th.st_source_rx.set_transaction_sop('h1);
+    th.st_source_rx.set_transaction_sop('h0);
     th.st_source_rx.set_transaction_eop('h1);
     th.st_source_rx.set_transaction_error('h0);
     th.st_source_rx.set_transaction_channel('h0);
@@ -233,7 +233,7 @@ module pp_sp_pcie_endpoint_tb_cpld;
     th.st_source_rx.set_transaction_data(
         'h00070006000500040003000200010000000000000400000000F900804A000020);
     th.st_source_rx.set_transaction_empty('h0);
-    th.st_source_rx.set_transaction_sop('h0);
+    th.st_source_rx.set_transaction_sop('h1);
     th.st_source_rx.set_transaction_eop('h0);
     th.st_source_rx.set_transaction_error('h0);
     th.st_source_rx.set_transaction_channel('h0);

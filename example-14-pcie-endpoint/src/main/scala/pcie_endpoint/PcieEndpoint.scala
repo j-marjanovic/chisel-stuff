@@ -26,7 +26,7 @@ import bfmtester.AvalonMMIf
 import chisel3._
 import chisel3.util._
 
-class PcieEndpointWrapper extends RawModule {
+class PcieEndpointWrapper(val if_width: Int) extends RawModule {
   val coreclkout_hip = IO(Input(Clock()))
 
   // hip_rst interface
@@ -38,13 +38,13 @@ class PcieEndpointWrapper extends RawModule {
 
   val pld_clk_hip = IO(Output(Clock()))
 
-  val rx_st = IO(new Interfaces.AvalonStreamRx)
-  val tx_st = IO(new Interfaces.AvalonStreamTx)
+  val rx_st = IO(new Interfaces.AvalonStreamRx(if_width))
+  val tx_st = IO(new Interfaces.AvalonStreamTx(if_width))
 
   val app_int = IO(new Interfaces.AppInt)
 
-  val dma_out = IO(new Interfaces.AvalonStreamDataOut)
-  val dma_in = IO(new Interfaces.AvalonStreamDataIn)
+  val dma_out = IO(new Interfaces.AvalonStreamDataOut(if_width))
+  val dma_in = IO(new Interfaces.AvalonStreamDataIn(if_width))
 
   // config_tl interface
   val tl_cfg = IO(Input(new Interfaces.TLConfig))
@@ -58,7 +58,9 @@ class PcieEndpointWrapper extends RawModule {
 
   // logic
 
-  val pcie_endpoint = withClockAndReset(coreclkout_hip, reset_status) { Module(new PcieEndpoint) }
+  val pcie_endpoint = withClockAndReset(coreclkout_hip, reset_status) {
+    Module(new PcieEndpoint(if_width))
+  }
 
   val tx_ready_corr = withClockAndReset(coreclkout_hip, reset_status) {
     Module(new ReadyCorrection)
@@ -96,24 +98,24 @@ class PcieEndpointWrapper extends RawModule {
   }
 }
 
-class PcieEndpoint extends MultiIOModule {
-  val rx_st = IO(new Interfaces.AvalonStreamRx)
-  val tx_st = IO(new Interfaces.AvalonStreamTx)
+class PcieEndpoint(val if_width: Int) extends MultiIOModule {
+  val rx_st = IO(new Interfaces.AvalonStreamRx(if_width))
+  val tx_st = IO(new Interfaces.AvalonStreamTx(if_width))
   val tl_cfg = IO(Input(new Interfaces.TLConfig))
   val avmm_bar0 = IO(new AvalonMMIf(32, 32, 1))
   val app_int = IO(new Interfaces.AppInt)
-  val dma_out = IO(new Interfaces.AvalonStreamDataOut)
-  val dma_in = IO(new Interfaces.AvalonStreamDataIn)
+  val dma_out = IO(new Interfaces.AvalonStreamDataOut(if_width))
+  val dma_in = IO(new Interfaces.AvalonStreamDataIn(if_width))
 
   val mod_config = Module(new Configuration)
   mod_config.io.cfg <> tl_cfg
 
-  val reg_mem_rw = Reg(Output(new Interfaces.AvalonStreamRx))
+  val reg_mem_rw = Reg(Output(new Interfaces.AvalonStreamRx(if_width)))
   reg_mem_rw := rx_st
   rx_st.ready := true.B
   rx_st.mask := false.B // we are always ready
 
-  val mod_mem_read_write = Module(new MemoryReadWriteCompl)
+  val mod_mem_read_write = Module(new MemoryReadWriteCompl(if_width))
   mod_mem_read_write.io.rx_st.data := reg_mem_rw.data
   mod_mem_read_write.io.rx_st.sop := reg_mem_rw.sop
   mod_mem_read_write.io.rx_st.eop := reg_mem_rw.eop
@@ -127,24 +129,24 @@ class PcieEndpoint extends MultiIOModule {
   mod_avalon_agent_bar0.io.mem_cmd <> mod_mem_read_write.io.mem_cmd_bar0
   mod_avalon_agent_bar0.io.avmm <> avmm_bar0
 
-  val mod_compl_gen = Module(new CompletionGen)
+  val mod_compl_gen = Module(new CompletionGen(if_width))
   mod_compl_gen.io.mem_resp <> mod_avalon_agent_bar0.io.mem_resp
   mod_compl_gen.io.conf_internal := mod_config.io.conf_internal
 
-  val mod_compl_recv = Module(new CompletionRecv)
+  val mod_compl_recv = Module(new CompletionRecv(if_width))
   mod_compl_recv.io.data := mod_mem_read_write.io.cpld.data
   mod_compl_recv.io.valid := mod_mem_read_write.io.cpld.valid
   mod_compl_recv.io.sop := mod_mem_read_write.io.cpld.sop
   dma_out := mod_compl_recv.io.data_out
 
-  val mod_bus_master = Module(new BusMaster)
+  val mod_bus_master = Module(new BusMaster(if_width))
   mod_bus_master.io.conf_internal := mod_config.io.conf_internal
   mod_bus_master.io.ctrl_cmd <> mod_mem_read_write.io.mem_cmd_bar2
   mod_compl_gen.io.bm_resp <> mod_bus_master.io.ctrl_resp
   mod_bus_master.io.mrd_in_flight_dec := mod_compl_recv.io.mrd_in_flight_dec
   mod_bus_master.io.dma_in <> dma_in
 
-  val mod_tx_arbiter = Module(new TxArbiter)
+  val mod_tx_arbiter = Module(new TxArbiter(if_width))
   mod_tx_arbiter.io.cpld <> mod_compl_gen.io.tx_st
   mod_tx_arbiter.io.bm <> mod_bus_master.io.tx_st
   mod_tx_arbiter.io.bm_hint := mod_bus_master.io.arb_hint

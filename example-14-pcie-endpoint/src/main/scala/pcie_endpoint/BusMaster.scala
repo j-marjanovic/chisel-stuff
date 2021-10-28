@@ -28,7 +28,7 @@ import chisel3.util._
 
 import scala.collection.mutable.Map
 
-class BusMaster extends Module {
+class BusMaster(val if_width: Int) extends Module {
   val io = IO(new Bundle {
     val conf_internal = Input(new Interfaces.ConfigIntern)
 
@@ -38,9 +38,9 @@ class BusMaster extends Module {
     val mrd_in_flight_dec = Flipped(Valid(UInt(10.W)))
 
     val arb_hint = Output(Bool())
-    val tx_st = new Interfaces.AvalonStreamTx
+    val tx_st = new Interfaces.AvalonStreamTx(if_width)
 
-    val dma_in = new Interfaces.AvalonStreamDataIn
+    val dma_in = new Interfaces.AvalonStreamDataIn(if_width)
 
     val irq_fire = Output(Bool())
   })
@@ -49,7 +49,7 @@ class BusMaster extends Module {
   mod_regs.io.ctrl_cmd <> io.ctrl_cmd
   mod_regs.io.ctrl_resp <> io.ctrl_resp
 
-  val mod_engine = Module(new BusMasterEngine)
+  val mod_engine = Module(new BusMasterEngine(if_width))
   io.arb_hint := mod_engine.io.arb_hint
   mod_engine.io.mrd_in_flight_dec := io.mrd_in_flight_dec
   mod_engine.io.tx_st <> io.tx_st

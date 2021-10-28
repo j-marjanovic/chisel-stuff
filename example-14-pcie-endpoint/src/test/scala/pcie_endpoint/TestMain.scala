@@ -39,9 +39,28 @@ class TestMain extends ChiselFlatSpec {
         "--top-name",
         "PcieEndpointSimpleTest"
       ),
-      () => new PcieEndpoint
+      () => new PcieEndpoint(256)
     ) { c =>
       new PcieEndpointSimpleTest(c)
+    } should be(true)
+  }
+
+  it should "test the entire endpoint with 64-bit interface width" in {
+    iotesters.Driver.execute(
+      Array(
+        "--backend-name",
+        "verilator",
+        "--fint-write-vcd",
+        "--test-seed",
+        "1234",
+        "--target-dir",
+        "test_run_dir/PcieEndpoint64SimpleTest",
+        "--top-name",
+        "PcieEndpoint64SimpleTest"
+      ),
+      () => new PcieEndpoint(64)
+    ) { c =>
+      new PcieEndpoint64bInterfaceSimpleTest(c)
     } should be(true)
   }
 
@@ -58,7 +77,7 @@ class TestMain extends ChiselFlatSpec {
         "--top-name",
         "PcieEndpointSimple64Test"
       ),
-      () => new PcieEndpoint
+      () => new PcieEndpoint(256)
     ) { c =>
       new PcieEndpointSimple64Test(c)
     } should be(true)
@@ -77,7 +96,7 @@ class TestMain extends ChiselFlatSpec {
         "--top-name",
         "PcieEndpointTest"
       ),
-      () => new PcieEndpoint
+      () => new PcieEndpoint(256)
     ) { c =>
       new PcieEndpointTest(c)
     } should be(true)
@@ -96,9 +115,28 @@ class TestMain extends ChiselFlatSpec {
         "--top-name",
         "PcieEndpointTestBM"
       ),
-      () => new PcieEndpoint
+      () => new PcieEndpoint(256)
     ) { c =>
       new PcieEndpointTestBM(c)
+    } should be(true)
+  }
+
+  it should "test the Bus Mastering part of the endpoint (64-bit interface)" in {
+    iotesters.Driver.execute(
+      Array(
+        "--backend-name",
+        "verilator",
+        "--fint-write-vcd",
+        "--test-seed",
+        "1234",
+        "--target-dir",
+        "test_run_dir/PcieEndpoint64bInterfaceTestBM",
+        "--top-name",
+        "PcieEndpoint64bInterfaceTestBM"
+      ),
+      () => new PcieEndpoint(64)
+    ) { c =>
+      new PcieEndpoint64bInterfaceTestBM(c)
     } should be(true)
   }
 
@@ -115,9 +153,28 @@ class TestMain extends ChiselFlatSpec {
         "--top-name",
         "PcieEndpointTestBMLongRead"
       ),
-      () => new PcieEndpoint
+      () => new PcieEndpoint(256)
     ) { c =>
       new PcieEndpointTestBMLongRead(c)
+    } should be(true)
+  }
+
+  it should "test the Bus Mastering part of the endpoint, long reads (64-bit if)" in {
+    iotesters.Driver.execute(
+      Array(
+        "--backend-name",
+        "verilator",
+        "--fint-write-vcd",
+        "--test-seed",
+        "1234",
+        "--target-dir",
+        "test_run_dir/PcieEndpoint64TestBMLongRead",
+        "--top-name",
+        "PcieEndpoint64TestBMLongRead"
+      ),
+      () => new PcieEndpoint(64)
+    ) { c =>
+      new PcieEndpoint64TestBMLongRead(c)
     } should be(true)
   }
 
@@ -134,7 +191,7 @@ class TestMain extends ChiselFlatSpec {
         "--top-name",
         "PcieEndpointComplTest"
       ),
-      () => new PcieEndpoint
+      () => new PcieEndpoint(256)
     ) { c =>
       new PcieEndpointComplTest(c)
     } should be(true)
@@ -153,7 +210,7 @@ class TestMain extends ChiselFlatSpec {
         "--top-name",
         "BusMasterTest"
       ),
-      () => new BusMaster
+      () => new BusMaster(256)
     ) { c =>
       new BusMasterTest(c)
     } should be(true)

@@ -23,12 +23,13 @@ SOFTWARE.
 package pcie_endpoint
 
 import chisel3._
+import chisel3.experimental.ChiselEnum
 import chisel3.util._
 
 // processes MRd and MWr, forwards completion
-class MemoryReadWriteCompl extends Module {
+class MemoryReadWriteCompl(val if_width: Int) extends Module {
   val io = IO(new Bundle {
-    val rx_st = new Interfaces.AvalonStreamRx
+    val rx_st = new Interfaces.AvalonStreamRx(if_width)
 
     // BAR 0
     val mem_cmd_bar0 = new Interfaces.MemoryCmd
@@ -38,7 +39,7 @@ class MemoryReadWriteCompl extends Module {
 
     // completion
     val cpld = new Bundle {
-      val data = Output(UInt(256.W))
+      val data = Output(UInt(if_width.W))
       val valid = Output(Bool())
       val sop = Output(Bool())
     }
@@ -63,14 +64,87 @@ class MemoryReadWriteCompl extends Module {
   reg_is_cpld_single := false.B
 
   val reg_cpld_data = RegNext(io.rx_st.data)
-  io.cpld.data := reg_cpld_data
-  io.cpld.valid := reg_is_cpld_single || reg_is_cpld
 
-  when(io.rx_st.valid && io.rx_st.sop) {
-    val rx_data_hdr = WireInit(io.rx_st.data.asTypeOf(new CommonHdr))
+  val pkt: (Bool, UInt) = if (if_width == 256) {
+    (io.rx_st.valid && io.rx_st.sop, WireInit(io.rx_st.data))
+  } else if (if_width == 64) {
+
+    val pkt_done = Wire(Bool())
+
+    //===============================================================
+    // state machine
+    object State extends ChiselEnum {
+      val sIdle, sInPacket, sWaitForEop = Value
+    }
+    val state = RegInit(State.sIdle)
+
+    switch(state) {
+      is(State.sIdle) {
+        when(io.rx_st.valid && io.rx_st.sop) {
+          state := State.sInPacket
+        }
+      }
+      is(State.sInPacket) {
+        when(pkt_done) {
+          when(io.rx_st.valid && io.rx_st.eop) {
+            state := State.sIdle
+          }.otherwise {
+            state := State.sWaitForEop
+          }
+        }
+      }
+      is(State.sWaitForEop) {
+        when(io.rx_st.valid && io.rx_st.sop) {
+          state := State.sInPacket
+        }.elsewhen(io.rx_st.valid && io.rx_st.eop) {
+          state := State.sIdle
+        }
+      }
+    }
+
+    //===============================================================
+    // beat counter
+    val beat_cntr = Reg(UInt(3.W))
+    when(io.rx_st.valid && io.rx_st.sop) {
+      beat_cntr := 0.U
+    }.elsewhen((io.rx_st.valid && beat_cntr < 7.U) && (state === State.sInPacket)) {
+      beat_cntr := beat_cntr + 1.U
+    }
+
+    //===============================================================
+    // data store
+    val data_reg = Reg(Vec(256 / 64, UInt(64.W)))
+    when(io.rx_st.valid && io.rx_st.sop) {
+      data_reg(0) := io.rx_st.data
+    }.elsewhen(io.rx_st.valid && beat_cntr < 7.U) {
+      data_reg(beat_cntr + 1.U) := io.rx_st.data
+    }
+
+    //===============================================================
+    // packet parsing
+    val data_reg_hdr = data_reg.asUInt()
+    val hdr = WireInit(data_reg_hdr.asTypeOf(new CommonHdr))
+    pkt_done := false.B
+    when(hdr.fmt === Fmt.MRd32.asUInt()) {
+      pkt_done := beat_cntr === 1.U
+    }.elsewhen(hdr.fmt === Fmt.MWr32.asUInt() && hdr.typ === Typ.MRdMWr.asUInt()) {
+        val is_qword_align: Bool = WireInit((data_reg(1) & 0x7.U) === 0.U)
+        pkt_done := (is_qword_align && (beat_cntr === 2.U)) || (!is_qword_align && (beat_cntr === 1.U))
+      }
+      .elsewhen(hdr.fmt === Fmt.MWr32.asUInt() && hdr.typ === Typ.Cpl.asUInt()) {
+        pkt_done := beat_cntr === 0.U
+      }
+
+    (RegNext(pkt_done && (state === State.sInPacket)), data_reg_hdr)
+  } else {
+    (false.B, 0.U)
+  }
+
+  when(pkt._1) {
+    val rx_data_hdr: CommonHdr = pkt._2.asTypeOf(new CommonHdr)
     printf(p"MemoryReadWriteCompl: rx_data_hdr = $rx_data_hdr\n")
     when(rx_data_hdr.fmt === Fmt.MRd32.asUInt() && rx_data_hdr.typ === Typ.MRdMWr.asUInt()) {
-      val mrd32 = io.rx_st.data.asTypeOf(new MRd32)
+      val mrd32 = pkt._2.asTypeOf(new MRd32)
       printf(p"MemoryReadWriteCompl: mrd32 = $mrd32\n")
       when(io.rx_st.bar(0)) {
         reg_mem_cmd_bar0.valid := true.B
@@ -90,7 +164,7 @@ class MemoryReadWriteCompl extends Module {
         reg_mem_cmd_bar2.bits.pcie_tag := mrd32.tag
       }
     }.elsewhen(rx_data_hdr.fmt === Fmt.MWr32.asUInt() && rx_data_hdr.typ === Typ.MRdMWr.asUInt()) {
-        val mwr32 = io.rx_st.data.asTypeOf(new MWr32)
+        val mwr32 = pkt._2.asTypeOf(new MWr32)
         printf(p"MemoryReadWriteCompl: mwr32 = $mwr32\n")
         when(io.rx_st.bar(0)) {
           reg_mem_cmd_bar0.valid := true.B
@@ -133,10 +207,26 @@ class MemoryReadWriteCompl extends Module {
       }
   }
 
-  when(reg_is_cpld && io.rx_st.valid && io.rx_st.eop) {
-    reg_is_cpld := false.B
-  }
+  io.cpld.valid := reg_is_cpld_single || reg_is_cpld
 
-  io.cpld.sop := RegNext(io.rx_st.sop)
+  if (if_width == 256) {
+    io.cpld.data := reg_cpld_data
+
+    when(reg_is_cpld && io.rx_st.valid && io.rx_st.eop) {
+      reg_is_cpld := false.B
+    }
+
+    io.cpld.sop := RegNext(io.rx_st.sop)
+  } else if (if_width == 64) {
+    io.cpld.data := reg_cpld_data
+
+    val eop_p = RegEnable(io.rx_st.eop, io.rx_st.valid)
+    // val eop_pp = RegEnable(eop_p, RegNext(io.rx_st.valid))
+    when(reg_is_cpld && eop_p) {
+      reg_is_cpld := false.B
+    }
+
+    io.cpld.sop := RegNext(RegNext(RegNext(io.rx_st.sop)))
+  }
 
 }

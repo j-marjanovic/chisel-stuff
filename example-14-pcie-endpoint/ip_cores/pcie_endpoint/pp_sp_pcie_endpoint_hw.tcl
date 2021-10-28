@@ -31,32 +31,56 @@ set_module_property REPORT_TO_TALKBACK false
 set_module_property ALLOW_GREYBOX_GENERATION false
 set_module_property REPORT_HIERARCHY false
 
+set_module_property ELABORATION_CALLBACK elaboration_callback
+
 
 # 
 # file sets
 # 
-add_fileset QUARTUS_SYNTH QUARTUS_SYNTH "" ""
+add_fileset QUARTUS_SYNTH QUARTUS_SYNTH proc_quartus_synth
 set_fileset_property QUARTUS_SYNTH TOP_LEVEL PcieEndpointWrapper
-set_fileset_property QUARTUS_SYNTH ENABLE_RELATIVE_INCLUDE_PATHS false
-set_fileset_property QUARTUS_SYNTH ENABLE_FILE_OVERWRITE_MODE false
-add_fileset_file PcieEndpoint.sv SYSTEM_VERILOG PATH hdl/PcieEndpointWrapper.sv TOP_LEVEL_FILE
 
-add_fileset SIM_VERILOG SIM_VERILOG "" ""
+proc proc_quartus_synth {name} {
+  set param_data_w [get_parameter_value DATA_W]
+  #set_fileset_property QUARTUS_SYNTH TOP_LEVEL PcieEndpointWrapper
+  #set_fileset_property QUARTUS_SYNTH ENABLE_RELATIVE_INCLUDE_PATHS false
+  #set_fileset_property QUARTUS_SYNTH ENABLE_FILE_OVERWRITE_MODE false
+  add_fileset_file PcieEndpoint.sv SYSTEM_VERILOG PATH hdl/PcieEndpointWrapper${param_data_w}.sv TOP_LEVEL_FILE
+}
+
+
+add_fileset SIM_VERILOG SIM_VERILOG proc_sim_verilog
 set_fileset_property SIM_VERILOG TOP_LEVEL PcieEndpointWrapper
-set_fileset_property SIM_VERILOG ENABLE_RELATIVE_INCLUDE_PATHS false
-set_fileset_property SIM_VERILOG ENABLE_FILE_OVERWRITE_MODE false
-add_fileset_file PcieEndpoint.sv SYSTEM_VERILOG PATH hdl/PcieEndpointWrapper.sv
 
+proc proc_sim_verilog {name} {
+  set param_data_w [get_parameter_value DATA_W]
+  #set_fileset_property SIM_VERILOG TOP_LEVEL PcieEndpointWrapper
+  #set_fileset_property SIM_VERILOG ENABLE_RELATIVE_INCLUDE_PATHS false
+  #set_fileset_property SIM_VERILOG ENABLE_FILE_OVERWRITE_MODE false
+  add_fileset_file PcieEndpoint.sv SYSTEM_VERILOG PATH hdl/PcieEndpointWrapper${param_data_w}.sv
+}
 
 # 
 # parameters
 # 
+add_parameter DATA_W INTEGER 256
+set_parameter_property DATA_W DEFAULT_VALUE 256
+set_parameter_property DATA_W DISPLAY_NAME DATA_W
+set_parameter_property DATA_W TYPE INTEGER
+set_parameter_property DATA_W UNITS None
+set_parameter_property DATA_W HDL_PARAMETER false
 
 
-# 
-# display items
-# 
+proc elaboration_callback { } {
 
+  set param_data_w [get_parameter_value DATA_W]
+  send_message  info "Using $param_data_w-bit datapath"
+
+  proc_conn_rx_st $param_data_w
+  proc_conn_tx_st $param_data_w
+  proc_conn_dma_in $param_data_w
+  proc_conn_dma_out $param_data_w
+}
 
 # 
 # connection point coreclkout_hip
@@ -110,53 +134,68 @@ add_interface_port hip_rst testin_zero testin_zero Input 1
 # 
 # connection point rx_st
 # 
-add_interface rx_st avalon_streaming end
-set_interface_property rx_st associatedClock pld_clk_hip
-set_interface_property rx_st dataBitsPerSymbol 256
-set_interface_property rx_st errorDescriptor ""
-set_interface_property rx_st firstSymbolInHighOrderBits true
-set_interface_property rx_st maxChannel 0
-set_interface_property rx_st readyLatency 3
-set_interface_property rx_st ENABLED true
-set_interface_property rx_st EXPORT_OF ""
-set_interface_property rx_st PORT_NAME_MAP ""
-set_interface_property rx_st CMSIS_SVD_VARIABLES ""
-set_interface_property rx_st SVD_ADDRESS_GROUP ""
 
-add_interface_port rx_st rx_st_data data Input 256
-add_interface_port rx_st rx_st_empty empty Input 2
-add_interface_port rx_st rx_st_sop startofpacket Input 1
-add_interface_port rx_st rx_st_eop endofpacket Input 1
-add_interface_port rx_st rx_st_err error Input 1
-add_interface_port rx_st rx_st_valid valid Input 1
-add_interface_port rx_st rx_st_ready ready Output 1
+proc proc_conn_rx_st { data_w } {
+  add_interface rx_st avalon_streaming end
+  set_interface_property rx_st associatedClock pld_clk_hip
+  set_interface_property rx_st dataBitsPerSymbol $data_w
+  set_interface_property rx_st errorDescriptor ""
+  set_interface_property rx_st firstSymbolInHighOrderBits true
+  set_interface_property rx_st maxChannel 0
+  set_interface_property rx_st readyLatency 3
+  set_interface_property rx_st ENABLED true
+  set_interface_property rx_st EXPORT_OF ""
+  set_interface_property rx_st PORT_NAME_MAP ""
+  set_interface_property rx_st CMSIS_SVD_VARIABLES ""
+  set_interface_property rx_st SVD_ADDRESS_GROUP ""
 
+  add_interface_port rx_st rx_st_data data Input $data_w
+  add_interface_port rx_st rx_st_sop startofpacket Input 1
+  add_interface_port rx_st rx_st_eop endofpacket Input 1
+  add_interface_port rx_st rx_st_err error Input 1
+  add_interface_port rx_st rx_st_valid valid Input 1
+  add_interface_port rx_st rx_st_ready ready Output 1
+
+  if {[expr $data_w == 256]} {
+    send_message info "2-bit empty port on the rx_st interface"
+    add_interface_port rx_st rx_st_empty empty Input 2
+  } else {
+    send_message info "No empty port on the rx_st interface"
+  }
+}
 
 # 
 # connection point tx_st
 # 
-add_interface tx_st avalon_streaming start
-set_interface_property tx_st associatedClock pld_clk_hip
-set_interface_property tx_st associatedReset reset_out
-set_interface_property tx_st dataBitsPerSymbol 256
-set_interface_property tx_st errorDescriptor ""
-set_interface_property tx_st firstSymbolInHighOrderBits true
-set_interface_property tx_st maxChannel 0
-set_interface_property tx_st readyLatency 3
-set_interface_property tx_st ENABLED true
-set_interface_property tx_st EXPORT_OF ""
-set_interface_property tx_st PORT_NAME_MAP ""
-set_interface_property tx_st CMSIS_SVD_VARIABLES ""
-set_interface_property tx_st SVD_ADDRESS_GROUP ""
+proc proc_conn_tx_st { data_w } {
+  add_interface tx_st avalon_streaming start
+  set_interface_property tx_st associatedClock pld_clk_hip
+  set_interface_property tx_st associatedReset reset_out
+  set_interface_property tx_st dataBitsPerSymbol $data_w
+  set_interface_property tx_st errorDescriptor ""
+  set_interface_property tx_st firstSymbolInHighOrderBits true
+  set_interface_property tx_st maxChannel 0
+  set_interface_property tx_st readyLatency 3
+  set_interface_property tx_st ENABLED true
+  set_interface_property tx_st EXPORT_OF ""
+  set_interface_property tx_st PORT_NAME_MAP ""
+  set_interface_property tx_st CMSIS_SVD_VARIABLES ""
+  set_interface_property tx_st SVD_ADDRESS_GROUP ""
 
-add_interface_port tx_st tx_st_sop startofpacket Output 1
-add_interface_port tx_st tx_st_eop endofpacket Output 1
-add_interface_port tx_st tx_st_err error Output 1
-add_interface_port tx_st tx_st_valid valid Output 1
-add_interface_port tx_st tx_st_empty empty Output 2
-add_interface_port tx_st tx_st_ready ready Input 1
-add_interface_port tx_st tx_st_data data Output 256
+  add_interface_port tx_st tx_st_sop startofpacket Output 1
+  add_interface_port tx_st tx_st_eop endofpacket Output 1
+  add_interface_port tx_st tx_st_err error Output 1
+  add_interface_port tx_st tx_st_valid valid Output 1
+  add_interface_port tx_st tx_st_ready ready Input 1
+  add_interface_port tx_st tx_st_data data Output $data_w
 
+  if {[expr $data_w == 256]} {
+    send_message info "2-bit empty port on the tx_st interface"
+    add_interface_port tx_st tx_st_empty empty Output 2
+  } else {
+    send_message info "No empty port on the tx_st interface"
+  }
+}
 
 # 
 # connection point config_tl
@@ -274,42 +313,44 @@ add_interface_port int_msi app_int_sts app_int_sts Output 1
 # 
 # connection point dma_out
 # 
-add_interface dma_out avalon_streaming start
-set_interface_property dma_out associatedClock coreclkout_hip
-set_interface_property dma_out associatedReset reset_out
-set_interface_property dma_out dataBitsPerSymbol 8
-set_interface_property dma_out errorDescriptor ""
-set_interface_property dma_out firstSymbolInHighOrderBits true
-set_interface_property dma_out maxChannel 0
-set_interface_property dma_out readyLatency 0
-set_interface_property dma_out ENABLED true
-set_interface_property dma_out EXPORT_OF ""
-set_interface_property dma_out PORT_NAME_MAP ""
-set_interface_property dma_out CMSIS_SVD_VARIABLES ""
-set_interface_property dma_out SVD_ADDRESS_GROUP ""
+proc proc_conn_dma_out { data_w } {
+  add_interface dma_out avalon_streaming start
+  set_interface_property dma_out associatedClock coreclkout_hip
+  set_interface_property dma_out associatedReset reset_out
+  set_interface_property dma_out dataBitsPerSymbol 8
+  set_interface_property dma_out errorDescriptor ""
+  set_interface_property dma_out firstSymbolInHighOrderBits true
+  set_interface_property dma_out maxChannel 0
+  set_interface_property dma_out readyLatency 0
+  set_interface_property dma_out ENABLED true
+  set_interface_property dma_out EXPORT_OF ""
+  set_interface_property dma_out PORT_NAME_MAP ""
+  set_interface_property dma_out CMSIS_SVD_VARIABLES ""
+  set_interface_property dma_out SVD_ADDRESS_GROUP ""
 
-add_interface_port dma_out dma_out_data data Output 256
-add_interface_port dma_out dma_out_valid valid Output 1
-
+  add_interface_port dma_out dma_out_data data Output $data_w
+  add_interface_port dma_out dma_out_valid valid Output 1
+}
 
 # 
 # connection point dma_in
 # 
-add_interface dma_in avalon_streaming end
-set_interface_property dma_in associatedClock coreclkout_hip
-set_interface_property dma_in associatedReset reset_out
-set_interface_property dma_in dataBitsPerSymbol 8
-set_interface_property dma_in errorDescriptor ""
-set_interface_property dma_in firstSymbolInHighOrderBits true
-set_interface_property dma_in maxChannel 0
-set_interface_property dma_in readyLatency 0
-set_interface_property dma_in ENABLED true
-set_interface_property dma_in EXPORT_OF ""
-set_interface_property dma_in PORT_NAME_MAP ""
-set_interface_property dma_in CMSIS_SVD_VARIABLES ""
-set_interface_property dma_in SVD_ADDRESS_GROUP ""
+proc proc_conn_dma_in { data_w } {
+  add_interface dma_in avalon_streaming end
+  set_interface_property dma_in associatedClock coreclkout_hip
+  set_interface_property dma_in associatedReset reset_out
+  set_interface_property dma_in dataBitsPerSymbol 8
+  set_interface_property dma_in errorDescriptor ""
+  set_interface_property dma_in firstSymbolInHighOrderBits true
+  set_interface_property dma_in maxChannel 0
+  set_interface_property dma_in readyLatency 0
+  set_interface_property dma_in ENABLED true
+  set_interface_property dma_in EXPORT_OF ""
+  set_interface_property dma_in PORT_NAME_MAP ""
+  set_interface_property dma_in CMSIS_SVD_VARIABLES ""
+  set_interface_property dma_in SVD_ADDRESS_GROUP ""
 
-add_interface_port dma_in dma_in_data data Input 256
-add_interface_port dma_in dma_in_ready ready Output 1
-add_interface_port dma_in dma_in_valid valid Input 1
-
+  add_interface_port dma_in dma_in_data data Input $data_w
+  add_interface_port dma_in dma_in_ready ready Output 1
+  add_interface_port dma_in dma_in_valid valid Input 1
+}

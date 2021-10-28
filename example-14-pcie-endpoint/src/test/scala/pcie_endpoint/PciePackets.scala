@@ -276,12 +276,18 @@ object PciePackets {
 
   def to_mrd32(raw: BigInt): MRd32 = {
     val size_bytes: Int = (mrd32.sizeBound.exact.get / 8).toInt
-    mrd32.decode(BitVector(raw.toByteArray.reverse.slice(0, size_bytes).reverse)).require.value
+    val bs: Array[Byte] = raw.toByteArray.reverse.slice(0, size_bytes).reverse
+    val ext: Array[Byte] = (for (_ <- 0 until size_bytes - bs.length) yield 0.toByte).toArray
+    val tot_bs: Array[Byte] = ext ++ bs
+    mrd32.decode(BitVector(tot_bs)).require.value
   }
 
   def to_mrd64(raw: BigInt): MRd64 = {
     val size_bytes: Int = (mrd64.sizeBound.exact.get / 8).toInt
-    mrd64.decode(BitVector(raw.toByteArray.reverse.slice(0, size_bytes).reverse)).require.value
+    val bs: Array[Byte] = raw.toByteArray.reverse.slice(0, size_bytes).reverse
+    val ext: Array[Byte] = (for (_ <- 0 until size_bytes - bs.length) yield 0.toByte).toArray
+    val tot_bs: Array[Byte] = ext ++ bs
+    mrd64.decode(BitVector(tot_bs)).require.value
   }
 
   def to_cpld(raw: BigInt): CplD = {

@@ -34,11 +34,9 @@ class AvalonStreamRxBfm(
     val println: String => Unit
 ) extends Bfm {
 
-  sealed trait MrdOrMWr
-  case class MRd32(pkt: PciePackets.MRd32) extends MrdOrMWr
-  case class MWr32(pkt: PciePackets.MWr32) extends MrdOrMWr
+  class El(val data: BigInt, val sop: BigInt, val eop: BigInt, val bar: BigInt)
 
-  private val data = ListBuffer[(MrdOrMWr, Int)]()
+  private val data = ListBuffer[El]()
 
   private def printWithBg(s: String): Unit = {
     // black on orange
@@ -46,38 +44,52 @@ class AvalonStreamRxBfm(
   }
 
   def transmit_mrd32(mrd32: PciePackets.MRd32, bar_mask: Int): Unit = {
-    data += Tuple2(MRd32(mrd32), bar_mask)
+    val if_width = av_st_rx.data.getWidth
+    if (av_st_rx.data.getWidth == 256) {
+      data += new El(PciePackets.to_bigint(mrd32), 1, 1, bar_mask)
+    } else if (if_width == 64) {
+      val bs = PciePackets.to_bigint(mrd32)
+      val mask = BigInt(2).pow(64) - 1
+      val els = for (i <- 0 until 4) yield (bs >> (i * 64)) & mask
+      data += new El(els(0), 1, 0, bar_mask)
+      data += new El(els(1), 0, 1, bar_mask)
+    } else {
+      throw new Exception(s"Unsupported interface width ${if_width}")
+    }
   }
 
   def transmit_mwr32(mwr32: PciePackets.MWr32, bar_mask: Int): Unit = {
-    data += Tuple2(MWr32(mwr32), bar_mask)
+    val if_width = av_st_rx.data.getWidth
+    if (av_st_rx.data.getWidth == 256) {
+      data += new El(PciePackets.to_bigint(mwr32), 1, 1, bar_mask)
+    } else if (if_width == 64) {
+      val bs = PciePackets.to_bigint(mwr32)
+      val mask = BigInt(2).pow(64) - 1
+      val els = for (i <- 0 until 4) yield (bs >> (i * 64)) & mask
+      data += new El(els(0), 1, 0, bar_mask)
+      if ((mwr32.Addr30_2 & 1) == 1) {
+        data += new El(els(1), 0, 1, bar_mask)
+      } else {
+        data += new El(els(1), 0, 0, bar_mask)
+        data += new El(els(2), 0, 1, bar_mask)
+      }
+    } else {
+      throw new Exception(s"Unsupported interface width ${if_width}")
+    }
   }
 
   override def update(t: Long, poke: (Bits, BigInt) => Unit): Unit = {
     if (data.nonEmpty) {
       val data_beat = data.remove(0)
-      data_beat._1 match {
-        case pkt: MRd32 =>
-          printWithBg(f"      AvalonStreamRxBfm: driving MRd32")
-          poke(av_st_rx.data, PciePackets.to_bigint(pkt.pkt))
-          poke(av_st_rx.sop, 1)
-          poke(av_st_rx.eop, 1)
-          poke(av_st_rx.empty, 1)
-          poke(av_st_rx.valid, 1)
-          poke(av_st_rx.err, 0)
-          poke(av_st_rx.be, 0x000f0000)
-          poke(av_st_rx.bar, data_beat._2)
-        case pkt: MWr32 =>
-          printWithBg(f"      AvalonStreamRxBfm: driving MWr32")
-          poke(av_st_rx.data, PciePackets.to_bigint(pkt.pkt))
-          poke(av_st_rx.sop, 1)
-          poke(av_st_rx.eop, 1)
-          poke(av_st_rx.empty, 1)
-          poke(av_st_rx.valid, 1)
-          poke(av_st_rx.err, 0)
-          poke(av_st_rx.be, 0x000f0000)
-          poke(av_st_rx.bar, data_beat._2)
-      }
+      printWithBg(f"${t}%5d AvalonStreamRxBfm: driving data = ${data_beat.data}%x")
+      poke(av_st_rx.data, data_beat.data)
+      poke(av_st_rx.sop, data_beat.sop)
+      poke(av_st_rx.eop, data_beat.eop)
+      poke(av_st_rx.empty, 1) // not used in 64-bit interface
+      poke(av_st_rx.valid, 1)
+      poke(av_st_rx.err, 0)
+      poke(av_st_rx.be, 0)
+      poke(av_st_rx.bar, data_beat.bar)
     } else {
       poke(av_st_rx.sop, 0)
       poke(av_st_rx.eop, 0)

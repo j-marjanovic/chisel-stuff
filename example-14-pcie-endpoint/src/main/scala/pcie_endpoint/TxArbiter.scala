@@ -26,12 +26,12 @@ import chisel3._
 import chisel3.experimental.ChiselEnum
 import chisel3.util._
 
-class TxArbiter extends Module {
+class TxArbiter(val if_width: Int) extends Module {
   val io = IO(new Bundle {
-    val tx_st = new Interfaces.AvalonStreamTx
+    val tx_st = new Interfaces.AvalonStreamTx(if_width)
 
-    val cpld = Flipped(new Interfaces.AvalonStreamTx)
-    val bm = Flipped(new Interfaces.AvalonStreamTx)
+    val cpld = Flipped(new Interfaces.AvalonStreamTx(if_width))
+    val bm = Flipped(new Interfaces.AvalonStreamTx(if_width))
     val bm_hint = Input(Bool())
   })
 

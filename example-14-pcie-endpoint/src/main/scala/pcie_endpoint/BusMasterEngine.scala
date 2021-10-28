@@ -26,7 +26,7 @@ import chisel3._
 import chisel3.util._
 import chisel3.experimental.ChiselEnum
 
-class BusMasterEngine extends Module {
+class BusMasterEngine(val if_width: Int) extends Module {
   val io = IO(new Bundle {
     val conf_internal = Input(new Interfaces.ConfigIntern)
     val dma_desc = Flipped(Valid(new Interfaces.DmaDesc))
@@ -34,9 +34,9 @@ class BusMasterEngine extends Module {
     val fsm_busy = Output(Bool())
     val mrd_in_flight_dec = Flipped(Valid(UInt(10.W)))
     val arb_hint = Output(Bool())
-    val tx_st = new Interfaces.AvalonStreamTx
+    val tx_st = new Interfaces.AvalonStreamTx(if_width)
 
-    val dma_in = new Interfaces.AvalonStreamDataIn
+    val dma_in = new Interfaces.AvalonStreamDataIn(if_width)
 
     val irq_fire = Output(Bool())
   })
@@ -96,7 +96,8 @@ class BusMasterEngine extends Module {
   //==========================================================================
   // FSM
   object State extends ChiselEnum {
-    val sIdle, sTxWrHdr, sTxWrData, sTxRdHdr, sTxRdWait = Value
+    val sIdle, sTxWrHdr256, sTxWrHdr64_0, sTxWrHdr64_1, sTxWrData, sTxRdHdr64_0, sTxRdHdr,
+        sTxRdWait = Value
   }
 
   val state = RegInit(State.sIdle)
@@ -106,7 +107,12 @@ class BusMasterEngine extends Module {
     is(State.sIdle) {
       when(io.dma_desc.valid) {
         when(!io.dma_desc.bits.control.write_read_n) {
-          state := State.sTxRdHdr
+          if (if_width == 256) {
+            state := State.sTxRdHdr
+          } else if (if_width == 64) {
+            state := State.sTxRdHdr64_0
+          }
+
           len_all_dws := desc_len_dws
           len_pkt_dws := Mux(
             desc_len_dws > MAX_PAYLOAD_SIZE_DWS.U,
@@ -122,7 +128,11 @@ class BusMasterEngine extends Module {
           )
           reg_mrd64.last_be := Mux(desc_len_dws > 1.U, 0xf.U, 0.U)
         }.otherwise {
-          state := State.sTxWrHdr
+          if (if_width == 256) {
+            state := State.sTxWrHdr256
+          } else if (if_width == 64) {
+            state := State.sTxWrHdr64_0
+          }
           len_all_dws := desc_len_dws
           len_pkt_dws := Mux(
             desc_len_dws > MAX_PAYLOAD_SIZE_DWS.U,
@@ -140,7 +150,7 @@ class BusMasterEngine extends Module {
         }
       }
     }
-    is(State.sTxWrHdr) {
+    is(State.sTxWrHdr256) {
       when(io.tx_st.ready && dma_in_valid) {
         when(len_pkt_dws > 4.U) {
           state := State.sTxWrData
@@ -154,16 +164,40 @@ class BusMasterEngine extends Module {
         // address not incremented here
       }
     }
+    is(State.sTxWrHdr64_0) {
+      when(io.tx_st.ready) {
+        state := State.sTxWrHdr64_1
+      }
+    }
+    is(State.sTxWrHdr64_1) {
+      when(io.tx_st.ready) {
+        state := State.sTxWrData
+      }
+    }
     is(State.sTxWrData) {
-      when((io.tx_st.ready && dma_in_valid) || (io.tx_st.ready && (len_pkt_dws <= 4.U))) {
-        len_pkt_dws := len_pkt_dws - Mux(len_pkt_dws > 8.U, 8.U, len_pkt_dws)
-        len_all_dws := len_all_dws - Mux(len_pkt_dws > 8.U, 8.U, len_pkt_dws)
-        reg_mwr64.addr31_2 := reg_mwr64.addr31_2 + 8.U
+      when(
+        (io.tx_st.ready && dma_in_valid) || (io.tx_st.ready && (len_pkt_dws <= (if_width / 32 / 2).U))
+      ) {
+        len_pkt_dws := len_pkt_dws - Mux(
+          len_pkt_dws > (if_width / 32).U,
+          (if_width / 32).U,
+          len_pkt_dws
+        )
+        len_all_dws := len_all_dws - Mux(
+          len_pkt_dws > (if_width / 32).U,
+          (if_width / 32).U,
+          len_pkt_dws
+        )
+        reg_mwr64.addr31_2 := reg_mwr64.addr31_2 + (if_width / 32).U
         // we do not handle 32-bit address overflow -> very unlikely
 
-        when(len_pkt_dws <= 8.U) {
-          when(len_all_dws > 8.U) {
-            state := State.sTxWrHdr
+        when(len_pkt_dws <= (if_width / 32).U) {
+          when(len_all_dws > (if_width / 32).U) {
+            if (if_width == 256) {
+              state := State.sTxWrHdr256
+            } else if (if_width == 64) {
+              state := State.sTxWrHdr64_0
+            }
             len_pkt_dws := Mux(
               len_all_dws > MAX_PAYLOAD_SIZE_DWS.U,
               MAX_PAYLOAD_SIZE_DWS.U,
@@ -180,6 +214,11 @@ class BusMasterEngine extends Module {
             reg_irq_fire := true.B
           }
         }
+      }
+    }
+    is(State.sTxRdHdr64_0) {
+      when(io.tx_st.ready) {
+        state := State.sTxRdHdr
       }
     }
     is(State.sTxRdHdr) {
@@ -199,7 +238,12 @@ class BusMasterEngine extends Module {
 
         when(len_all_dws > MAX_PAYLOAD_SIZE_DWS.U) {
           when(mrd_dws_in_flight < MRD_DWS_MAX.U - MAX_PAYLOAD_SIZE_DWS.U) {
-            // stay in this state and continue sending packets
+            // stay in this state and continue sending packets ...
+
+            // ... except if the interface width requires that we send header in more cycles
+            if (if_width == 64) {
+              state := State.sTxRdHdr64_0
+            }
           }.otherwise {
             state := State.sTxRdWait
           }
@@ -211,7 +255,11 @@ class BusMasterEngine extends Module {
     }
     is(State.sTxRdWait) {
       when(mrd_dws_in_flight < MRD_DWS_MAX.U) {
-        state := State.sTxRdHdr
+        if (if_width == 256) {
+          state := State.sTxRdHdr
+        } else if (if_width == 64) {
+          state := State.sTxRdHdr64_0
+        }
       }
     }
   }
@@ -233,10 +281,11 @@ class BusMasterEngine extends Module {
   //==========================================================================
   // output data
 
-  val mod_skid_buf = Module(new SkidBuffer(UInt(256.W)))
+  val mod_skid_buf = Module(new SkidBuffer(UInt(if_width.W)))
 
   val tx_enable = WireInit(
-    state === State.sTxWrHdr || ((state === State.sTxWrData) && len_pkt_dws > 4.U)
+    state === State.sTxWrHdr256 ||
+      ((state === State.sTxWrData) && len_pkt_dws > (if_width / 32 / 2).U)
   )
   mod_skid_buf.out.ready := tx_enable && io.tx_st.ready
   dma_in_valid := mod_skid_buf.out.valid
@@ -256,7 +305,7 @@ class BusMasterEngine extends Module {
     is(State.sIdle) {
       io.tx_st.valid := false.B
     }
-    is(State.sTxWrHdr) {
+    is(State.sTxWrHdr256) {
       io.tx_st.valid := dma_in_valid
       io.tx_st.sop := true.B
       io.tx_st.eop := !(len_pkt_dws > 4.U)
@@ -268,36 +317,71 @@ class BusMasterEngine extends Module {
         .otherwise {
           io.tx_st.empty := 0.U
         }
-      io.tx_st.data := Cat(
-        out_data.asUInt()(127, 0),
-        reg_mwr64.asUInt()(127, 0)
-      )
+      if (if_width == 256) {
+        io.tx_st.data := Cat(
+          out_data.asUInt()(127, 0),
+          reg_mwr64.asUInt()(127, 0)
+        )
+      }
+    }
+    is(State.sTxWrHdr64_0) {
+      io.tx_st.valid := true.B
+      io.tx_st.sop := true.B
+      io.tx_st.eop := false.B
+      io.tx_st.empty := DontCare
+      io.tx_st.data := reg_mwr64.asUInt()(63, 0)
+    }
+    is(State.sTxWrHdr64_1) {
+      io.tx_st.valid := true.B
+      io.tx_st.sop := false.B
+      io.tx_st.eop := false.B
+      io.tx_st.empty := DontCare
+      io.tx_st.data := reg_mwr64.asUInt()(127, 64)
     }
     is(State.sTxWrData) {
       io.tx_st.valid := dma_in_valid
       io.tx_st.sop := false.B
-      io.tx_st.eop := len_pkt_dws <= 8.U
-      when(len_pkt_dws >= 8.U) {
+      io.tx_st.eop := len_pkt_dws <= (if_width / 32).U
+      when(len_pkt_dws >= (if_width / 32).U) {
         io.tx_st.empty := 0.U
-      }.elsewhen(len_pkt_dws >= 4.U) {
+      }.elsewhen(len_pkt_dws >= (if_width / 32 / 2).U) {
           io.tx_st.empty := 2.U
           io.tx_st.valid := true.B
         }
-        .elsewhen(len_pkt_dws >= 2.U) {
+        .elsewhen(len_pkt_dws >= (if_width / 32 / 4).U) {
           io.tx_st.empty := 1.U
           io.tx_st.valid := true.B
         }
-      io.tx_st.data := Cat(out_data.asUInt()(127, 0), out_data_prev.asUInt()(255, 128))
+
+      if (if_width == 256) {
+        io.tx_st.data := Cat(out_data.asUInt()(127, 0), out_data_prev.asUInt()(255, 128))
+      } else if (if_width == 64) {
+        io.tx_st.data := out_data
+      } else {
+        throw new Exception(s"Unsupported interface width ${if_width}")
+      }
+    }
+    is(State.sTxRdHdr64_0) {
+      io.tx_st.valid := true.B
+      io.tx_st.sop := true.B
+      io.tx_st.eop := false.B
+      io.tx_st.empty := DontCare
+      io.tx_st.data := reg_mrd64.asUInt()(63, 0)
     }
     is(State.sTxRdHdr) {
       io.tx_st.valid := true.B
-      io.tx_st.sop := true.B
       io.tx_st.eop := true.B
       io.tx_st.empty := 2.U
-      io.tx_st.data := Cat(
-        out_data.asUInt()(127, 0), // for optimization
-        reg_mrd64.asUInt()(127, 0)
-      )
+      if (if_width == 256) {
+        io.tx_st.sop := true.B
+        io.tx_st.data := Cat(
+          out_data.asUInt()(127, 0), // for optimization
+          reg_mrd64.asUInt()(127, 0)
+        )
+      } else if (if_width == 64) {
+        io.tx_st.sop := false.B
+        io.tx_st.data := reg_mrd64.asUInt()(127, 64)
+      }
     }
     is(State.sTxRdWait) {
       io.tx_st.valid := false.B

@@ -28,8 +28,8 @@ import chisel3.util._
 object Interfaces {
 
   // directions as seen from the IP perspective
-  class AvalonStreamRx extends Bundle {
-    val data = Input(UInt(256.W))
+  class AvalonStreamRx(val w: Int) extends Bundle {
+    val data = Input(UInt(w.W))
     val sop = Input(Bool())
     val eop = Input(Bool())
     val empty = Input(UInt(2.W))
@@ -44,8 +44,8 @@ object Interfaces {
     // TODO: rxfc_cplbuf_ovf?
   }
 
-  class AvalonStreamTx extends Bundle {
-    val data = Output(UInt(256.W))
+  class AvalonStreamTx(val w: Int) extends Bundle {
+    val data = Output(UInt(w.W))
     val sop = Output(Bool())
     val eop = Output(Bool())
     val ready = Input(Bool())
@@ -54,14 +54,14 @@ object Interfaces {
     val err = Output(Bool())
   }
 
-  class AvalonStreamDataIn extends Bundle {
-    val data = Input(UInt(256.W))
+  class AvalonStreamDataIn(val w: Int) extends Bundle {
+    val data = Input(UInt(w.W))
     val valid = Input(Bool())
     val ready = Output(Bool())
   }
 
-  class AvalonStreamDataOut extends Bundle {
-    val data = Output(UInt(256.W))
+  class AvalonStreamDataOut(val w: Int) extends Bundle {
+    val data = Output(UInt(w.W))
     val valid = Output(Bool())
     val empty = Output(UInt(8.W))
   }

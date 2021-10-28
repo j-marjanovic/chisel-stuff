@@ -25,15 +25,15 @@ package pcie_endpoint
 import chisel3._
 import chisel3.util._
 
-class CompletionRecv extends Module {
+class CompletionRecv(val if_width: Int) extends Module {
   val io = IO(new Bundle {
-    val data = Input(UInt(256.W))
+    val data = Input(UInt(if_width.W))
     val valid = Input(Bool())
     val sop = Input(Bool())
 
     val mrd_in_flight_dec = Valid(UInt(10.W))
 
-    val data_out = new Interfaces.AvalonStreamDataOut
+    val data_out = new Interfaces.AvalonStreamDataOut(if_width)
   })
 
   val data_prev = RegEnable(io.data, io.valid)
@@ -42,16 +42,30 @@ class CompletionRecv extends Module {
 
   when(io.valid) {
     when(io.sop) {
-      reg_length_dw := io.data(9, 0)
+      if (if_width == 256) {
+        reg_length_dw := io.data(9, 0)
+      } else if (if_width == 64) {
+        reg_length_dw := RegNext(RegNext(io.data(9, 0)))
+      }
     }.otherwise {
-      reg_length_dw := reg_length_dw - (256 / 32).U
+      reg_length_dw := reg_length_dw - (if_width / 32).U
     }
   }
 
-  io.mrd_in_flight_dec.valid := io.valid && io.sop
-  io.mrd_in_flight_dec.bits := io.data(9, 0)
+  if (if_width == 256) {
+    io.mrd_in_flight_dec.valid := io.valid && io.sop
+    io.mrd_in_flight_dec.bits := io.data(9, 0)
+  } else if (if_width == 64) {
+    io.mrd_in_flight_dec.valid := io.valid && io.sop
+    io.mrd_in_flight_dec.bits := RegNext(RegNext(io.data(9, 0)))
+  }
 
-  io.data_out.data := Cat(io.data(127, 0), data_prev(255, 128))
+  if (if_width == 256) {
+    io.data_out.data := Cat(io.data(127, 0), data_prev(255, 128))
+  } else if (if_width == 64) {
+    io.data_out.data := data_prev
+  }
   io.data_out.valid := RegNext(io.valid)
+  // TODO: check with if_width = 64
   io.data_out.empty := Mux(reg_length_dw > (256 / 32).U, 0.U, (256 / 8).U - reg_length_dw * 4.U)
 }

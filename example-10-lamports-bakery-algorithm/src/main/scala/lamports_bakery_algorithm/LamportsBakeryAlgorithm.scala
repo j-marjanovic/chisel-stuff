@@ -110,19 +110,22 @@ class LamportsBakeryAlgorithm(
     new Reg("DIAG", 0x60,
       new Field("LAST_CNTR", hw_access = Access.W, sw_access = Access.R, hi = 31, lo = Some(0))
     ),
+    new Reg("DIAG", 0x64,
+      new Field("LAST_DATA", hw_access = Access.W, sw_access = Access.R, hi = 31, lo = Some(0))
+    ),
   )
   // format: on
 
   // consts
-  val DIST_BYTES : UInt = 64.U
+  val DIST_BYTES: UInt = 64.U
 
   // control
   val mod_ctrl = Module(new AxiLiteSubordinateGenerator(area_map = area_map, addr_w = ctrl_addr_w))
   io.ctrl <> mod_ctrl.io.ctrl
 
   mod_ctrl.io.inp("VERSION_MAJOR") := 2.U
-  mod_ctrl.io.inp("VERSION_MINOR") := 0.U
-  mod_ctrl.io.inp("VERSION_PATCH") := 1.U
+  mod_ctrl.io.inp("VERSION_MINOR") := 1.U
+  mod_ctrl.io.inp("VERSION_PATCH") := 0.U
   mod_ctrl.io.inp("CONFIG_DIST") := DIST_BYTES
 
   // manager interface
@@ -152,6 +155,7 @@ class LamportsBakeryAlgorithm(
     mod_ctrl.io.out("ADDR_COUNTER_HI").asUInt(),
     mod_ctrl.io.out("ADDR_COUNTER_LO").asUInt()
   )
+  mod_ctrl.io.inp("DIAG_LAST_DATA") := mod_incr.io.last_data
 
   // mux
   def mux_rd_cmd[T <: Axi4ManagerRdCmd](sel: UInt, out: T, in: Vec[T]): Unit = {
@@ -210,6 +214,6 @@ class LamportsBakeryAlgorithm(
 
   // diag
   io.dbg_last_cntr := mod_seq.io.last_cntr
-  io.dbg_last_data := mod_incr.io.dbg_last_data
+  io.dbg_last_data := mod_incr.io.last_data
 
 }

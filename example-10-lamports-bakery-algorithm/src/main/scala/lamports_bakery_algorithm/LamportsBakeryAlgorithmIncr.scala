@@ -36,7 +36,7 @@ class LamportsBakeryAlgorithmIncr(val addr_w: Int = 49, val data_w: Int = 128) e
     val rd_cmd = Flipped(new Axi4ManagerRdCmd(addr_w, data_w))
     val wr_cmd = Flipped(new Axi4ManagerWrCmd(addr_w, data_w))
 
-    val dbg_last_data = Output(UInt(32.W))
+    val last_data = Output(UInt(32.W))
   })
 
   // wr command
@@ -55,7 +55,7 @@ class LamportsBakeryAlgorithmIncr(val addr_w: Int = 49, val data_w: Int = 128) e
 
   // data
   val last_data = Reg(UInt(32.W))
-  io.dbg_last_data := last_data
+  io.last_data := last_data
 
   // FSM
   object State extends ChiselEnum {

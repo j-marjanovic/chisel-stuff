@@ -37,4 +37,10 @@ object AxiProxyMain extends App {
     "_AxiProxyMap",
     "ip_cores/axi_proxy/drivers/_AxiProxyMap.py"
   )
+  AxiLiteSubordinateGenerator.gen_c_header(
+    AxiProxy.area_map,
+    "AxiProxy",
+    "ip_cores/axi_proxy/drivers/AxiProxy_regs.hpp",
+    use_cpp_header = true
+  )
 }

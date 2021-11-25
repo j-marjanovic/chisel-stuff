@@ -73,8 +73,8 @@ class AxiProxyTester(c: AxiProxyReg) extends BfmTester(c) {
   expect(read_blocking(0x10) == 0x300, "status - both FSMs ready")
   write_blocking(0x44, 0xab)
   write_blocking(0x40, 0xcd000080L)
-  write_blocking(0x100, 0x04030201)
-  write_blocking(0x104, 0x08070605)
+  write_blocking(0x60, 0x04030201)
+  write_blocking(0x64, 0x08070605)
   write_blocking(0x14, 1)
 
   step(100)
@@ -84,7 +84,7 @@ class AxiProxyTester(c: AxiProxyReg) extends BfmTester(c) {
 
   write_blocking(0x14, 2)
   step(100)
-  expect(read_blocking(0x200) == 0x04030201, "data readback - word #0")
-  expect(read_blocking(0x204) == 0x08070605, "data readback - word #1")
+  expect(read_blocking(0xa0) == 0x04030201, "data readback - word #0")
+  expect(read_blocking(0xa4) == 0x08070605, "data readback - word #1")
 
 }

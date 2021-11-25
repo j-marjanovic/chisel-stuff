@@ -51,7 +51,7 @@ class AxiProxy(
 
   // version reg
   mod_ctrl.io.inp("VERSION_MAJOR") := 0.U
-  mod_ctrl.io.inp("VERSION_MINOR") := 2.U
+  mod_ctrl.io.inp("VERSION_MINOR") := 3.U
   mod_ctrl.io.inp("VERSION_PATCH") := 1.U
 
   // AXI interface
@@ -115,9 +115,9 @@ object AxiProxy {
       new Field("ID", hw_access = Access.NA, sw_access = Access.R,  hi = 31, Some(0), reset = Some(0xa8122081L.U)) // AXI PROXY
     ),
     new Reg("VERSION", 4,
-      new Field("PATCH", hw_access = Access.W, sw_access = Access.R, hi = 7, lo = Some(0), reset = Some(3.U)),
-      new Field("MINOR", hw_access = Access.W, sw_access = Access.R, hi = 15, lo = Some(8), reset = Some(2.U)),
-      new Field("MAJOR", hw_access = Access.W, sw_access = Access.R, hi = 23, lo = Some(16), reset = Some(1.U))
+      new Field("PATCH", hw_access = Access.W, sw_access = Access.R, hi = 7, lo = Some(0)),
+      new Field("MINOR", hw_access = Access.W, sw_access = Access.R, hi = 15, lo = Some(8)),
+      new Field("MAJOR", hw_access = Access.W, sw_access = Access.R, hi = 23, lo = Some(16)),
     ),
     new Reg("SCRATCH", 0xc,
       new Field("FIELD", hw_access = Access.NA, sw_access = Access.RW, hi = 31, lo = Some(0))

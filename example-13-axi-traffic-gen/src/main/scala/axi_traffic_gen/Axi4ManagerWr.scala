@@ -22,6 +22,7 @@ SOFTWARE.
 
 package axi_traffic_gen
 
+import axi_traffic_gen.AxiTGConfig.{NR_BEATS_PER_BURST, NR_BURSTS_IN_FLIGHT}
 import bfmtester._
 import chisel3._
 import chisel3.experimental.ChiselEnum
@@ -41,10 +42,8 @@ class Axi4ManagerWr(addr_w: Int, data_w: Int, id_w: Int) extends Module {
     val diag_cntr_wr_cyc = Output(UInt(32.W))
   })
 
-  val NR_BEATS: Int = 4
-
   // defaults
-  io.m.AW.bits.len := (NR_BEATS - 1).U(8.W)
+  io.m.AW.bits.len := (NR_BEATS_PER_BURST - 1).U(8.W)
   io.m.AW.bits.size := 4.U // 16 bytes
   io.m.AW.bits.burst := AxiIfBurstType.BURST
   io.m.AW.bits.lock := 0.U
@@ -64,7 +63,7 @@ class Axi4ManagerWr(addr_w: Int, data_w: Int, id_w: Int) extends Module {
   // tx in flight
   val tx_in_flight_inc = Wire(Bool())
   val tx_in_flight_dec = Wire(Bool())
-  val tx_in_flight = UpDownCounter(0 to 4, tx_in_flight_inc, tx_in_flight_dec)
+  val tx_in_flight = UpDownCounter(0 to NR_BURSTS_IN_FLIGHT, tx_in_flight_inc, tx_in_flight_dec)
 
   // state machine
   object StateWrAddr extends ChiselEnum {
@@ -85,7 +84,7 @@ class Axi4ManagerWr(addr_w: Int, data_w: Int, id_w: Int) extends Module {
     }
     is(StateWrAddr.WrAddr) {
       when(io.m.AW.ready) {
-        awaddr_reg := awaddr_reg + (NR_BEATS * data_w / 8).U
+        awaddr_reg := awaddr_reg + (NR_BEATS_PER_BURST * data_w / 8).U
         rem_addrs := rem_addrs - 1.U
 
         when(rem_addrs === 0.U) {
@@ -143,7 +142,7 @@ class Axi4ManagerWr(addr_w: Int, data_w: Int, id_w: Int) extends Module {
   switch(state_wr_data) {
     is(StateWrData.Idle) {
       when(io.wr_cmd.valid) {
-        wr_total_cntr := io.wr_cmd.len * NR_BEATS.U - 1.U
+        wr_total_cntr := io.wr_cmd.len * NR_BEATS_PER_BURST.U - 1.U
         wr_beat_cntr := 0.U
         wdata_reg := 0.U
         state_wr_data := StateWrData.WrData
@@ -178,12 +177,15 @@ class Axi4ManagerWr(addr_w: Int, data_w: Int, id_w: Int) extends Module {
   // statistics
 
   val wr_cyc_cntr_act = RegInit(false.B)
-  val wr_cyc_cntr = Counter(wr_cyc_cntr_act, (Math.pow(2, 32)-1).toInt)
+  val wr_cyc_cntr = Counter(wr_cyc_cntr_act, (Math.pow(2, 32) - 1).toInt)
 
-  when (io.wr_cmd.valid) {
+  when(io.wr_cmd.valid) {
     wr_cyc_cntr_act := true.B
     wr_cyc_cntr._1 := 0.U
-  } .elsewhen (state_wr_addr === StateWrAddr.Done && state_wr_data === StateWrData.Done && tx_in_flight.is_empty()) {
+  }.elsewhen(
+    state_wr_addr === StateWrAddr.Done && state_wr_data === StateWrData.Done && tx_in_flight
+      .is_empty()
+  ) {
     wr_cyc_cntr_act := false.B
   }
 

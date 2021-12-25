@@ -22,6 +22,7 @@ SOFTWARE.
 
 package axi_traffic_gen
 
+import axi_traffic_gen.AxiTGConfig.{NR_BEATS_PER_BURST, NR_BURSTS_IN_FLIGHT}
 import bfmtester._
 import chisel3._
 import chisel3.experimental.ChiselEnum
@@ -42,11 +43,9 @@ class Axi4ManagerRd(addr_w: Int, data_w: Int, id_w: Int) extends Module {
     val diag_cntr_rd_ok = Output(UInt(32.W))
   })
 
-  val NR_BEATS: Int = 4
-
   // defaults
   io.m.R.ready := true.B // we are always ready!
-  io.m.AR.bits.len := (NR_BEATS - 1).U(8.W)
+  io.m.AR.bits.len := (NR_BEATS_PER_BURST - 1).U(8.W)
   io.m.AR.bits.size := 4.U // 16 bytes
   io.m.AR.bits.burst := AxiIfBurstType.BURST
   io.m.AR.bits.lock := 0.U
@@ -65,7 +64,7 @@ class Axi4ManagerRd(addr_w: Int, data_w: Int, id_w: Int) extends Module {
   // tx in flight
   val tx_in_flight_inc = Wire(Bool())
   val tx_in_flight_dec = Wire(Bool())
-  val tx_in_flight = UpDownCounter(0 to 4, tx_in_flight_inc, tx_in_flight_dec)
+  val tx_in_flight = UpDownCounter(0 to NR_BURSTS_IN_FLIGHT, tx_in_flight_inc, tx_in_flight_dec)
 
   // state machine
   object StateRd extends ChiselEnum {
@@ -86,7 +85,7 @@ class Axi4ManagerRd(addr_w: Int, data_w: Int, id_w: Int) extends Module {
     }
     is(StateRd.RdAddr) {
       when(io.m.AR.ready) {
-        raddr_reg := raddr_reg + (NR_BEATS * data_w / 8).U
+        raddr_reg := raddr_reg + (NR_BEATS_PER_BURST * data_w / 8).U
         rem_addrs := rem_addrs - 1.U
 
         when(rem_addrs === 0.U) {
@@ -124,7 +123,7 @@ class Axi4ManagerRd(addr_w: Int, data_w: Int, id_w: Int) extends Module {
   val rd_cntr_ok = Reg(UInt(32.W))
 
   when(io.rd_cmd.valid) {
-    rem_beats := io.rd_cmd.len * NR_BEATS.U - 1.U
+    rem_beats := io.rd_cmd.len * NR_BEATS_PER_BURST.U - 1.U
     ref_word := 0.U
     rd_cntr_ok := 0.U
   }.elsewhen(io.m.R.valid) {

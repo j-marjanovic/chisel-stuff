@@ -22,6 +22,7 @@ SOFTWARE.
 
 package axi_traffic_gen
 
+import axi_traffic_gen.AxiTGConfig.{NR_BEATS_PER_BURST, NR_BURSTS_IN_FLIGHT}
 import bfmtester._
 import bfmtester.util._
 import chisel3._
@@ -52,7 +53,7 @@ class AxiTrafficGen(
   // version reg
   mod_ctrl.io.inp("VERSION_MAJOR") := 0.U
   mod_ctrl.io.inp("VERSION_MINOR") := 9.U
-  mod_ctrl.io.inp("VERSION_PATCH") := 5.U
+  mod_ctrl.io.inp("VERSION_PATCH") := 7.U
 
   // AXI interface
   private val mod_axi = Module(new Axi4Manager(addr_w, data_w, id_w))
@@ -103,6 +104,10 @@ object AxiTrafficGen {
       new Field("PATCH", hw_access = Access.W, sw_access = Access.R, hi = 7, lo = Some(0)),
       new Field("MINOR", hw_access = Access.W, sw_access = Access.R, hi = 15, lo = Some(8)),
       new Field("MAJOR", hw_access = Access.W, sw_access = Access.R, hi = 23, lo = Some(16))
+    ),
+    new Reg("CONFIG", 8,
+      new Field("BURST_LEN", hw_access = Access.NA, sw_access = Access.R, hi = 7, lo = Some(0), reset = Some(NR_BEATS_PER_BURST.U)),
+      new Field("BURST_IN_FLIGHT", hw_access = Access.NA, sw_access = Access.R, hi = 15, lo = Some(8), reset = Some(NR_BURSTS_IN_FLIGHT.U)),
     ),
     new Reg("SCRATCH", 0xc,
       new Field("FIELD", hw_access = Access.NA, sw_access = Access.RW, hi = 31, lo = Some(0))

@@ -8,7 +8,7 @@ lazy val root = (project in file("."))
     name := "axi-traffic-gen",
     libraryDependencies ++= Seq(
       "edu.berkeley.cs" %% "chisel3" % "3.4.3",
-      "io.j-marjanovic" %% "chisel-bfmtester" % "0.4.0-SNAPSHOT",
+      "io.j-marjanovic" %% "chisel-bfmtester" % "0.4.2",
     ),
     scalacOptions ++= Seq(
       "-Xsource:2.11",

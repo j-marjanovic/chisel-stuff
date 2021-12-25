@@ -43,5 +43,10 @@ object AxiTrafficGenMain extends App {
     "_AxiTrafficGenMap",
     "ip_cores/axi_traffic_gen/drivers/_AxiTrafficGenMap.py"
   )
-
+  AxiLiteSubordinateGenerator.gen_c_header(
+    AxiTrafficGen.area_map,
+    "AxiTrafficGen",
+    "ip_cores/axi_traffic_gen/drivers/AxiTrafficGen_regs.hpp",
+    use_cpp_header = true
+  )
 }

@@ -125,9 +125,12 @@ set bCheckIPs 1
 if { $bCheckIPs == 1 } {
    set list_check_ips "\ 
 user.org:user:AxiTrafficGen:0.9\
+j-marjanovic.io:user:axi4_activity_led:1.0\
+xilinx.com:ip:c_counter_binary:12.0\
 xilinx.com:ip:debug_bridge:3.0\
 xilinx.com:ip:proc_sys_reset:5.0\
 xilinx.com:ip:system_ila:1.1\
+xilinx.com:ip:xlslice:1.0\
 xilinx.com:ip:zynq_ultra_ps_e:3.3\
 "
 
@@ -194,6 +197,8 @@ proc create_root_design { parentCell } {
   # Create interface ports
 
   # Create ports
+  set RADIO_LED0 [ create_bd_port -dir O -from 0 -to 0 RADIO_LED0 ]
+  set RADIO_LED1 [ create_bd_port -dir O RADIO_LED1 ]
 
   # Create instance: AxiTrafficGen_ACP, and set properties
   set AxiTrafficGen_ACP [ create_bd_cell -type ip -vlnv user.org:user:AxiTrafficGen:0.9 AxiTrafficGen_ACP ]
@@ -203,6 +208,16 @@ proc create_root_design { parentCell } {
 
   # Create instance: AxiTrafficGen_HPC, and set properties
   set AxiTrafficGen_HPC [ create_bd_cell -type ip -vlnv user.org:user:AxiTrafficGen:0.9 AxiTrafficGen_HPC ]
+
+  # Create instance: axi4_activity_led_0, and set properties
+  set axi4_activity_led_0 [ create_bd_cell -type ip -vlnv j-marjanovic.io:user:axi4_activity_led:1.0 axi4_activity_led_0 ]
+
+  # Create instance: c_counter_binary_0, and set properties
+  set c_counter_binary_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:c_counter_binary:12.0 c_counter_binary_0 ]
+  set_property -dict [ list \
+   CONFIG.Implementation {Fabric} \
+   CONFIG.Output_Width {28} \
+ ] $c_counter_binary_0
 
   # Create instance: debug_bridge_0, and set properties
   set debug_bridge_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:debug_bridge:3.0 debug_bridge_0 ]
@@ -276,6 +291,15 @@ proc create_root_design { parentCell } {
    CONFIG.C_SLOT_3_MAX_RD_BURSTS {16} \
    CONFIG.C_SLOT_3_MAX_WR_BURSTS {16} \
  ] $system_ila_0
+
+  # Create instance: xlslice_0, and set properties
+  set xlslice_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_0 ]
+  set_property -dict [ list \
+   CONFIG.DIN_FROM {27} \
+   CONFIG.DIN_TO {27} \
+   CONFIG.DIN_WIDTH {28} \
+   CONFIG.DOUT_WIDTH {1} \
+ ] $xlslice_0
 
   # Create instance: zynq_ultra_ps_e_0, and set properties
   set zynq_ultra_ps_e_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:zynq_ultra_ps_e:3.3 zynq_ultra_ps_e_0 ]
@@ -1013,10 +1037,13 @@ Port;FD4A0000;FD4AFFFF;1|FPD;DPDMA;FD4C0000;FD4CFFFF;1|FPD;DDR_XMPU5_CFG;FD05000
   # Create interface connections
   connect_bd_intf_net -intf_net AxiProxy_ACP_MNGR [get_bd_intf_pins AxiTrafficGen_ACP/MNGR] [get_bd_intf_pins zynq_ultra_ps_e_0/S_AXI_ACP_FPD]
 connect_bd_intf_net -intf_net [get_bd_intf_nets AxiProxy_ACP_MNGR] [get_bd_intf_pins AxiTrafficGen_ACP/MNGR] [get_bd_intf_pins system_ila_0/SLOT_1_AXI]
+connect_bd_intf_net -intf_net [get_bd_intf_nets AxiProxy_ACP_MNGR] [get_bd_intf_pins AxiTrafficGen_ACP/MNGR] [get_bd_intf_pins axi4_activity_led_0/slot0]
   connect_bd_intf_net -intf_net AxiProxy_HPC_MNGR [get_bd_intf_pins AxiTrafficGen_HPC/MNGR] [get_bd_intf_pins zynq_ultra_ps_e_0/S_AXI_HPC0_FPD]
 connect_bd_intf_net -intf_net [get_bd_intf_nets AxiProxy_HPC_MNGR] [get_bd_intf_pins AxiTrafficGen_HPC/MNGR] [get_bd_intf_pins system_ila_0/SLOT_2_AXI]
+connect_bd_intf_net -intf_net [get_bd_intf_nets AxiProxy_HPC_MNGR] [get_bd_intf_pins AxiTrafficGen_HPC/MNGR] [get_bd_intf_pins axi4_activity_led_0/slot1]
   connect_bd_intf_net -intf_net AxiProxy_HP_MNGR [get_bd_intf_pins AxiTrafficGen_HP/MNGR] [get_bd_intf_pins zynq_ultra_ps_e_0/S_AXI_HP0_FPD]
 connect_bd_intf_net -intf_net [get_bd_intf_nets AxiProxy_HP_MNGR] [get_bd_intf_pins AxiTrafficGen_HP/MNGR] [get_bd_intf_pins system_ila_0/SLOT_3_AXI]
+connect_bd_intf_net -intf_net [get_bd_intf_nets AxiProxy_HP_MNGR] [get_bd_intf_pins AxiTrafficGen_HP/MNGR] [get_bd_intf_pins axi4_activity_led_0/slot2]
   connect_bd_intf_net -intf_net debug_bridge_0_m0_bscan [get_bd_intf_pins debug_bridge_0/m0_bscan] [get_bd_intf_pins debug_bridge_1/S_BSCAN]
   connect_bd_intf_net -intf_net ps8_0_axi_periph_M00_AXI [get_bd_intf_pins debug_bridge_0/S_AXI] [get_bd_intf_pins ps8_0_axi_periph/M00_AXI]
   connect_bd_intf_net -intf_net ps8_0_axi_periph_M01_AXI [get_bd_intf_pins AxiTrafficGen_ACP/CTRL] [get_bd_intf_pins ps8_0_axi_periph/M01_AXI]
@@ -1026,10 +1053,13 @@ connect_bd_intf_net -intf_net [get_bd_intf_nets AxiProxy_HP_MNGR] [get_bd_intf_p
 connect_bd_intf_net -intf_net [get_bd_intf_nets zynq_ultra_ps_e_0_M_AXI_HPM0_FPD] [get_bd_intf_pins system_ila_0/SLOT_0_AXI] [get_bd_intf_pins zynq_ultra_ps_e_0/M_AXI_HPM0_FPD]
 
   # Create port connections
+  connect_bd_net -net axi4_activity_led_0_LED [get_bd_ports RADIO_LED1] [get_bd_pins axi4_activity_led_0/LED]
+  connect_bd_net -net c_counter_binary_0_Q [get_bd_pins c_counter_binary_0/Q] [get_bd_pins xlslice_0/Din]
   connect_bd_net -net rst_ps8_0_100M_peripheral_aresetn [get_bd_pins debug_bridge_0/s_axi_aresetn] [get_bd_pins ps8_0_axi_periph/ARESETN] [get_bd_pins ps8_0_axi_periph/M00_ARESETN] [get_bd_pins ps8_0_axi_periph/M01_ARESETN] [get_bd_pins ps8_0_axi_periph/M02_ARESETN] [get_bd_pins ps8_0_axi_periph/M03_ARESETN] [get_bd_pins ps8_0_axi_periph/S00_ARESETN] [get_bd_pins rst_ps8_0_100M/peripheral_aresetn] [get_bd_pins system_ila_0/resetn]
   connect_bd_net -net rst_ps8_0_100M_peripheral_reset [get_bd_pins AxiTrafficGen_ACP/reset] [get_bd_pins AxiTrafficGen_HP/reset] [get_bd_pins AxiTrafficGen_HPC/reset] [get_bd_pins rst_ps8_0_100M/peripheral_reset]
-  connect_bd_net -net zynq_ultra_ps_e_0_pl_clk0 [get_bd_pins AxiTrafficGen_ACP/clock] [get_bd_pins AxiTrafficGen_HP/clock] [get_bd_pins AxiTrafficGen_HPC/clock] [get_bd_pins debug_bridge_0/s_axi_aclk] [get_bd_pins debug_bridge_1/clk] [get_bd_pins ps8_0_axi_periph/ACLK] [get_bd_pins ps8_0_axi_periph/M00_ACLK] [get_bd_pins ps8_0_axi_periph/M01_ACLK] [get_bd_pins ps8_0_axi_periph/M02_ACLK] [get_bd_pins ps8_0_axi_periph/M03_ACLK] [get_bd_pins ps8_0_axi_periph/S00_ACLK] [get_bd_pins rst_ps8_0_100M/slowest_sync_clk] [get_bd_pins system_ila_0/clk] [get_bd_pins zynq_ultra_ps_e_0/maxihpm0_fpd_aclk] [get_bd_pins zynq_ultra_ps_e_0/pl_clk0] [get_bd_pins zynq_ultra_ps_e_0/saxiacp_fpd_aclk] [get_bd_pins zynq_ultra_ps_e_0/saxihp0_fpd_aclk] [get_bd_pins zynq_ultra_ps_e_0/saxihpc0_fpd_aclk] [get_bd_pins zynq_ultra_ps_e_0/saxihpc1_fpd_aclk]
-  connect_bd_net -net zynq_ultra_ps_e_0_pl_resetn0 [get_bd_pins rst_ps8_0_100M/ext_reset_in] [get_bd_pins zynq_ultra_ps_e_0/pl_resetn0]
+  connect_bd_net -net xlslice_0_Dout [get_bd_ports RADIO_LED0] [get_bd_pins xlslice_0/Dout]
+  connect_bd_net -net zynq_ultra_ps_e_0_pl_clk0 [get_bd_pins AxiTrafficGen_ACP/clock] [get_bd_pins AxiTrafficGen_HP/clock] [get_bd_pins AxiTrafficGen_HPC/clock] [get_bd_pins axi4_activity_led_0/clk] [get_bd_pins c_counter_binary_0/CLK] [get_bd_pins debug_bridge_0/s_axi_aclk] [get_bd_pins debug_bridge_1/clk] [get_bd_pins ps8_0_axi_periph/ACLK] [get_bd_pins ps8_0_axi_periph/M00_ACLK] [get_bd_pins ps8_0_axi_periph/M01_ACLK] [get_bd_pins ps8_0_axi_periph/M02_ACLK] [get_bd_pins ps8_0_axi_periph/M03_ACLK] [get_bd_pins ps8_0_axi_periph/S00_ACLK] [get_bd_pins rst_ps8_0_100M/slowest_sync_clk] [get_bd_pins system_ila_0/clk] [get_bd_pins zynq_ultra_ps_e_0/maxihpm0_fpd_aclk] [get_bd_pins zynq_ultra_ps_e_0/pl_clk0] [get_bd_pins zynq_ultra_ps_e_0/saxiacp_fpd_aclk] [get_bd_pins zynq_ultra_ps_e_0/saxihp0_fpd_aclk] [get_bd_pins zynq_ultra_ps_e_0/saxihpc0_fpd_aclk] [get_bd_pins zynq_ultra_ps_e_0/saxihpc1_fpd_aclk]
+  connect_bd_net -net zynq_ultra_ps_e_0_pl_resetn0 [get_bd_pins axi4_activity_led_0/reset_n] [get_bd_pins rst_ps8_0_100M/ext_reset_in] [get_bd_pins zynq_ultra_ps_e_0/pl_resetn0]
 
   # Create address segments
   assign_bd_address -offset 0x00000000 -range 0x80000000 -target_address_space [get_bd_addr_spaces AxiTrafficGen_ACP/MNGR] [get_bd_addr_segs zynq_ultra_ps_e_0/SAXIACP/ACP_DDR_LOW] -force

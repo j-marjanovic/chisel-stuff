@@ -17,7 +17,7 @@ module GunzipBitSkipper( // @[:@3.2]
   assign _T_15 = bit_cntr < 9'h1a7; // @[GunzipBitSkipper.scala 45:58:@10.4]
   assign _T_16 = _T_13 & _T_15; // @[GunzipBitSkipper.scala 45:46:@11.4]
   assign _T_18 = bit_cntr + 9'h1; // @[GunzipBitSkipper.scala 46:26:@13.6]
-  assign _T_19 = _T_18[8:0]; // @[GunzipBitSkipper.scala 46:26:@14.6]
+  assign _T_19 = bit_cntr + 9'h1; // @[GunzipBitSkipper.scala 46:26:@14.6]
   assign _GEN_0 = _T_16 ? _T_19 : bit_cntr; // @[GunzipBitSkipper.scala 45:80:@12.4]
   assign io_data_in_ready = bit_cntr != 9'h1a7; // @[GunzipBitSkipper.scala 50:20:@20.4]
   assign io_done = bit_cntr == 9'h1a7; // @[GunzipBitSkipper.scala 49:11:@18.4]
@@ -43,11 +43,7 @@ module GunzipBitSkipper( // @[:@3.2]
       `INIT_RANDOM
     `endif
     `ifndef VERILATOR
-      `ifdef RANDOMIZE_DELAY
-        #`RANDOMIZE_DELAY begin end
-      `else
-        #0.002 begin end
-      `endif
+      #0.002 begin end
     `endif
   `ifdef RANDOMIZE_REG_INIT
   _RAND_0 = {1{`RANDOM}};
@@ -609,10 +605,10 @@ module GunzipHuffDecoder( // @[:@22.2]
   assign _T_797 = reset == 1'h0; // @[GunzipHuffDecoder.scala 54:13:@549.8]
   assign _T_800 = lit_idx * 9'h2; // @[GunzipHuffDecoder.scala 58:25:@557.10]
   assign _T_802 = _T_800 + 11'h1; // @[GunzipHuffDecoder.scala 58:30:@558.10]
-  assign _T_803 = _T_802[10:0]; // @[GunzipHuffDecoder.scala 58:30:@559.10]
+  assign _T_803 = _T_800 + 11'h1; // @[GunzipHuffDecoder.scala 58:30:@559.10]
   assign _GEN_1550 = {{10'd0}, io_data_in_bits}; // @[GunzipHuffDecoder.scala 58:36:@560.10]
   assign _T_804 = _T_803 + _GEN_1550; // @[GunzipHuffDecoder.scala 58:36:@560.10]
-  assign _T_805 = _T_804[10:0]; // @[GunzipHuffDecoder.scala 58:36:@561.10]
+  assign _T_805 = _T_803 + _GEN_1550; // @[GunzipHuffDecoder.scala 58:36:@561.10]
   assign _T_807 = lit_idx[7:0]; // @[:@563.10]
   assign _GEN_6 = 8'h3 == _T_807; // @[GunzipHuffDecoder.scala 60:43:@564.10]
   assign _GEN_7 = 8'h3 == _T_807 ? 9'h11d : 9'h0; // @[GunzipHuffDecoder.scala 60:43:@564.10]
@@ -1156,11 +1152,7 @@ module GunzipHuffDecoder( // @[:@22.2]
       `INIT_RANDOM
     `endif
     `ifndef VERILATOR
-      `ifdef RANDOMIZE_DELAY
-        #`RANDOMIZE_DELAY begin end
-      `else
-        #0.002 begin end
-      `endif
+      #0.002 begin end
     `endif
   `ifdef RANDOMIZE_REG_INIT
   _RAND_0 = {1{`RANDOM}};
@@ -2311,27 +2303,22 @@ module GunzipLenDistLut( // @[:@579.2]
   wire  _T_185; // @[Conditional.scala 37:30:@694.12]
   wire [4:0] _T_186; // @[GunzipLenDistLut.scala 51:33:@696.14]
   wire  _T_187; // @[GunzipLenDistLut.scala 51:70:@697.14]
-  wire [1:0] _T_188; // @[Cat.scala 30:58:@698.14]
   wire [6:0] _T_189; // @[Cat.scala 30:58:@699.14]
   wire  _T_191; // @[Conditional.scala 37:30:@703.14]
   wire [3:0] _T_192; // @[GunzipLenDistLut.scala 52:33:@705.16]
   wire [1:0] _T_193; // @[GunzipLenDistLut.scala 52:70:@706.16]
-  wire [2:0] _T_194; // @[Cat.scala 30:58:@707.16]
   wire [6:0] _T_195; // @[Cat.scala 30:58:@708.16]
   wire  _T_197; // @[Conditional.scala 37:30:@712.16]
   wire [2:0] _T_198; // @[GunzipLenDistLut.scala 53:33:@714.18]
   wire [2:0] _T_199; // @[GunzipLenDistLut.scala 53:70:@715.18]
-  wire [3:0] _T_200; // @[Cat.scala 30:58:@716.18]
   wire [6:0] _T_201; // @[Cat.scala 30:58:@717.18]
   wire  _T_203; // @[Conditional.scala 37:30:@721.18]
   wire [1:0] _T_204; // @[GunzipLenDistLut.scala 54:33:@723.20]
   wire [3:0] _T_205; // @[GunzipLenDistLut.scala 54:70:@724.20]
-  wire [4:0] _T_206; // @[Cat.scala 30:58:@725.20]
   wire [6:0] _T_207; // @[Cat.scala 30:58:@726.20]
   wire  _T_209; // @[Conditional.scala 37:30:@730.20]
   wire  _T_210; // @[GunzipLenDistLut.scala 55:33:@732.22]
   wire [4:0] _T_211; // @[GunzipLenDistLut.scala 55:70:@733.22]
-  wire [5:0] _T_212; // @[Cat.scala 30:58:@734.22]
   wire [6:0] _T_213; // @[Cat.scala 30:58:@735.22]
   wire [6:0] _GEN_130; // @[Conditional.scala 39:67:@731.20]
   wire [6:0] _GEN_131; // @[Conditional.scala 39:67:@722.18]
@@ -2440,28 +2427,23 @@ module GunzipLenDistLut( // @[:@579.2]
   assign _T_185 = 5'h1 == ext_idx; // @[Conditional.scala 37:30:@694.12]
   assign _T_186 = ext_val[6:2]; // @[GunzipLenDistLut.scala 51:33:@696.14]
   assign _T_187 = ext_val[0]; // @[GunzipLenDistLut.scala 51:70:@697.14]
-  assign _T_188 = {io_data_in_bits,_T_187}; // @[Cat.scala 30:58:@698.14]
-  assign _T_189 = {_T_186,_T_188}; // @[Cat.scala 30:58:@699.14]
+  assign _T_189 = {_T_186,io_data_in_bits,_T_187}; // @[Cat.scala 30:58:@699.14]
   assign _T_191 = 5'h2 == ext_idx; // @[Conditional.scala 37:30:@703.14]
   assign _T_192 = ext_val[6:3]; // @[GunzipLenDistLut.scala 52:33:@705.16]
   assign _T_193 = ext_val[1:0]; // @[GunzipLenDistLut.scala 52:70:@706.16]
-  assign _T_194 = {io_data_in_bits,_T_193}; // @[Cat.scala 30:58:@707.16]
-  assign _T_195 = {_T_192,_T_194}; // @[Cat.scala 30:58:@708.16]
+  assign _T_195 = {_T_192,io_data_in_bits,_T_193}; // @[Cat.scala 30:58:@708.16]
   assign _T_197 = 5'h3 == ext_idx; // @[Conditional.scala 37:30:@712.16]
   assign _T_198 = ext_val[6:4]; // @[GunzipLenDistLut.scala 53:33:@714.18]
   assign _T_199 = ext_val[2:0]; // @[GunzipLenDistLut.scala 53:70:@715.18]
-  assign _T_200 = {io_data_in_bits,_T_199}; // @[Cat.scala 30:58:@716.18]
-  assign _T_201 = {_T_198,_T_200}; // @[Cat.scala 30:58:@717.18]
+  assign _T_201 = {_T_198,io_data_in_bits,_T_199}; // @[Cat.scala 30:58:@717.18]
   assign _T_203 = 5'h4 == ext_idx; // @[Conditional.scala 37:30:@721.18]
   assign _T_204 = ext_val[6:5]; // @[GunzipLenDistLut.scala 54:33:@723.20]
   assign _T_205 = ext_val[3:0]; // @[GunzipLenDistLut.scala 54:70:@724.20]
-  assign _T_206 = {io_data_in_bits,_T_205}; // @[Cat.scala 30:58:@725.20]
-  assign _T_207 = {_T_204,_T_206}; // @[Cat.scala 30:58:@726.20]
+  assign _T_207 = {_T_204,io_data_in_bits,_T_205}; // @[Cat.scala 30:58:@726.20]
   assign _T_209 = 5'h5 == ext_idx; // @[Conditional.scala 37:30:@730.20]
   assign _T_210 = ext_val[6]; // @[GunzipLenDistLut.scala 55:33:@732.22]
   assign _T_211 = ext_val[4:0]; // @[GunzipLenDistLut.scala 55:70:@733.22]
-  assign _T_212 = {io_data_in_bits,_T_211}; // @[Cat.scala 30:58:@734.22]
-  assign _T_213 = {_T_210,_T_212}; // @[Cat.scala 30:58:@735.22]
+  assign _T_213 = {_T_210,io_data_in_bits,_T_211}; // @[Cat.scala 30:58:@735.22]
   assign _GEN_130 = _T_209 ? _T_213 : 7'h0; // @[Conditional.scala 39:67:@731.20]
   assign _GEN_131 = _T_203 ? _T_207 : _GEN_130; // @[Conditional.scala 39:67:@722.18]
   assign _GEN_132 = _T_197 ? _T_201 : _GEN_131; // @[Conditional.scala 39:67:@713.16]
@@ -2469,7 +2451,7 @@ module GunzipLenDistLut( // @[:@579.2]
   assign _GEN_134 = _T_185 ? _T_189 : _GEN_133; // @[Conditional.scala 39:67:@695.12]
   assign _GEN_135 = _T_181 ? _T_183 : _GEN_134; // @[Conditional.scala 40:58:@688.10]
   assign _T_215 = ext_idx + 5'h1; // @[GunzipLenDistLut.scala 100:28:@739.10]
-  assign _T_216 = _T_215[4:0]; // @[GunzipLenDistLut.scala 100:28:@740.10]
+  assign _T_216 = ext_idx + 5'h1; // @[GunzipLenDistLut.scala 100:28:@740.10]
   assign _T_217 = ext_idx == ext_lim; // @[GunzipLenDistLut.scala 102:22:@742.10]
   assign _GEN_136 = _T_217 ? 2'h2 : state; // @[GunzipLenDistLut.scala 102:35:@743.10]
   assign _GEN_138 = io_data_in_valid ? _GEN_135 : ext_val; // @[GunzipLenDistLut.scala 97:31:@683.8]
@@ -2478,7 +2460,7 @@ module GunzipLenDistLut( // @[:@579.2]
   assign _T_218 = 2'h2 == state; // @[Conditional.scala 37:30:@749.8]
   assign _GEN_159 = {{2'd0}, ext_val}; // @[GunzipLenDistLut.scala 110:27:@753.10]
   assign _T_220 = val_init + _GEN_159; // @[GunzipLenDistLut.scala 110:27:@753.10]
-  assign _T_221 = _T_220[8:0]; // @[GunzipLenDistLut.scala 110:27:@754.10]
+  assign _T_221 = val_init + _GEN_159; // @[GunzipLenDistLut.scala 110:27:@754.10]
   assign _GEN_141 = _T_218 ? 2'h0 : state; // @[Conditional.scala 39:67:@750.8]
   assign _GEN_143 = _T_218 ? {{6'd0}, _T_221} : out_reg; // @[Conditional.scala 39:67:@750.8]
   assign _GEN_144 = _T_175 ? io_data_in_valid : 1'h0; // @[Conditional.scala 39:67:@682.6]
@@ -2516,11 +2498,7 @@ module GunzipLenDistLut( // @[:@579.2]
       `INIT_RANDOM
     `endif
     `ifndef VERILATOR
-      `ifdef RANDOMIZE_DELAY
-        #`RANDOMIZE_DELAY begin end
-      `else
-        #0.002 begin end
-      `endif
+      #0.002 begin end
     `endif
   `ifdef RANDOMIZE_REG_INIT
   _RAND_0 = {1{`RANDOM}};
@@ -2864,10 +2842,10 @@ module GunzipHuffDecoder_1( // @[:@763.2]
   assign _T_125 = reset == 1'h0; // @[GunzipHuffDecoder.scala 54:13:@842.8]
   assign _T_128 = lit_idx * 9'h2; // @[GunzipHuffDecoder.scala 58:25:@850.10]
   assign _T_130 = _T_128 + 11'h1; // @[GunzipHuffDecoder.scala 58:30:@851.10]
-  assign _T_131 = _T_130[10:0]; // @[GunzipHuffDecoder.scala 58:30:@852.10]
+  assign _T_131 = _T_128 + 11'h1; // @[GunzipHuffDecoder.scala 58:30:@852.10]
   assign _GEN_206 = {{10'd0}, io_data_in_bits}; // @[GunzipHuffDecoder.scala 58:36:@853.10]
   assign _T_132 = _T_131 + _GEN_206; // @[GunzipHuffDecoder.scala 58:36:@853.10]
-  assign _T_133 = _T_132[10:0]; // @[GunzipHuffDecoder.scala 58:36:@854.10]
+  assign _T_133 = _T_131 + _GEN_206; // @[GunzipHuffDecoder.scala 58:36:@854.10]
   assign _T_135 = lit_idx[4:0]; // @[:@856.10]
   assign _GEN_2 = 5'h1 == _T_135; // @[GunzipHuffDecoder.scala 60:43:@857.10]
   assign _GEN_4 = 5'h2 == _T_135 ? 1'h0 : _GEN_2; // @[GunzipHuffDecoder.scala 60:43:@857.10]
@@ -2957,11 +2935,7 @@ module GunzipHuffDecoder_1( // @[:@763.2]
       `INIT_RANDOM
     `endif
     `ifndef VERILATOR
-      `ifdef RANDOMIZE_DELAY
-        #`RANDOMIZE_DELAY begin end
-      `else
-        #0.002 begin end
-      `endif
+      #0.002 begin end
     `endif
   `ifdef RANDOMIZE_REG_INIT
   _RAND_0 = {1{`RANDOM}};
@@ -3190,27 +3164,22 @@ module GunzipLenDistLut_1( // @[:@872.2]
   wire  _T_189; // @[Conditional.scala 37:30:@989.12]
   wire [4:0] _T_190; // @[GunzipLenDistLut.scala 51:33:@991.14]
   wire  _T_191; // @[GunzipLenDistLut.scala 51:70:@992.14]
-  wire [1:0] _T_192; // @[Cat.scala 30:58:@993.14]
   wire [6:0] _T_193; // @[Cat.scala 30:58:@994.14]
   wire  _T_195; // @[Conditional.scala 37:30:@998.14]
   wire [3:0] _T_196; // @[GunzipLenDistLut.scala 52:33:@1000.16]
   wire [1:0] _T_197; // @[GunzipLenDistLut.scala 52:70:@1001.16]
-  wire [2:0] _T_198; // @[Cat.scala 30:58:@1002.16]
   wire [6:0] _T_199; // @[Cat.scala 30:58:@1003.16]
   wire  _T_201; // @[Conditional.scala 37:30:@1007.16]
   wire [2:0] _T_202; // @[GunzipLenDistLut.scala 53:33:@1009.18]
   wire [2:0] _T_203; // @[GunzipLenDistLut.scala 53:70:@1010.18]
-  wire [3:0] _T_204; // @[Cat.scala 30:58:@1011.18]
   wire [6:0] _T_205; // @[Cat.scala 30:58:@1012.18]
   wire  _T_207; // @[Conditional.scala 37:30:@1016.18]
   wire [1:0] _T_208; // @[GunzipLenDistLut.scala 54:33:@1018.20]
   wire [3:0] _T_209; // @[GunzipLenDistLut.scala 54:70:@1019.20]
-  wire [4:0] _T_210; // @[Cat.scala 30:58:@1020.20]
   wire [6:0] _T_211; // @[Cat.scala 30:58:@1021.20]
   wire  _T_213; // @[Conditional.scala 37:30:@1025.20]
   wire  _T_214; // @[GunzipLenDistLut.scala 55:33:@1027.22]
   wire [4:0] _T_215; // @[GunzipLenDistLut.scala 55:70:@1028.22]
-  wire [5:0] _T_216; // @[Cat.scala 30:58:@1029.22]
   wire [6:0] _T_217; // @[Cat.scala 30:58:@1030.22]
   wire [6:0] _GEN_134; // @[Conditional.scala 39:67:@1026.20]
   wire [6:0] _GEN_135; // @[Conditional.scala 39:67:@1017.18]
@@ -3325,28 +3294,23 @@ module GunzipLenDistLut_1( // @[:@872.2]
   assign _T_189 = 5'h1 == ext_idx; // @[Conditional.scala 37:30:@989.12]
   assign _T_190 = ext_val[6:2]; // @[GunzipLenDistLut.scala 51:33:@991.14]
   assign _T_191 = ext_val[0]; // @[GunzipLenDistLut.scala 51:70:@992.14]
-  assign _T_192 = {io_data_in_bits,_T_191}; // @[Cat.scala 30:58:@993.14]
-  assign _T_193 = {_T_190,_T_192}; // @[Cat.scala 30:58:@994.14]
+  assign _T_193 = {_T_190,io_data_in_bits,_T_191}; // @[Cat.scala 30:58:@994.14]
   assign _T_195 = 5'h2 == ext_idx; // @[Conditional.scala 37:30:@998.14]
   assign _T_196 = ext_val[6:3]; // @[GunzipLenDistLut.scala 52:33:@1000.16]
   assign _T_197 = ext_val[1:0]; // @[GunzipLenDistLut.scala 52:70:@1001.16]
-  assign _T_198 = {io_data_in_bits,_T_197}; // @[Cat.scala 30:58:@1002.16]
-  assign _T_199 = {_T_196,_T_198}; // @[Cat.scala 30:58:@1003.16]
+  assign _T_199 = {_T_196,io_data_in_bits,_T_197}; // @[Cat.scala 30:58:@1003.16]
   assign _T_201 = 5'h3 == ext_idx; // @[Conditional.scala 37:30:@1007.16]
   assign _T_202 = ext_val[6:4]; // @[GunzipLenDistLut.scala 53:33:@1009.18]
   assign _T_203 = ext_val[2:0]; // @[GunzipLenDistLut.scala 53:70:@1010.18]
-  assign _T_204 = {io_data_in_bits,_T_203}; // @[Cat.scala 30:58:@1011.18]
-  assign _T_205 = {_T_202,_T_204}; // @[Cat.scala 30:58:@1012.18]
+  assign _T_205 = {_T_202,io_data_in_bits,_T_203}; // @[Cat.scala 30:58:@1012.18]
   assign _T_207 = 5'h4 == ext_idx; // @[Conditional.scala 37:30:@1016.18]
   assign _T_208 = ext_val[6:5]; // @[GunzipLenDistLut.scala 54:33:@1018.20]
   assign _T_209 = ext_val[3:0]; // @[GunzipLenDistLut.scala 54:70:@1019.20]
-  assign _T_210 = {io_data_in_bits,_T_209}; // @[Cat.scala 30:58:@1020.20]
-  assign _T_211 = {_T_208,_T_210}; // @[Cat.scala 30:58:@1021.20]
+  assign _T_211 = {_T_208,io_data_in_bits,_T_209}; // @[Cat.scala 30:58:@1021.20]
   assign _T_213 = 5'h5 == ext_idx; // @[Conditional.scala 37:30:@1025.20]
   assign _T_214 = ext_val[6]; // @[GunzipLenDistLut.scala 55:33:@1027.22]
   assign _T_215 = ext_val[4:0]; // @[GunzipLenDistLut.scala 55:70:@1028.22]
-  assign _T_216 = {io_data_in_bits,_T_215}; // @[Cat.scala 30:58:@1029.22]
-  assign _T_217 = {_T_214,_T_216}; // @[Cat.scala 30:58:@1030.22]
+  assign _T_217 = {_T_214,io_data_in_bits,_T_215}; // @[Cat.scala 30:58:@1030.22]
   assign _GEN_134 = _T_213 ? _T_217 : 7'h0; // @[Conditional.scala 39:67:@1026.20]
   assign _GEN_135 = _T_207 ? _T_211 : _GEN_134; // @[Conditional.scala 39:67:@1017.18]
   assign _GEN_136 = _T_201 ? _T_205 : _GEN_135; // @[Conditional.scala 39:67:@1008.16]
@@ -3354,7 +3318,7 @@ module GunzipLenDistLut_1( // @[:@872.2]
   assign _GEN_138 = _T_189 ? _T_193 : _GEN_137; // @[Conditional.scala 39:67:@990.12]
   assign _GEN_139 = _T_185 ? _T_187 : _GEN_138; // @[Conditional.scala 40:58:@983.10]
   assign _T_219 = ext_idx + 5'h1; // @[GunzipLenDistLut.scala 100:28:@1034.10]
-  assign _T_220 = _T_219[4:0]; // @[GunzipLenDistLut.scala 100:28:@1035.10]
+  assign _T_220 = ext_idx + 5'h1; // @[GunzipLenDistLut.scala 100:28:@1035.10]
   assign _T_221 = ext_idx == ext_lim; // @[GunzipLenDistLut.scala 102:22:@1037.10]
   assign _GEN_140 = _T_221 ? 2'h2 : state; // @[GunzipLenDistLut.scala 102:35:@1038.10]
   assign _GEN_142 = io_data_in_valid ? _GEN_139 : ext_val; // @[GunzipLenDistLut.scala 97:31:@978.8]
@@ -3363,7 +3327,7 @@ module GunzipLenDistLut_1( // @[:@872.2]
   assign _T_222 = 2'h2 == state; // @[Conditional.scala 37:30:@1044.8]
   assign _GEN_163 = {{2'd0}, ext_val}; // @[GunzipLenDistLut.scala 110:27:@1048.10]
   assign _T_224 = val_init + _GEN_163; // @[GunzipLenDistLut.scala 110:27:@1048.10]
-  assign _T_225 = _T_224[8:0]; // @[GunzipLenDistLut.scala 110:27:@1049.10]
+  assign _T_225 = val_init + _GEN_163; // @[GunzipLenDistLut.scala 110:27:@1049.10]
   assign _GEN_145 = _T_222 ? 2'h0 : state; // @[Conditional.scala 39:67:@1045.8]
   assign _GEN_147 = _T_222 ? {{6'd0}, _T_225} : out_reg; // @[Conditional.scala 39:67:@1045.8]
   assign _GEN_148 = _T_179 ? io_data_in_valid : 1'h0; // @[Conditional.scala 39:67:@977.6]
@@ -3401,11 +3365,7 @@ module GunzipLenDistLut_1( // @[:@872.2]
       `INIT_RANDOM
     `endif
     `ifndef VERILATOR
-      `ifdef RANDOMIZE_DELAY
-        #`RANDOMIZE_DELAY begin end
-      `else
-        #0.002 begin end
-      `endif
+      #0.002 begin end
     `endif
   `ifdef RANDOMIZE_REG_INIT
   _RAND_0 = {1{`RANDOM}};
@@ -3733,7 +3693,7 @@ module GunzipOutBuf( // @[:@1058.2]
   assign out_buf__T_30_mask = 1'h1;
   assign out_buf__T_30_en = io_valid_in;
   assign _T_32 = out_buf_wr_pos + 15'h1; // @[GunzipOutBuf.scala 54:38:@1070.6]
-  assign _T_33 = _T_32[14:0]; // @[GunzipOutBuf.scala 54:38:@1071.6]
+  assign _T_33 = out_buf_wr_pos + 15'h1; // @[GunzipOutBuf.scala 54:38:@1071.6]
   assign _GEN_3 = 1'h1; // @[GunzipOutBuf.scala 52:22:@1067.4]
   assign _GEN_5 = io_valid_in ? _T_33 : out_buf_wr_pos; // @[GunzipOutBuf.scala 52:22:@1067.4]
   assign _T_35 = 2'h0 == state; // @[Conditional.scala 37:30:@1075.4]
@@ -3755,7 +3715,7 @@ module GunzipOutBuf( // @[:@1058.2]
   assign _T_44 = state == 2'h2; // @[GunzipOutBuf.scala 86:22:@1113.6]
   assign _T_45 = _T_44 & io_data_out_ready; // @[GunzipOutBuf.scala 86:32:@1114.6]
   assign _T_47 = out_buf_rd_pos + 15'h1; // @[GunzipOutBuf.scala 87:38:@1116.8]
-  assign _T_48 = _T_47[14:0]; // @[GunzipOutBuf.scala 87:38:@1117.8]
+  assign _T_48 = out_buf_rd_pos + 15'h1; // @[GunzipOutBuf.scala 87:38:@1117.8]
   assign _T_50 = rem_len - 15'h1; // @[GunzipOutBuf.scala 88:24:@1119.8]
   assign _T_51 = $unsigned(_T_50); // @[GunzipOutBuf.scala 88:24:@1120.8]
   assign _T_52 = _T_51[14:0]; // @[GunzipOutBuf.scala 88:24:@1121.8]
@@ -3789,11 +3749,7 @@ module GunzipOutBuf( // @[:@1058.2]
       `INIT_RANDOM
     `endif
     `ifndef VERILATOR
-      `ifdef RANDOMIZE_DELAY
-        #`RANDOMIZE_DELAY begin end
-      `else
-        #0.002 begin end
-      `endif
+      #0.002 begin end
     `endif
   _RAND_0 = {1{`RANDOM}};
   `ifdef RANDOMIZE_MEM_INIT
@@ -4221,11 +4177,7 @@ module GunzipEngine( // @[:@1140.2]
       `INIT_RANDOM
     `endif
     `ifndef VERILATOR
-      `ifdef RANDOMIZE_DELAY
-        #`RANDOMIZE_DELAY begin end
-      `else
-        #0.002 begin end
-      `endif
+      #0.002 begin end
     `endif
   `ifdef RANDOMIZE_REG_INIT
   _RAND_0 = {1{`RANDOM}};

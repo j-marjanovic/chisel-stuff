@@ -20,12 +20,12 @@ set script_folder [_tcl::get_script_folder]
 ################################################################
 # Check if script is running in correct Vivado version.
 ################################################################
-set scripts_vivado_version 2018.3
+set scripts_vivado_version 2021.1
 set current_vivado_version [version -short]
 
 if { [string first $scripts_vivado_version $current_vivado_version] == -1 } {
    puts ""
-   catch {common::send_msg_id "BD_TCL-109" "ERROR" "This script was generated using Vivado <$scripts_vivado_version> and is being run in <$current_vivado_version> of Vivado. Please run the script in Vivado <$scripts_vivado_version> then open the design in Vivado <$current_vivado_version>. Upgrade the design by running \"Tools => Report => Report IP Status...\", then run write_bd_tcl to create an updated script."}
+   catch {common::send_gid_msg -ssname BD::TCL -id 2041 -severity "ERROR" "This script was generated using Vivado <$scripts_vivado_version> and is being run in <$current_vivado_version> of Vivado. Please run the script in Vivado <$scripts_vivado_version> then open the design in Vivado <$current_vivado_version>. Upgrade the design by running \"Tools => Report => Report IP Status...\", then run write_bd_tcl to create an updated script."}
 
    return 1
 }
@@ -43,8 +43,8 @@ if { [string first $scripts_vivado_version $current_vivado_version] == -1 } {
 
 set list_projs [get_projects -quiet]
 if { $list_projs eq "" } {
-   create_project project_1 myproj -part xczu9eg-ffvb1156-2-e
-   set_property BOARD_PART xilinx.com:zcu102:part0:3.2 [current_project]
+   create_project project_1 myproj -part xczu3eg-sbva484-1-i
+   set_property BOARD_PART avnet.com:ultra96v2:part0:1.1 [current_project]
 }
 
 
@@ -77,10 +77,10 @@ if { ${design_name} eq "" } {
    #    4): Current design opened AND is empty AND names diff; design_name exists in project.
 
    if { $cur_design ne $design_name } {
-      common::send_msg_id "BD_TCL-001" "INFO" "Changing value of <design_name> from <$design_name> to <$cur_design> since current design is empty."
+      common::send_gid_msg -ssname BD::TCL -id 2001 -severity "INFO" "Changing value of <design_name> from <$design_name> to <$cur_design> since current design is empty."
       set design_name [get_property NAME $cur_design]
    }
-   common::send_msg_id "BD_TCL-002" "INFO" "Constructing design in IPI design <$cur_design>..."
+   common::send_gid_msg -ssname BD::TCL -id 2002 -severity "INFO" "Constructing design in IPI design <$cur_design>..."
 
 } elseif { ${cur_design} ne "" && $list_cells ne "" && $cur_design eq $design_name } {
    # USE CASES:
@@ -101,19 +101,19 @@ if { ${design_name} eq "" } {
    #    8) No opened design, design_name not in project.
    #    9) Current opened design, has components, but diff names, design_name not in project.
 
-   common::send_msg_id "BD_TCL-003" "INFO" "Currently there is no design <$design_name> in project, so creating one..."
+   common::send_gid_msg -ssname BD::TCL -id 2003 -severity "INFO" "Currently there is no design <$design_name> in project, so creating one..."
 
    create_bd_design $design_name
 
-   common::send_msg_id "BD_TCL-004" "INFO" "Making design <$design_name> as current_bd_design."
+   common::send_gid_msg -ssname BD::TCL -id 2004 -severity "INFO" "Making design <$design_name> as current_bd_design."
    current_bd_design $design_name
 
 }
 
-common::send_msg_id "BD_TCL-005" "INFO" "Currently the variable <design_name> is equal to \"$design_name\"."
+common::send_gid_msg -ssname BD::TCL -id 2005 -severity "INFO" "Currently the variable <design_name> is equal to \"$design_name\"."
 
 if { $nRet != 0 } {
-   catch {common::send_msg_id "BD_TCL-114" "ERROR" $errMsg}
+   catch {common::send_gid_msg -ssname BD::TCL -id 2006 -severity "ERROR" $errMsg}
    return $nRet
 }
 
@@ -135,7 +135,7 @@ xilinx.com:ip:rst_vip:1.0\
 "
 
    set list_ips_missing ""
-   common::send_msg_id "BD_TCL-006" "INFO" "Checking if the following IPs exist in the project's IP catalog: $list_check_ips ."
+   common::send_gid_msg -ssname BD::TCL -id 2011 -severity "INFO" "Checking if the following IPs exist in the project's IP catalog: $list_check_ips ."
 
    foreach ip_vlnv $list_check_ips {
       set ip_obj [get_ipdefs -all $ip_vlnv]
@@ -145,14 +145,14 @@ xilinx.com:ip:rst_vip:1.0\
    }
 
    if { $list_ips_missing ne "" } {
-      catch {common::send_msg_id "BD_TCL-115" "ERROR" "The following IPs are not found in the IP Catalog:\n  $list_ips_missing\n\nResolution: Please add the repository containing the IP(s) to the project." }
+      catch {common::send_gid_msg -ssname BD::TCL -id 2012 -severity "ERROR" "The following IPs are not found in the IP Catalog:\n  $list_ips_missing\n\nResolution: Please add the repository containing the IP(s) to the project." }
       set bCheckIPsPassed 0
    }
 
 }
 
 if { $bCheckIPsPassed != 1 } {
-  common::send_msg_id "BD_TCL-1003" "WARNING" "Will not continue with creation of design due to the error(s) above."
+  common::send_gid_msg -ssname BD::TCL -id 2023 -severity "WARNING" "Will not continue with creation of design due to the error(s) above."
   return 3
 }
 
@@ -176,14 +176,14 @@ proc create_root_design { parentCell } {
   # Get object for parentCell
   set parentObj [get_bd_cells $parentCell]
   if { $parentObj == "" } {
-     catch {common::send_msg_id "BD_TCL-100" "ERROR" "Unable to find parent cell <$parentCell>!"}
+     catch {common::send_gid_msg -ssname BD::TCL -id 2090 -severity "ERROR" "Unable to find parent cell <$parentCell>!"}
      return
   }
 
   # Make sure parentObj is hier blk
   set parentType [get_property TYPE $parentObj]
   if { $parentType ne "hier" } {
-     catch {common::send_msg_id "BD_TCL-101" "ERROR" "Parent <$parentObj> has TYPE = <$parentType>. Expected to be <hier>."}
+     catch {common::send_gid_msg -ssname BD::TCL -id 2091 -severity "ERROR" "Parent <$parentObj> has TYPE = <$parentType>. Expected to be <hier>."}
      return
   }
 
@@ -332,47 +332,11 @@ proc create_root_design { parentCell } {
   connect_bd_net -net rst_vip_0_rst_out1 [get_bd_pins rst_clk_vip_0_200M/ext_reset_in] [get_bd_pins rst_vip_0/rst_out]
 
   # Create address segments
-  create_bd_addr_seg -range 0x00100000 -offset 0x00000000 [get_bd_addr_spaces axi_dma_mm2s/Data_MM2S] [get_bd_addr_segs axi_vip_orig/S_AXI/Reg] SEG_axi_vip_orig_Reg
-  create_bd_addr_seg -range 0x00100000 -offset 0x00000000 [get_bd_addr_spaces axi_dma_s2mm/Data_S2MM] [get_bd_addr_segs axi_vip_res/S_AXI/Reg] SEG_axi_vip_res_Reg
-  create_bd_addr_seg -range 0x00010000 -offset 0x41E00000 [get_bd_addr_spaces axi_vip_ctrl/Master_AXI] [get_bd_addr_segs axi_dma_s2mm/S_AXI_LITE/Reg] SEG_axi_dma_0_Reg
-  create_bd_addr_seg -range 0x00010000 -offset 0x41E10000 [get_bd_addr_spaces axi_vip_ctrl/Master_AXI] [get_bd_addr_segs axi_dma_mm2s/S_AXI_LITE/Reg] SEG_axi_dma_1_Reg
+  assign_bd_address -offset 0x00000000 -range 0x00100000 -target_address_space [get_bd_addr_spaces axi_dma_mm2s/Data_MM2S] [get_bd_addr_segs axi_vip_orig/S_AXI/Reg] -force
+  assign_bd_address -offset 0x00000000 -range 0x00100000 -target_address_space [get_bd_addr_spaces axi_dma_s2mm/Data_S2MM] [get_bd_addr_segs axi_vip_res/S_AXI/Reg] -force
+  assign_bd_address -offset 0x41E00000 -range 0x00010000 -target_address_space [get_bd_addr_spaces axi_vip_ctrl/Master_AXI] [get_bd_addr_segs axi_dma_s2mm/S_AXI_LITE/Reg] -force
+  assign_bd_address -offset 0x41E10000 -range 0x00010000 -target_address_space [get_bd_addr_spaces axi_vip_ctrl/Master_AXI] [get_bd_addr_segs axi_dma_mm2s/S_AXI_LITE/Reg] -force
 
-  # Perform GUI Layout
-  regenerate_bd_layout -layout_string {
-   "ExpandedHierarchyInLayout":"",
-   "guistr":"# # String gsaved with Nlview 6.8.11  2018-08-07 bk=1.4403 VDI=40 GEI=35 GUI=JA:9.0 TLS
-#  -string -flagsOSRD
-preplace inst rst_vip_0 -pg 1 -lvl 1 -y 160 -defaultsOSRD
-preplace inst axi_vip_res -pg 1 -lvl 11 -y 230 -defaultsOSRD
-preplace inst axi_dma_mm2s -pg 1 -lvl 5 -y 290 -defaultsOSRD
-preplace inst clk_vip_0 -pg 1 -lvl 1 -y 60 -defaultsOSRD
-preplace inst axi_vip_ctrl -pg 1 -lvl 3 -y 110 -defaultsOSRD
-preplace inst byte2bit_0 -pg 1 -lvl 7 -y 320 -defaultsOSRD
-preplace inst rst_clk_vip_0_200M -pg 1 -lvl 2 -y 180 -defaultsOSRD
-preplace inst axis_dwidth_converter_0 -pg 1 -lvl 6 -y 300 -defaultsOSRD
-preplace inst axi_vip_orig -pg 1 -lvl 6 -y 110 -defaultsOSRD
-preplace inst axis_dwidth_converter_1 -pg 1 -lvl 9 -y 360 -defaultsOSRD
-preplace inst axi_vip_0_axi_periph -pg 1 -lvl 4 -y 200 -defaultsOSRD
-preplace inst axi_dma_s2mm -pg 1 -lvl 10 -y 230 -defaultsOSRD
-preplace inst gunzip_0 -pg 1 -lvl 8 -y 280 -defaultsOSRD
-preplace netloc axis_dwidth_converter_0_M_AXIS 1 6 1 N
-preplace netloc axi_dma_1_M_AXIS_MM2S 1 5 1 N
-preplace netloc axi_dma_1_M_AXI_MM2S 1 5 1 1430
-preplace netloc axi_vip_0_axi_periph_M01_AXI 1 4 1 1050
-preplace netloc byte2bit_0_M_AXIS 1 7 1 1900
-preplace netloc axi_vip_0_axi_periph_M00_AXI 1 4 6 NJ 190 NJ 190 NJ 190 NJ 190 NJ 190 N
-preplace netloc rst_clk_vip_0_200M_interconnect_aresetn 1 2 2 N 200 720J
-preplace netloc clk_vip_0_clk_out 1 1 10 140 80 510 180 730 340 1050 380 1440 380 1680 400 1910 360 2130 250 2360 130 2740
-preplace netloc rst_clk_vip_0_200M_peripheral_aresetn 1 2 9 520 210 740 350 1060 390 1450 420 N 420 N 420 2140 280 2380 330 2740
-preplace netloc axi_vip_0_M_AXI 1 3 1 720
-preplace netloc gunzip_0_M_OUT 1 8 1 2120
-preplace netloc rst_clk_vip_0_200M_peripheral_reset 1 2 6 500J 30 NJ 30 NJ 30 NJ 30 1670 410 1920
-preplace netloc axi_dma_0_M_AXI_S2MM 1 10 1 N
-preplace netloc rst_vip_0_rst_out1 1 1 1 NJ
-preplace netloc axis_dwidth_converter_1_M_AXIS 1 9 1 2370
-levelinfo -pg 1 -70 40 320 620 900 1250 1560 1790 2020 2250 2560 2830 2930 -top -80 -bot 580
-"
-}
 
   # Restore current instance
   current_bd_instance $oldCurInst

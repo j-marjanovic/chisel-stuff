@@ -32,7 +32,7 @@ module ByteStreamToBitStream( // @[:@3.2]
   assign _T_31 = _T_28 & io_data_out_ready; // @[ByteStreamToBitStream.scala 41:21:@14.4]
   assign _T_33 = sel == 4'h8; // @[ByteStreamToBitStream.scala 42:15:@16.6]
   assign _T_36 = sel + 4'h1; // @[ByteStreamToBitStream.scala 45:18:@21.8]
-  assign _T_37 = _T_36[3:0]; // @[ByteStreamToBitStream.scala 45:18:@22.8]
+  assign _T_37 = sel + 4'h1; // @[ByteStreamToBitStream.scala 45:18:@22.8]
   assign _GEN_0 = _T_33 ? 4'h0 : _T_37; // @[ByteStreamToBitStream.scala 42:24:@17.6]
   assign _T_40 = _T_26 & io_data_in_valid; // @[ByteStreamToBitStream.scala 47:28:@28.6]
   assign _GEN_1 = _T_40 ? 4'h1 : sel; // @[ByteStreamToBitStream.scala 47:49:@29.6]
@@ -67,11 +67,7 @@ module ByteStreamToBitStream( // @[:@3.2]
       `INIT_RANDOM
     `endif
     `ifndef VERILATOR
-      `ifdef RANDOMIZE_DELAY
-        #`RANDOMIZE_DELAY begin end
-      `else
-        #0.002 begin end
-      `endif
+      #0.002 begin end
     `endif
   `ifdef RANDOMIZE_REG_INIT
   _RAND_0 = {1{`RANDOM}};

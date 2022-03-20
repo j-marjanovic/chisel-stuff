@@ -1,7 +1,7 @@
 /*
 MIT License
 
-Copyright (c) 2018 Jan Marjanovic
+Copyright (c) 2018-2022 Jan Marjanovic
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -27,23 +27,23 @@ SOFTWARE.
 module gunzip_system_tb;
 
 import axi_vip_pkg::*;
-import system_axi_vip_0_0_pkg::*;  // ctrl
-import system_axi_vip_0_1_pkg::*;  // source mem
-import system_axi_vip_1_0_pkg::*;  // dest mem
+import system_axi_vip_ctrl_0_pkg::*;  // ctrl
+import system_axi_vip_orig_0_pkg::*;  // source mem
+import system_axi_vip_res_0_pkg::*;  // dest mem
 
 //
 system_wrapper DUT ();
 
-system_axi_vip_0_0_mst_t ctrl_agent;
-system_axi_vip_0_1_slv_mem_t agent_mem_src;
-system_axi_vip_1_0_slv_mem_t agent_mem_dst;
+system_axi_vip_ctrl_0_mst_t ctrl_agent;
+system_axi_vip_orig_0_slv_mem_t agent_mem_src;
+system_axi_vip_res_0_slv_mem_t agent_mem_dst;
 
 //==============================================================================
 
 class AxiAccessor;
-    system_axi_vip_0_0_mst_t agent;
+    system_axi_vip_ctrl_0_mst_t agent;
 
-    function new (ref system_axi_vip_0_0_mst_t agent);
+    function new (ref system_axi_vip_ctrl_0_mst_t agent);
         this.agent = agent;
     endfunction
 
